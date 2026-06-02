@@ -70,6 +70,14 @@ public class AuthService : IAuthService
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            // 3. Gán quyền Owner cho User này
+            var ownerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Owner");
+            if (ownerRole != null)
+            {
+                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = ownerRole.Id });
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
             return true;
         }

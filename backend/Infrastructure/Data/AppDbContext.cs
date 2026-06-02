@@ -76,5 +76,13 @@ public class AppDbContext : DbContext
         // Cấu hình cho ProductIngredient (Many-to-Many)
         modelBuilder.Entity<ProductIngredient>()
             .HasKey(pi => new { pi.ProductId, pi.IngredientId });
+
+        // Seed Roles mặc định
+        modelBuilder.Entity<Role>().HasData(
+            new Role { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "Owner", Description = "Chủ nhà hàng" },
+            new Role { Id = Guid.Parse("00000000-0000-0000-0000-000000000002"), Name = "Manager", Description = "Quản lý chi nhánh" },
+            new Role { Id = Guid.Parse("00000000-0000-0000-0000-000000000003"), Name = "Cashier", Description = "Thu ngân" },
+            new Role { Id = Guid.Parse("00000000-0000-0000-0000-000000000004"), Name = "Waiter", Description = "Nhân viên phục vụ" }
+        );
     }
 }

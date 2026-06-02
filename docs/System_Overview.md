@@ -5,38 +5,33 @@ Hệ thống được thiết kế theo kiến trúc **Modular Monolith**, giúp
 ## 1. Cấu trúc Project
 - **Infrastructure**: Chứa cấu hình dùng chung, BaseEntity và AppDbContext.
 - **Modules**: Chứa các Entity phân theo từng module nghiệp vụ.
-- **RestaurantPOS.API**: (Đã dồn vào thư mục gốc `backend`) Chứa Program.cs, appsettings.json và các Controller.
+- **backend**: Thư mục gốc của Backend, chứa logic API, Services và cấu hình Deployment (Dockerfile).
+- **restaurant_pos_web**: Thư mục Frontend (React + TypeScript + Tailwind CSS).
 
-## 2. Các Module đã hoàn thành (Entity Level)
+## 2. Các Module và API đã hoàn thành
 
-### Module Core (Cốt lõi)
-Quản lý thông tin nhà hàng, chi nhánh, người dùng và phân quyền.
-- **Entities**: Restaurant, Branch, BranchSetting, User, Role, UserRole.
+### Module Authentication (Xác thực) ✅
+- **Logic**: Sử dụng JWT Token, mã hóa mật khẩu bằng BCrypt.
+- **APIs**: Login, Register Owner (Tạo nhà hàng + Tài khoản chủ).
 
-### Module Menu (Thực đơn)
-Quản lý danh mục món ăn, sản phẩm và các biến thể món ăn (Size, Topping).
-- **Entities**: Category, Product, ProductVariant.
+### Module Core (Cốt lõi) ✅
+- **Logic**: Quản lý thông tin nhà hàng, chi nhánh, nhân viên.
+- **APIs**: 
+    - `Restaurants`: Xem và cập nhật thông tin nhà hàng.
+    - `Branches`: Quản lý danh sách chi nhánh.
+    - `Users`: Quản lý danh sách nhân viên và phân quyền (Role).
 
-### Module Table Management (Quản lý bàn)
-Quản lý thông tin bàn ăn, số lượng khách và mã QR.
-- **Entities**: DiningTable.
+### Module Menu (Thực đơn) ✅
+- **Logic**: Quản lý danh mục và món ăn.
+- **APIs**: 
+    - `Categories`: CRUD danh mục món ăn.
+    - `Products`: CRUD món ăn, lọc theo danh mục.
 
-### Module Ordering (Đặt món)
-Xử lý luồng đặt món từ lúc khách vào (Session) cho đến khi tạo đơn hàng.
-- **Entities**: CustomerSession, Order, OrderItem, OrderRequest, OrderRequestItem.
+### Module QR Ordering (Đặt món tại bàn) ✅
+- **Logic**: Khách hàng quét mã QR để xem menu và gửi yêu cầu gọi món không cần đăng nhập.
+- **APIs**: 
+    - `Get Menu`: Lấy thực đơn dựa trên ID bàn.
+    - `Submit Request`: Gửi yêu cầu gọi món vào hệ thống chờ nhân viên duyệt.
 
-### Module Payment (Thanh toán)
-Quản lý phương thức thanh toán, giao dịch ngân hàng và hoàn tiền.
-- **Entities**: PaymentAccount, Payment, PaymentTransaction, Refund.
-
-### Module CRM (Quản lý khách hàng)
-Lưu trữ thông tin khách hàng, tích điểm và hệ thống Voucher giảm giá.
-- **Entities**: Customer, CustomerPointHistory, Voucher, VoucherUsage.
-
-### Module Inventory (Quản lý kho)
-Định lượng nguyên liệu cho món ăn (Recipe), nhập kho từ nhà cung cấp và quản lý tồn kho.
-- **Entities**: Ingredient, ProductIngredient, InventoryItem, InventoryTransaction, Supplier, PurchaseOrder, PurchaseOrderItem.
-
-### Module Finance & System
-Theo dõi chi phí ngoài và vận hành hệ thống.
-- **Entities**: Expense, UserShift (Quản lý ca), AuditLog (Nhật ký hệ thống).
+### Các Module Entity khác (Đã có Schema) 
+- **Payment, CRM, Inventory, Finance, System**: Toàn bộ Entity đã được định nghĩa và đồng bộ hóa với Database.

@@ -2,21 +2,30 @@
 
 ## 1. Lệnh EF Core quan trọng
 Sử dụng tại thư mục `backend/`:
+- `dotnet ef migrations add <Ten_Migration>`
+- `dotnet ef database update`
 
-- **Tạo Migration mới (khi sửa Entity):**
-  `dotnet ef migrations add <Ten_Migration>`
-- **Cập nhật Database:**
-  `dotnet ef database update`
-- **Xóa Migration cuối cùng (nếu chưa update DB):**
-  `dotnet ef migrations remove`
+## 2. Tiến độ dự án (Roadmap)
 
-## 2. Các bước tiếp theo (Lộ trình)
-1. **Authentication:** Cài đặt JWT và xử lý Đăng nhập/Đăng ký.
-2. **Seed Data:** Tạo sẵn các Role và một tài khoản Admin mặc định.
-3. **API Core:** Viết các API CRUD cho Restaurant và Branch.
-4. **API Menu:** Viết API quản lý thực đơn.
-5. **Logic Đặt món:** Xử lý luồng tạo Order và trừ tồn kho tự động.
+### Giai đoạn 1: Xây dựng Cột sống (Backbone) ✅
+1. **Database Schema**: Hoàn thành 33 bảng. ✅
+2. **Authentication**: JWT, BCrypt, Login/Register Owner. ✅
+3. **Core API**: Quản lý Restaurant, Branch, User. ✅
+4. **Roles Seeding**: Tự động tạo Owner, Manager, Cashier, Waiter. ✅
+
+### Giai đoạn 2: Nghiệp vụ chính (Core Business)
+1. **Menu API**: Quản lý thực đơn (Category & Product). ✅
+2. **QR Ordering API**: Luồng gọi món tại bàn cho khách. ✅
+3. **Frontend Framework**: Setup React + Vite + Tailwind + Axios. ✅
+4. **Authentication UI**: Trang Login cho nhân viên/chủ. ✅
+
+### Giai đoạn 3: Vận hành & Real-time (Next) 🚀
+1. **Order Management**: Nhân viên duyệt món, chuyển từ Request sang Order.
+2. **SignalR Integration**: Thông báo món mới vào bếp/nhân viên phục vụ ngay lập tức.
+3. **Payment Integration**: VietQR hoặc các cổng thanh toán.
+4. **Inventory Tracking**: Tự động trừ kho khi hoàn thành đơn hàng.
 
 ## 3. Lưu ý bảo mật
-- Luôn giữ file `appsettings.json` an toàn, không commit các mật khẩu thật lên GitHub public.
-- Sử dụng Environment Variables cho các thông tin nhạy cảm khi triển khai lên server (Production).
+- Tuyệt đối không lưu mật khẩu Database trong code khi Push lên GitHub.
+- Sử dụng Environment Variables trên Render/Vercel.
+- Chỉ các API `Auth` và `QROrdering` là Public, các API khác phải có Token.
