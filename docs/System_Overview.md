@@ -12,44 +12,37 @@ Hệ thống được thiết kế theo kiến trúc **Modular Monolith**, giúp
 
 ### Module Authentication (Xác thực) ✅
 - **Logic**: Sử dụng JWT Token, mã hóa mật khẩu bằng BCrypt.
-- **APIs**: Login, Register Owner (Tạo nhà hàng + Tài khoản chủ).
-- **Frontend**: Trang Đăng nhập đã kết nối API thật.
+- **APIs**: Login, Register Owner, Register Employee, Register Customer.
+- **Frontend**: Toàn bộ luồng Đăng nhập/Đăng ký cho 3 đối tượng đã kết nối API thật.
 
 ### Module Core (Cốt lõi) ✅
-- **Logic**: Quản lý thông tin nhà hàng, chi nhánh, nhân viên.
-- **APIs**: 
-    - `Restaurants`: Xem và cập nhật thông tin nhà hàng.
-    - `Branches`: Quản lý danh sách chi nhánh (CRUD).
-    - `Users`: Quản lý danh sách nhân viên và phân quyền (Role).
-    - `Tables`: Quản lý sơ đồ bàn ăn và trạng thái bàn.
-- **Frontend**: Trang Quản lý Chi nhánh, Nhân viên, Bàn ăn đã kết nối dữ liệu thật.
+- **Logic**: Quản lý thông tin nhà hàng, chi nhánh, nhân viên, phân quyền.
+- **APIs**: `Restaurants`, `Branches`, `Users` (Quản lý nhân viên & Duyệt nhân viên), `Tables`.
+- **Frontend**: Quản lý chi nhánh, nhân viên (có duyệt đơn xin việc), sơ đồ bàn ăn (có sinh mã QR thật).
 
-### Module Menu (Thực đơn) ✅
-- **Logic**: Quản lý danh mục và món ăn.
-- **APIs**: 
-    - `Categories`: CRUD danh mục món ăn.
-    - `Products`: CRUD món ăn, lọc theo danh mục.
-- **Frontend**: Trang Quản lý thực đơn đã kết nối dữ liệu thật.
+### Module Menu & Ordering ✅
+- **Logic**: Quản lý thực đơn, luồng đặt món từ khách hàng và duyệt món từ nhân viên.
+- **APIs**: `Categories`, `Products`, `OrderRequests` (Duyệt món), `Orders`.
+- **Frontend**: 
+    - **Chủ quán**: Quản lý thực đơn linh hoạt.
+    - **Nhân viên**: Màn hình POS, duyệt yêu cầu gọi món thời gian thực (SignalR).
+    - **Khách hàng**: Trang gọi món QR chuyên nghiệp, giỏ hàng, theo dõi đơn hàng.
 
-### Module QR Ordering (Đặt món tại bàn) ✅
-- **Logic**: Khách hàng quét mã QR để xem menu và gửi yêu cầu gọi món không cần đăng nhập.
-- **APIs**: 
-    - `Get Menu`: Lấy thực đơn dựa trên ID bàn.
-    - `Submit Request`: Gửi yêu cầu gọi món vào hệ thống.
-- **Frontend**: Trang gọi món cho khách (`TableOrderPage`) đã hoạt động với dữ liệu thật từ Backend.
+### Module Inventory & Suppliers ✅
+- **Logic**: Quản lý kho nguyên liệu và nhà cung cấp.
+- **Frontend**: 
+    - `Inventory`: Theo dõi tồn kho, cảnh báo hàng sắp hết, lịch sử biến động.
+    - `Suppliers`: Quản lý thông tin nhà cung cấp.
+    - `Purchase Orders`: Lập và theo dõi đơn nhập hàng từ nhà cung cấp.
 
-### Module CRM & Order Management ✅
-- **Logic**: Quản lý thông tin khách hàng và luồng đơn hàng.
-- **APIs**: 
-    - `Customers`: Danh sách khách hàng thân thiết.
-    - `Orders`: Theo dõi và cập nhật trạng thái đơn hàng (Dành cho nhân viên).
+### Module Finance & System ✅
+- **Logic**: Quản lý chi phí ngoài và vận hành nhân sự.
+- **Frontend**:
+    - `Expenses`: Ghi chép chi phí (điện, nước, lương...) theo danh mục.
+    - `Employee Shifts`: Theo dõi ca làm việc, thời gian check-in/out của nhân viên.
+    - `Payment Accounts`: Quản lý danh sách tài khoản ngân hàng nhận tiền VietQR.
 
-### Module Payment (Thanh toán) ✅
-- **Logic**: Tích hợp thanh toán không tiền mặt qua VietQR.
-- **APIs**: 
-    - `Get/Update Config`: Chủ quán thiết lập số tài khoản ngân hàng.
-    - `Generate QR`: Tự động tạo mã QR kèm số tiền và nội dung chuyển khoản cho từng đơn hàng.
-- **Frontend**: Trang Giỏ hàng đã tích hợp quét mã VietQR để thanh toán.
-
-### Các Module khác (Đã có Schema) 
-- **Payment, Inventory, Finance, System**: Toàn bộ Entity đã được định nghĩa và đồng bộ hóa với Database.
+### Module CRM & Reports ✅
+- **Logic**: Chăm sóc khách hàng và báo cáo doanh thu.
+- **APIs**: `Customers`, `Vouchers`, `Dashboard Stats`.
+- **Frontend**: Danh sách khách hàng thân thiết, quản lý mã giảm giá, biểu đồ thống kê doanh thu.

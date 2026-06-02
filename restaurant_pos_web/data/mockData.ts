@@ -110,6 +110,22 @@ export const mockPaymentAccounts: PaymentAccount[] = [
   { id: 'acc2', bankName: 'Techcombank', accountNumber: '9876543210', accountName: 'THE GREEN BISTRO', branch: 'Uptown', isDefault: false },
 ];
 
+// TABLES
+export interface Table {
+  id: string;
+  number: string;
+  status: 'available' | 'occupied' | 'reserved' | 'waiting-payment';
+  capacity: number;
+  currentOrder?: string;
+}
+
+export const mockTables: Table[] = [
+  { id: 't1', number: '1', status: 'available', capacity: 4 },
+  { id: 't2', number: '2', status: 'occupied', capacity: 2, currentOrder: '$45.00' },
+  { id: 't3', number: '3', status: 'available', capacity: 6 },
+  { id: 't4', number: '4', status: 'reserved', capacity: 4 },
+];
+
 // ORDER REQUESTS (FOR EMPLOYEE)
 export interface OrderRequest {
   id: string;
@@ -145,6 +161,24 @@ export const mockCustomers = [
   { id: 'c1', name: 'John Doe', email: 'john@example.com', phone: '0901234567', loyaltyPoints: 1200, totalSpending: 450.5, orderCount: 12 },
 ];
 
-export const mockOrders = [
+export interface Order {
+  id: string;
+  tableNumber: string;
+  status: 'sent' | 'preparing' | 'ready' | 'served' | 'completed';
+  items: any[];
+  total: number;
+  createdAt: string;
+  customer?: string;
+}
+
+export const mockOrders: Order[] = [
   { id: 'ORD-001', tableNumber: '2', status: 'preparing', items: [{ id: 'm1', name: 'Classic Burger', price: 12.99, quantity: 2 }], total: 25.98, createdAt: new Date().toISOString() },
 ];
+
+export interface OrderItem {
+  id: string;
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}

@@ -4,11 +4,7 @@ Hệ thống sử dụng **PostgreSQL** với toàn bộ 33 bảng đã được
 
 ## Trạng thái hiện tại: 
 - **Migration**: `InitialFullSchema` và `SeedRoles` đã được áp dụng thành công.
-- **Data Seeding**: Các quyền (`Role`) mặc định đã được tạo sẵn trong DB:
-    - `Owner`: Chủ nhà hàng.
-    - `Manager`: Quản lý chi nhánh.
-    - `Cashier`: Thu ngân.
-    - `Waiter`: Nhân viên phục vụ.
+- **Tình trạng khai thác**: 100% các bảng đã được thiết kế giao diện quản lý (CRUD) tương ứng trên Dashboard.
 
 ## 1. Nhóm Core & Phân quyền
 1. `Restaurants`: Thông tin tổng của thương hiệu.
@@ -39,7 +35,7 @@ Hệ thống sử dụng **PostgreSQL** với toàn bộ 33 bảng đã được
 20. `Ingredients`: Danh mục nguyên vật liệu.
 21. `ProductIngredients`: Định lượng món ăn (Recipe).
 22. `InventoryItems`: Tồn kho hiện tại.
-23. `InventoryTransactions`: Lịch sử nhập/xuất/hủy.
+23. `InventoryTransactions`: Lịch sử biến động kho.
 24. `Suppliers`: Nhà cung cấp.
 25. `PurchaseOrders`: Đơn mua hàng.
 26. `PurchaseOrderItems`: Chi tiết đơn mua.
@@ -51,6 +47,6 @@ Hệ thống sử dụng **PostgreSQL** với toàn bộ 33 bảng đã được
 30. `VoucherUsages`: Lịch sử dùng voucher.
 
 ## 6. Nhóm Hệ thống & Tài chính
-31. `Expenses`: Chi phí ngoài.
-32. `UserShifts`: Quản lý ca làm việc.
+31. `Expenses`: Chi phí ngoài (điện, nước, mặt bằng...).
+32. `UserShifts`: Quản lý ca làm việc (Check-in/Check-out).
 33. `AuditLogs`: Nhật ký hệ thống.
