@@ -36,11 +36,9 @@ public class CustomersController : ControllerBase
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
 
-        // 1. Kiểm tra đơn hàng
         var order = await _context.Orders.FindAsync(request.OrderId);
         if (order == null) return NotFound("Không tìm thấy đơn hàng");
 
-        // 2. Tìm hoặc tạo khách hàng
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == request.PhoneNumber);
         if (customer == null)
         {
@@ -56,16 +54,13 @@ public class CustomersController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        // 3. Tính điểm: 10,000 VND = 1 điểm
         int earnedPoints = (int)Math.Floor(order.TotalAmount / 10000);
 
-        // 4. Cập nhật khách hàng
         customer.Points += earnedPoints;
         customer.TotalSpent += order.TotalAmount;
         customer.LastVisitAtUtc = DateTime.UtcNow;
 
-        // 5. Lưu lịch sử
-        _context.CustomerPointHistory.Add(new CustomerPointHistory
+        _context.CustomerPointHistories.Add(new CustomerPointHistory
         {
             CustomerId = customer.Id,
             OrderId = order.Id,

@@ -29,15 +29,12 @@ public class VouchersController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // 1. Tìm khách hàng (Dựa trên User đang đăng nhập)
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == userId); // Giả sử Id User = Id Customer
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == userId);
         if (customer == null) return NotFound("Không tìm thấy thông tin thành viên");
 
-        // 2. Tìm Voucher và chi phí điểm
         var voucher = await _context.Vouchers.FindAsync(voucherId);
         if (voucher == null || !voucher.IsActive) return BadRequest("Voucher không khả dụng");
 
-        // Giả sử quy định: Giá trị giảm * 10 = Số điểm cần đổi (Vd: Giảm 50k = 500 điểm)
         int requiredPoints = (int)voucher.DiscountValue * 10;
 
         if (customer.Points < requiredPoints)
@@ -46,11 +43,9 @@ public class VouchersController : ControllerBase
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 3. Trừ điểm khách hàng
             customer.Points -= requiredPoints;
 
-            // 4. Ghi lại lịch sử dùng điểm
-            _context.CustomerPointHistory.Add(new CustomerPointHistory
+            _context.CustomerPointHistories.Add(new CustomerPointHistory
             {
                 CustomerId = customer.Id,
                 Points = -requiredPoints,
@@ -58,13 +53,12 @@ public class VouchersController : ControllerBase
                 Description = $"Đổi điểm lấy mã giảm giá: {voucher.Code}"
             });
 
-            // 5. Lưu Voucher này cho khách (Tạo bản ghi VoucherUsage nhưng chưa dùng)
             _context.VoucherUsages.Add(new VoucherUsage
             {
                 VoucherId = voucher.Id,
                 CustomerId = customer.Id,
                 UsedAtUtc = DateTime.UtcNow,
-                DiscountAmount = voucher.DiscountValue // Tạm thời ghi nhận giá trị
+                DiscountAmount = voucher.DiscountValue
             });
 
             await _context.SaveChangesAsync();

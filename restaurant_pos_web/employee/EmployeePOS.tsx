@@ -4,7 +4,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
-import { CheckCircle2, UserPlus, Loader2, ArrowRight } from "lucide-react";
+import { CheckCircle2, UserPlus, Loader2, ArrowRight, Star } from "lucide-react";
 import api from "../services/api";
 import { mockMenuItems, mockTables } from "../data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";

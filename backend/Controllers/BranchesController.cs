@@ -38,9 +38,9 @@ public class BranchesController : ControllerBase
         var existing = await _context.Branches.FindAsync(id);
         if (existing == null) return NotFound();
 
-        existing.Name = branch.name; // Lưu ý viết thường/hoa theo Entity
-        existing.Address = branch.address;
-        existing.Phone = branch.phone;
+        existing.Name = branch.Name;
+        existing.Address = branch.Address;
+        existing.Phone = branch.Phone;
 
         await _context.SaveChangesAsync();
         return Ok(existing);
