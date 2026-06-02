@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/authApi';
-import { Utensils } from 'lucide-react';
+import { Utensils, Loader2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { Label } from '../components/ui/label';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -17,89 +21,41 @@ const Login = () => {
 
     try {
       await authApi.login({ username, password });
-      navigate('/dashboard'); // Hoặc trang chủ của bạn
+      navigate('/owner');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại');
+      setError(err.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <Utensils className="w-12 h-12 text-orange-600" />
-        </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Restaurant POS
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Đăng nhập để quản lý nhà hàng của bạn
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4">
-                <div className="flex">
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Tên đăng nhập
-              </label>
-              <div className="mt-1">
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                />
-              </div>
+    <div className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-none">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-200">
+            <Utensils className="text-white w-8 h-8" />
+          </div>
+          <CardTitle className="text-2xl font-black text-gray-900">Restaurant POS</CardTitle>
+          <CardDescription>Đăng nhập vào hệ thống quản lý</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{error}</div>}
+            <div className="space-y-2">
+              <Label>Tên đăng nhập</Label>
+              <Input required value={username} onChange={(e: any) => setUsername(e.target.value)} />
             </div>
-
-            <div>
-              <label htmlFor="password" title="Password" className="block text-sm font-medium text-gray-700">
-                Mật khẩu
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Mật khẩu</Label>
+              <Input type="password" required value={password} onChange={(e: any) => setPassword(e.target.value)} />
             </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                  loading ? 'bg-orange-400' : 'bg-orange-600 hover:bg-orange-700'
-                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500`}
-              >
-                {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-              </button>
-            </div>
+            <Button disabled={loading} className="w-full bg-orange-600 h-11 font-bold">
+              {loading ? <Loader2 className="animate-spin" /> : "Đăng nhập"}
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
