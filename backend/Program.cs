@@ -12,14 +12,15 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 2. Cấu hình CORS - Cho phép tất cả để test nhanh, sau này có thể siết lại
+// 2. Cấu hình CORS cực kỳ linh hoạt cho Production
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true) // Cho phép tất cả origin
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .WithExposedHeaders("Content-Disposition"); // Hữu ích cho việc download file sau này
     });
 });
 
@@ -54,15 +55,16 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// THỨ TỰ MIDDLEWARE CỰC KỲ QUAN TRỌNG TRÊN RENDER
+app.UseCors("AllowAll"); // CORS PHẢI ĐỨNG ĐẦU TIÊN
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
-// THỨ TỰ QUAN TRỌNG: Cors -> Auth -> Map
-app.UseCors("AllowAll");
+// Render xử lý HTTPS ở Load Balancer, đôi khi việc redirect ở code gây lỗi CORS
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

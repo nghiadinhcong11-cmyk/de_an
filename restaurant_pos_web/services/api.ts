@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Ưu tiên lấy từ biến môi trường của Render, nếu không có thì dùng localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5245/api';
+// URL Backend mới nhất từ Render
+const API_URL = import.meta.env.VITE_API_URL || 'https://restaurant-pos-api-uvcz.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
