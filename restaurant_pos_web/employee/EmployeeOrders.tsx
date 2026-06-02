@@ -41,7 +41,7 @@ export function EmployeeOrders() {
         console.log("Đã kết nối SignalR thành công!");
 
         // Lắng nghe sự kiện có yêu cầu mới
-        connection.on("ReceiveNewOrderRequest", (data) => {
+        connection.on("ReceiveNewOrderRequest", (data: any) => {
            console.log("Có đơn mới:", data);
            // Phát âm thanh thông báo
            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
@@ -50,7 +50,7 @@ export function EmployeeOrders() {
            fetchData();
         });
       })
-      .catch(err => console.error("Lỗi kết nối SignalR:", err));
+      .catch((err: any) => console.error("Lỗi kết nối SignalR:", err));
 
     return () => {
       connection.stop();
