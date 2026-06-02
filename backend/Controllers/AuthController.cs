@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RestaurantPOS.DTOs;
+using RestaurantPOS.Infrastructure.Data;
+using RestaurantPOS.Modules.Core.Entities;
 using RestaurantPOS.Services;
 
 namespace RestaurantPOS.Controllers;
@@ -9,10 +12,12 @@ namespace RestaurantPOS.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly AppDbContext _context;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, AppDbContext context)
     {
         _authService = authService;
+        _context = context;
     }
 
     [HttpPost("login")]
@@ -43,11 +48,11 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Yêu cầu tham gia đã được gửi!" });
     }
 
-    [HttpGet("find-restaurant/{id}")]
-    public async Task<IActionResult> FindRestaurant(Guid id)
+    [HttpGet("find-restaurant-info")]
+    public async Task<IActionResult> FindRestaurantInfo()
     {
-        // API để nhân viên tìm quán trước khi xin vào làm
-        // Giả sử dùng ID (Guid) để tìm kiếm
-        return Ok();
+        var restaurant = await _context.Restaurants.FirstOrDefaultAsync();
+        if (restaurant == null) return NotFound();
+        return Ok(restaurant);
     }
 }

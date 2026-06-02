@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RestaurantPOS.Infrastructure.Common;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Services;
 
