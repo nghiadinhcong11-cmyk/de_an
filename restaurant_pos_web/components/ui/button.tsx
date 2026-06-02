@@ -1,5 +1,3 @@
-import * as React from "react"
-
 export const Button = ({ className, variant, size, ...props }: any) => {
   const variants: any = {
     default: "bg-orange-600 text-white hover:bg-orange-700",

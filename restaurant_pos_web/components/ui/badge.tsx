@@ -1,5 +1,3 @@
-import * as React from "react"
-
 export const Badge = ({ className, variant, ...props }: any) => {
   const variants: any = {
     default: "border-transparent bg-orange-600 text-white hover:bg-orange-600/80",
