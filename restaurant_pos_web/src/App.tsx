@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
+import RegisterOwner from '../pages/RegisterOwner';
 import OwnerLayout from '../layouts/OwnerLayout';
 import CustomerLayout from '../layouts/CustomerLayout';
 
@@ -34,6 +35,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register-owner" element={<RegisterOwner />} />
         <Route path="/employee/register" element={<EmployeeRegister />} />
 
         {/* Customer QR Route */}
