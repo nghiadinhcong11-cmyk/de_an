@@ -14,6 +14,10 @@ export const authApi = {
     return await api.post('/auth/register-owner', data);
   },
 
+  registerEmployee: async (data: any) => {
+    return await api.post('/auth/register-employee', data);
+  },
+
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

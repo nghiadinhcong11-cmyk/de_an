@@ -13,36 +13,47 @@ namespace RestaurantPOS.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly AppDbContext _context;
-
-    public UsersController(AppDbContext context)
-    {
-        _context = context;
-    }
+    public UsersController(AppDbContext context) => _context = context;
 
     [HttpGet]
     public async Task<IActionResult> GetEmployees()
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
         var users = await _context.Users
-            .Where(u => u.RestaurantId == restaurantId)
+            .Where(u => u.RestaurantId == restaurantId && u.IsActive == true)
             .ToListAsync();
         return Ok(users);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateEmployee([FromBody] User employee)
+    [HttpGet("pending-requests")]
+    public async Task<IActionResult> GetPendingRequests()
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var pendingUsers = await _context.Users
+            .Where(u => u.RestaurantId == restaurantId && u.IsActive == false)
+            .ToListAsync();
+        return Ok(pendingUsers);
+    }
 
-        if (await _context.Users.AnyAsync(u => u.Username == employee.Username))
-            return BadRequest(new { message = "Tên đăng nhập đã tồn tại" });
+    [HttpPost("approve/{userId}")]
+    public async Task<IActionResult> ApproveEmployee(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound();
 
-        employee.RestaurantId = restaurantId;
-        employee.PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"); // Mật khẩu mặc định cho nhân viên mới
-
-        _context.Users.Add(employee);
+        user.IsActive = true;
         await _context.SaveChangesAsync();
+        return Ok(new { message = "Đã duyệt nhân viên thành công" });
+    }
 
-        return Ok(employee);
+    [HttpDelete("reject/{userId}")]
+    public async Task<IActionResult> RejectEmployee(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Đã từ chối yêu cầu" });
     }
 }

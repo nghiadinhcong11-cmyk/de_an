@@ -13,6 +13,7 @@ public interface IAuthService
 {
     Task<LoginResponse?> LoginAsync(LoginRequest request);
     Task<bool> RegisterOwnerAsync(RegisterOwnerRequest request);
+    Task<bool> RegisterEmployeeAsync(RegisterEmployeeRequest request);
 }
 
 public class AuthService : IAuthService
@@ -24,6 +25,34 @@ public class AuthService : IAuthService
     {
         _context = context;
         _configuration = configuration;
+    }
+
+    public async Task<bool> RegisterEmployeeAsync(RegisterEmployeeRequest request)
+    {
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            return false;
+
+        var user = new User
+        {
+            RestaurantId = request.RestaurantId,
+            BranchId = request.BranchId,
+            Username = request.Username,
+            FullName = request.FullName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            IsActive = false // Đợi chủ quán duyệt
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName);
+        if (role != null)
+        {
+            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
     }
 
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)

@@ -34,4 +34,20 @@ public class AuthController : ControllerBase
 
         return Ok(new { message = "Đăng ký chủ nhà hàng thành công" });
     }
+
+    [HttpPost("register-employee")]
+    public async Task<IActionResult> RegisterEmployee([FromBody] RegisterEmployeeRequest request)
+    {
+        var result = await _authService.RegisterEmployeeAsync(request);
+        if (!result) return BadRequest(new { message = "Lỗi đăng ký nhân viên" });
+        return Ok(new { message = "Yêu cầu tham gia đã được gửi!" });
+    }
+
+    [HttpGet("find-restaurant/{id}")]
+    public async Task<IActionResult> FindRestaurant(Guid id)
+    {
+        // API để nhân viên tìm quán trước khi xin vào làm
+        // Giả sử dùng ID (Guid) để tìm kiếm
+        return Ok();
+    }
 }

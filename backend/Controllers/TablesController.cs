@@ -19,16 +19,38 @@ public class TablesController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var branchIds = await _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).ToListAsync();
-        var tables = await _context.DiningTables.Where(t => branchIds.Contains(t.BranchId)).ToListAsync();
+        var branchIds = await _context.Branches
+            .Where(b => b.RestaurantId == restaurantId)
+            .Select(b => b.Id)
+            .ToListAsync();
+
+        var tables = await _context.DiningTables
+            .Where(t => branchIds.Contains(t.BranchId))
+            .OrderBy(t => t.TableNumber)
+            .ToListAsync();
+
         return Ok(tables);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] DiningTable table)
     {
+        if (table.BranchId == Guid.Empty) return BadRequest("Phải chọn chi nhánh");
+
+        table.Status = "Available";
         _context.DiningTables.Add(table);
         await _context.SaveChangesAsync();
         return Ok(table);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var table = await _context.DiningTables.FindAsync(id);
+        if (table == null) return NotFound();
+
+        _context.DiningTables.Remove(table);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Đã xóa bàn" });
     }
 }

@@ -44,5 +44,12 @@ Hệ thống được thiết kế theo kiến trúc **Modular Monolith**, giúp
     - `Customers`: Danh sách khách hàng thân thiết.
     - `Orders`: Theo dõi và cập nhật trạng thái đơn hàng (Dành cho nhân viên).
 
+### Module Payment (Thanh toán) ✅
+- **Logic**: Tích hợp thanh toán không tiền mặt qua VietQR.
+- **APIs**: 
+    - `Get/Update Config`: Chủ quán thiết lập số tài khoản ngân hàng.
+    - `Generate QR`: Tự động tạo mã QR kèm số tiền và nội dung chuyển khoản cho từng đơn hàng.
+- **Frontend**: Trang Giỏ hàng đã tích hợp quét mã VietQR để thanh toán.
+
 ### Các Module khác (Đã có Schema) 
 - **Payment, Inventory, Finance, System**: Toàn bộ Entity đã được định nghĩa và đồng bộ hóa với Database.

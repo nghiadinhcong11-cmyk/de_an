@@ -52,6 +52,7 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR(); // Thêm dòng này
 
 var app = builder.Build();
 
@@ -70,5 +71,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub"); // Thêm dòng này
 
 app.Run();
