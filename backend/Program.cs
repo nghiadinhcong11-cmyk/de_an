@@ -12,7 +12,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 1.5 Cấu hình CORS (Cho phép Web gọi API)
+// 2. Cấu hình CORS - Cho phép tất cả để test nhanh, sau này có thể siết lại
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -23,7 +23,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 2. JWT Authentication Configuration
+// 3. JWT Authentication Configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
@@ -48,15 +48,12 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// 3. Register Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
-
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -64,10 +61,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Kích hoạt CORS
+// THỨ TỰ QUAN TRỌNG: Cors -> Auth -> Map
 app.UseCors("AllowAll");
 
-// 4. Kích hoạt Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
