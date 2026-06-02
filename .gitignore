@@ -1,0 +1,37 @@
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.lut
+*.desktop
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Backend specific
+backend/bin/
+backend/obj/
+backend/appsettings.Development.json
+
+# Web specific
+node_modules/
+dist/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+
+# Mobile specific (if any)
+*.apk
+*.aar
+*.jks
