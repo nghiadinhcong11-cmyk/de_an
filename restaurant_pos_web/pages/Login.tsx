@@ -20,13 +20,30 @@ const Login = () => {
     setError('');
 
     try {
-      await authApi.login({ username, password });
-      navigate('/owner');
+      const response = await authApi.login({ username, password });
+
+      // LOGIC ĐIỀU HƯỚNG THEO VAI TRÒ
+      const userRole = response.role; // Lấy từ API trả về
+
+      if (userRole === 'Owner') {
+        navigate('/owner');
+      } else if (userRole === 'Manager' || userRole === 'Waiter' || userRole === 'Cashier') {
+        navigate('/employee/orders'); // Nhân viên vào trang quản lý đơn
+      } else if (userRole === 'Customer') {
+        navigate('/customer');
+      } else {
+        navigate('/login');
+      }
+
     } catch (err: any) {
       setError(err.response?.data?.message || 'Tài khoản hoặc mật khẩu không chính xác');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGuestAccess = () => {
+    navigate('/customer');
   };
 
   return (
@@ -55,15 +72,20 @@ const Login = () => {
                 <Label className="text-gray-700 font-bold ml-1">Tên đăng nhập</Label>
                 <div className="relative">
                   <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input required placeholder="admin_pos" className="pl-10 h-12 bg-gray-50" value={username} onChange={(e: any) => setUsername(e.target.value)} />
+                  <Input required placeholder="admin_pos" className="pl-10 h-12 bg-gray-50 rounded-xl" value={username} onChange={(e: any) => setUsername(e.target.value)} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-gray-700 font-bold ml-1">Mật khẩu</Label>
+                <div className="flex justify-between items-center px-1">
+                  <Label className="text-gray-700 font-bold">Mật khẩu</Label>
+                  <Link to="/forgot-password" title="Forgot Password" className="text-xs font-bold text-orange-600 hover:text-orange-700">
+                    Quên mật khẩu?
+                  </Link>
+                </div>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input type="password" required placeholder="••••••••" className="pl-10 h-12 bg-gray-50" value={password} onChange={(e: any) => setPassword(e.target.value)} />
+                  <Input type="password" required placeholder="••••••••" className="pl-10 h-12 bg-gray-50 rounded-xl" value={password} onChange={(e: any) => setPassword(e.target.value)} />
                 </div>
               </div>
 
@@ -72,8 +94,8 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="relative my-8 text-center">
-              <span className="bg-white px-4 text-gray-400 text-xs font-bold uppercase tracking-widest">Bạn chưa có tài khoản?</span>
+            <div className="relative my-8 text-center border-t border-gray-100 pt-8">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">Lựa chọn vai trò</span>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
@@ -89,11 +111,9 @@ const Login = () => {
                 </Button>
               </Link>
 
-              <Link to="/register-customer">
-                <Button variant="outline" className="w-full h-12 justify-start gap-3 border-orange-100 text-gray-700 font-bold hover:bg-orange-50 rounded-xl">
-                  <Heart className="w-5 h-5 text-red-500" /> Tôi là khách hàng
-                </Button>
-              </Link>
+              <Button onClick={handleGuestAccess} variant="outline" className="w-full h-12 justify-start gap-3 border-orange-100 text-gray-700 font-bold hover:bg-orange-50 rounded-xl">
+                <Heart className="w-5 h-5 text-red-500" /> Tài khoản vãng lai
+              </Button>
             </div>
           </CardContent>
         </Card>

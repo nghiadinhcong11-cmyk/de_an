@@ -4,6 +4,7 @@ import RegisterOwner from '../pages/RegisterOwner';
 import CustomerRegister from '../customer/CustomerRegister';
 import OwnerLayout from '../layouts/OwnerLayout';
 import CustomerLayout from '../layouts/CustomerLayout';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 // Owner Pages
 import { OwnerDashboard } from '../owner/Dashboard';
@@ -22,6 +23,7 @@ import { OwnerPurchaseOrders } from '../owner/PurchaseOrders';
 import { OwnerExpenses } from '../owner/Expenses';
 import { OwnerShifts } from '../owner/Shifts';
 import { OwnerPaymentAccounts } from '../owner/PaymentAccounts';
+import { OwnerLoyalty } from '../owner/Loyalty';
 
 // Employee Pages
 import { EmployeePOS } from '../employee/EmployeePOS';
@@ -50,39 +52,46 @@ function App() {
         {/* Customer QR Route */}
         <Route path="/qr/:tableId" element={<TableOrderPage />} />
 
-        {/* Customer Portal Routes */}
-        <Route path="/customer" element={<CustomerLayout />}>
-          <Route index element={<CustomerWelcome />} />
-          <Route path="menu" element={<CustomerMenu />} />
-          <Route path="cart" element={<CustomerCart />} />
-          <Route path="orders" element={<CustomerOrders />} />
-          <Route path="profile" element={<CustomerProfile />} />
+        {/* Customer Portal (Chỉ khách hàng vào được) */}
+        <Route element={<ProtectedRoute allowedRoles={['Customer']} />}>
+          <Route path="/customer" element={<CustomerLayout />}>
+            <Route index element={<CustomerWelcome />} />
+            <Route path="menu" element={<CustomerMenu />} />
+            <Route path="cart" element={<CustomerCart />} />
+            <Route path="orders" element={<CustomerOrders />} />
+            <Route path="profile" element={<CustomerProfile />} />
+          </Route>
         </Route>
 
-        {/* Owner Routes */}
-        <Route path="/owner" element={<OwnerLayout />}>
-          <Route index element={<OwnerDashboard />} />
-          <Route path="branches" element={<OwnerBranches />} />
-          <Route path="employees" element={<OwnerEmployees />} />
-          <Route path="menu" element={<OwnerMenu />} />
-          <Route path="tables" element={<OwnerTables />} />
-          <Route path="customers" element={<OwnerCustomers />} />
-          <Route path="payments" element={<OwnerPayments />} />
-          <Route path="vouchers" element={<OwnerVouchers />} />
-          <Route path="reports" element={<OwnerReports />} />
-          <Route path="restaurant" element={<OwnerRestaurant />} />
-          <Route path="inventory" element={<OwnerInventory />} />
-          <Route path="suppliers" element={<OwnerSuppliers />} />
-          <Route path="purchase-orders" element={<OwnerPurchaseOrders />} />
-          <Route path="expenses" element={<OwnerExpenses />} />
-          <Route path="shifts" element={<OwnerShifts />} />
-          <Route path="payment-accounts" element={<OwnerPaymentAccounts />} />
+        {/* Owner Routes (Chỉ chủ nhà hàng vào được) */}
+        <Route element={<ProtectedRoute allowedRoles={['Owner']} />}>
+          <Route path="/owner" element={<OwnerLayout />}>
+            <Route index element={<OwnerDashboard />} />
+            <Route path="branches" element={<OwnerBranches />} />
+            <Route path="employees" element={<OwnerEmployees />} />
+            <Route path="menu" element={<OwnerMenu />} />
+            <Route path="tables" element={<OwnerTables />} />
+            <Route path="customers" element={<OwnerCustomers />} />
+            <Route path="loyalty" element={<OwnerLoyalty />} />
+            <Route path="payments" element={<OwnerPayments />} />
+            <Route path="vouchers" element={<OwnerVouchers />} />
+            <Route path="reports" element={<OwnerReports />} />
+            <Route path="restaurant" element={<OwnerRestaurant />} />
+            <Route path="inventory" element={<OwnerInventory />} />
+            <Route path="suppliers" element={<OwnerSuppliers />} />
+            <Route path="purchase-orders" element={<OwnerPurchaseOrders />} />
+            <Route path="expenses" element={<OwnerExpenses />} />
+            <Route path="shifts" element={<OwnerShifts />} />
+            <Route path="payment-accounts" element={<OwnerPaymentAccounts />} />
+          </Route>
         </Route>
 
-        {/* Employee Routes */}
-        <Route path="/employee/pos" element={<EmployeePOS />} />
-        <Route path="/employee/orders" element={<EmployeeOrders />} />
-        <Route path="/employee/requests" element={<EmployeeOrderRequests />} />
+        {/* Employee Routes (Chủ và Nhân viên đều vào được) */}
+        <Route element={<ProtectedRoute allowedRoles={['Owner', 'Manager', 'Waiter', 'Cashier']} />}>
+          <Route path="/employee/pos" element={<EmployeePOS />} />
+          <Route path="/employee/orders" element={<EmployeeOrders />} />
+          <Route path="/employee/requests" element={<EmployeeOrderRequests />} />
+        </Route>
 
         {/* Default Redirects */}
         <Route path="/" element={<Navigate to="/login" />} />

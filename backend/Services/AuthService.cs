@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using RestaurantPOS.DTOs;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.Core.Entities;
+using RestaurantPOS.Modules.CRM.Entities;
 
 namespace RestaurantPOS.Services;
 
@@ -14,6 +15,7 @@ public interface IAuthService
     Task<LoginResponse?> LoginAsync(LoginRequest request);
     Task<bool> RegisterOwnerAsync(RegisterOwnerRequest request);
     Task<bool> RegisterEmployeeAsync(RegisterEmployeeRequest request);
+    Task<bool> RegisterCustomerAsync(RegisterCustomerRequest request);
 }
 
 public class AuthService : IAuthService
@@ -27,66 +29,77 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
-    public async Task<bool> RegisterEmployeeAsync(RegisterEmployeeRequest request)
+    public async Task<bool> RegisterCustomerAsync(RegisterCustomerRequest request)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+        // 1. Kiểm tra SĐT đã tồn tại chưa
+        if (await _context.Customers.AnyAsync(c => c.PhoneNumber == request.PhoneNumber))
             return false;
 
-        var user = new User
+        // 2. Nếu không có RestaurantId, lấy cái đầu tiên
+        var restaurantId = request.RestaurantId;
+        if (restaurantId == Guid.Empty)
         {
-            RestaurantId = request.RestaurantId,
-            BranchId = request.BranchId,
-            Username = request.Username,
-            FullName = request.FullName,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            IsActive = false // Đợi chủ quán duyệt
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName);
-        if (role != null)
-        {
-            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
-            await _context.SaveChangesAsync();
+            var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
+            if (firstRestaurant == null) return false;
+            restaurantId = firstRestaurant.Id;
         }
 
+        var customer = new Customer
+        {
+            RestaurantId = restaurantId,
+            FullName = request.FullName,
+            PhoneNumber = request.PhoneNumber,
+            Email = request.Email,
+            Points = 0,
+            TotalSpent = 0
+        };
+
+        _context.Customers.Add(customer);
+        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+        // Kiểm tra User (Chủ/Nhân viên)
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return null;
-
-        var token = GenerateJwtToken(user);
-
-        return new LoginResponse
+        if (user != null && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            Token = token,
-            Username = user.Username,
-            FullName = user.FullName,
-            Role = "Owner" // Tạm thời để Owner, sau này sẽ lấy từ bảng Roles
-        };
+            var userRole = await _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
+                .FirstOrDefaultAsync() ?? "Waiter";
+
+            var token = GenerateJwtToken(user.Id, user.Username, userRole, user.RestaurantId);
+            return new LoginResponse { Token = token, Username = user.Username, FullName = user.FullName, Role = userRole };
+        }
+
+        // Kiểm tra Customer (Dùng SĐT làm username và pass - tạm thời cho đơn giản)
+        var customer = await _context.Customers
+            .FirstOrDefaultAsync(c => c.PhoneNumber == request.Username);
+
+        if (customer != null)
+        {
+             var token = GenerateJwtToken(customer.Id, customer.PhoneNumber, "Customer", customer.RestaurantId);
+             return new LoginResponse { Token = token, Username = customer.PhoneNumber, FullName = customer.FullName, Role = "Customer" };
+        }
+
+        return null;
     }
 
     public async Task<bool> RegisterOwnerAsync(RegisterOwnerRequest request)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
-            return false;
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username)) return false;
 
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. Tạo Nhà hàng
             var restaurant = new Restaurant { Name = request.RestaurantName };
             _context.Restaurants.Add(restaurant);
             await _context.SaveChangesAsync();
 
-            // 2. Tạo User Owner
             var user = new User
             {
                 RestaurantId = restaurant.Id,
@@ -99,7 +112,6 @@ public class AuthService : IAuthService
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // 3. Gán quyền Owner cho User này
             var ownerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Owner");
             if (ownerRole != null)
             {
@@ -117,25 +129,51 @@ public class AuthService : IAuthService
         }
     }
 
-    private string GenerateJwtToken(User user)
+    public async Task<bool> RegisterEmployeeAsync(RegisterEmployeeRequest request)
+    {
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username)) return false;
+
+        var user = new User
+        {
+            RestaurantId = request.RestaurantId,
+            BranchId = request.BranchId,
+            Username = request.Username,
+            FullName = request.FullName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            IsActive = false
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName);
+        if (role != null)
+        {
+            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    private string GenerateJwtToken(Guid userId, string username, string role, Guid restaurantId)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
         var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
-
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim("RestaurantId", user.RestaurantId.ToString())
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Role, role),
+                new Claim("RestaurantId", restaurantId.ToString())
             }),
             Expires = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["DurationInMinutes"]!)),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = jwtSettings["Issuer"],
             Audience = jwtSettings["Audience"]
         };
-
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);

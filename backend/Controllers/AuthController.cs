@@ -48,6 +48,14 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Yêu cầu tham gia đã được gửi!" });
     }
 
+    [HttpPost("register-customer")]
+    public async Task<IActionResult> RegisterCustomer([FromBody] RegisterCustomerRequest request)
+    {
+        var result = await _authService.RegisterCustomerAsync(request);
+        if (!result) return BadRequest(new { message = "Số điện thoại đã được đăng ký" });
+        return Ok(new { message = "Đăng ký thành viên thành công!" });
+    }
+
     [HttpGet("find-restaurant-info")]
     public async Task<IActionResult> FindRestaurantInfo()
     {

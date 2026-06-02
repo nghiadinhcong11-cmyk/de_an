@@ -2,85 +2,116 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
-import { Plus, Minus, Trash2, Search, QrCode, CreditCard, Banknote, Printer } from "lucide-react";
-import { mockMenuItems, mockTables, type MenuItem } from "../data/mockData";
+import { CheckCircle2, UserPlus, Loader2, ArrowRight } from "lucide-react";
+import api from "../services/api";
+import { mockMenuItems, mockTables } from "../data/mockData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 
 export function EmployeePOS() {
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedTable, setSelectedTable] = useState("");
   const [cart, setCart] = useState<any[]>([]);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showLoyaltyModal, setShowLoyaltyModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal; // XÓA THUẾ: Tổng bằng tạm tính
+  const [loyaltyForm, setLoyaltyForm] = useState({ phoneNumber: '', fullName: '' });
 
-  const addToCart = (item: MenuItem) => {
-    const existingItem = cart.find((cartItem) => cartItem.menuItemId === item.id);
-    if (existingItem) {
-      setCart(cart.map((cartItem) => cartItem.menuItemId === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem));
-    } else {
-      setCart([...cart, { id: Date.now().toString(), menuItemId: item.id, name: item.name, price: item.price, quantity: 1 }]);
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleCheckout = () => {
+    // Giả lập thanh toán -> Tạo order
+    setCurrentOrderId("ORD-DEMO-ID"); // Trong thực tế lấy ID từ API create order
+    setShowLoyaltyModal(true);
+  };
+
+  const handleAddPoints = async () => {
+    setLoading(true);
+    try {
+      await api.post("/customers/loyalty/add-points", {
+          ...loyaltyForm,
+          orderId: currentOrderId
+      });
+      alert(`Đã cộng điểm thành công cho khách ${loyaltyForm.fullName}!`);
+      resetPOS();
+    } catch {
+      alert("Lỗi khi tích điểm");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const resetPOS = () => {
+    setCart([]);
+    setSelectedTable("");
+    setShowLoyaltyModal(false);
+    setLoyaltyForm({ phoneNumber: '', fullName: '' });
   };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 text-gray-900">
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <h2 className="text-xl font-black">Bán hàng (POS)</h2>
-          <div className="flex items-center gap-4">
-              <Label className="font-bold">Bàn:</Label>
-              <Select value={selectedTable} onValueChange={setSelectedTable}>
-                <SelectTrigger className="w-32"><SelectValue placeholder="Chọn bàn" /></SelectTrigger>
-                <SelectContent onValueChange={() => {}}>
-                  {mockTables.map(t => <SelectItem key={t.id} value={t.number}>Bàn {t.number}</SelectItem>)}
-                </SelectContent>
-              </Select>
+          <h2 className="text-xl font-black italic">GREEN POS</h2>
+          <Button onClick={handleCheckout} disabled={cart.length === 0} className="bg-green-600 font-bold">THANH TOÁN (${total.toFixed(2)})</Button>
+      </div>
+
+      <div className="flex-1 p-8">
+          <p className="text-gray-400">Giao diện POS chính... (Chọn món ăn bên dưới)</p>
+          <div className="grid grid-cols-4 gap-4 mt-4">
+              {mockMenuItems.map(item => (
+                  <Card key={item.id} className="cursor-pointer" onClick={() => setCart([...cart, {...item, quantity: 1}])}>
+                      <CardContent className="p-4 font-bold">{item.name}</CardContent>
+                  </Card>
+              ))}
           </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {mockMenuItems.map((item) => (
-              <Card key={item.id} className="cursor-pointer hover:shadow-lg transition-all" onClick={() => addToCart(item)}>
-                <CardContent className="p-4 text-center">
-                  <div className="text-4xl mb-2">🍽️</div>
-                  <div className="font-bold truncate">{item.name}</div>
-                  <div className="text-orange-600 font-black">${item.price}</div>
-                </CardContent>
-              </Card>
-            ))}
+      {/* LOYALTY MODAL (SAU THANH TOÁN) */}
+      <Dialog open={showLoyaltyModal} onOpenChange={setShowLoyaltyModal}>
+        <DialogContent className="max-w-md border-none shadow-2xl">
+          <div className="text-center mb-6">
+             <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Star className="text-orange-600 w-8 h-8 fill-current" />
+             </div>
+             <DialogTitle className="text-2xl font-black">Tích điểm thành viên?</DialogTitle>
+             <DialogDescription>Hỏi khách hàng SĐT để cộng điểm thưởng</DialogDescription>
           </div>
-        </div>
 
-        <div className="w-96 bg-white border-l border-gray-200 flex flex-col">
-          <div className="p-6 border-b"><h3 className="font-bold">Đơn hàng hiện tại</h3></div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {cart.map(item => (
-              <div key={item.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                <div>
-                  <div className="font-bold text-sm">{item.name}</div>
-                  <div className="text-xs text-gray-400">${item.price} x {item.quantity}</div>
-                </div>
-                <div className="font-bold text-orange-600">${(item.price * item.quantity).toFixed(2)}</div>
-              </div>
-            ))}
+          <div className="space-y-4">
+             <div className="space-y-1.5">
+                <Label className="font-bold text-xs uppercase text-gray-400 ml-1">Số điện thoại</Label>
+                <Input
+                    placeholder="090..."
+                    className="h-12 text-lg font-bold rounded-xl bg-gray-50 border-none"
+                    value={loyaltyForm.phoneNumber}
+                    onChange={(e: any) => setLoyaltyForm({...loyaltyForm, phoneNumber: e.target.value})}
+                />
+             </div>
+             <div className="space-y-1.5">
+                <Label className="font-bold text-xs uppercase text-gray-400 ml-1">Họ tên khách hàng</Label>
+                <Input
+                    placeholder="Nguyễn Văn A"
+                    className="h-12 font-bold rounded-xl bg-gray-50 border-none"
+                    value={loyaltyForm.fullName}
+                    onChange={(e: any) => setLoyaltyForm({...loyaltyForm, fullName: e.target.value})}
+                />
+             </div>
+
+             <div className="pt-4 flex gap-3">
+                <Button variant="ghost" className="flex-1 font-bold text-gray-400" onClick={resetPOS}>BỎ QUA</Button>
+                <Button
+                    className="flex-1 bg-orange-600 hover:bg-orange-700 font-bold h-12 rounded-xl shadow-lg shadow-orange-100 gap-2"
+                    onClick={handleAddPoints}
+                    disabled={loading || !loyaltyForm.phoneNumber}
+                >
+                    {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 className="w-4 h-4" /> LƯU & TÍCH ĐIỂM</>}
+                </Button>
+             </div>
           </div>
-          <div className="p-6 border-t bg-gray-50">
-            <div className="flex justify-between text-xl font-black mb-4">
-              <span>Tổng cộng:</span>
-              <span className="text-orange-600">${total.toFixed(2)}</span>
-            </div>
-            <Button className="w-full bg-orange-600 h-14 text-lg font-bold" onClick={() => setShowCheckout(true)}>THANH TOÁN</Button>
-          </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
