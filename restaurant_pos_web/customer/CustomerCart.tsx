@@ -16,7 +16,6 @@ interface CartItem {
 
 export function CustomerCart() {
   const navigate = useNavigate();
-  // Lấy giỏ hàng từ localStorage hoặc state (giả sử có dữ liệu)
   const [cart, setCart] = useState<CartItem[]>([
     { id: "1", name: "Classic Burger", price: 12.99, quantity: 2 },
     { id: "2", name: "Coca Cola", price: 2.99, quantity: 2 },
@@ -26,15 +25,14 @@ export function CustomerCart() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const total = subtotal + (subtotal * 0.085);
+  // XÓA THUẾ: Chỉ tính tổng tiền món ăn
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handlePlaceOrder = async (method: string) => {
     setLoading(true);
     try {
-      // 1. Gửi đơn lên server
       const res = await api.post("/qrordering/submit-request", {
-        tableId: "t1", // Tạm thời, thực tế lấy từ URL hoặc context
+        tableId: "t1",
         customerName: "Khách hàng",
         items: cart.map(i => ({ productId: i.id, quantity: i.quantity }))
       });
@@ -42,13 +40,11 @@ export function CustomerCart() {
       const requestId = res.data.requestId;
 
       if (method === 'vietqr') {
-        // 2. Nếu chọn VietQR, lấy mã QR
         const qrRes = await api.get(`/qrordering/generate-qr-request/${requestId}`);
         setQrData(qrRes.data);
         setShowCheckout(false);
         setShowQR(true);
       } else {
-        // 3. Nếu chọn trả tại quầy, đi tới trang theo dõi
         navigate("/customer/orders");
       }
     } catch (err) {
@@ -80,9 +76,10 @@ export function CustomerCart() {
         <Card className="bg-orange-600 text-white border-none shadow-lg">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="opacity-80">Tổng tiền thanh toán</span>
+              <span className="opacity-80">Tổng cộng</span>
               <span className="text-3xl font-black">${total.toFixed(2)}</span>
             </div>
+            <p className="text-[10px] opacity-60 text-right italic">* Đã bao gồm phí phục vụ (nếu có)</p>
           </CardContent>
         </Card>
 
@@ -95,7 +92,6 @@ export function CustomerCart() {
         </Button>
       </div>
 
-      {/* Dialog Chọn phương thức */}
       <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
         <DialogContent>
           <DialogHeader><DialogTitle className="font-bold">Thanh toán</DialogTitle></DialogHeader>
@@ -118,7 +114,6 @@ export function CustomerCart() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Quét mã QR */}
       <Dialog open={showQR} onOpenChange={setShowQR}>
         <DialogContent className="text-center">
           <DialogHeader><DialogTitle className="font-bold">Quét mã VietQR</DialogTitle></DialogHeader>

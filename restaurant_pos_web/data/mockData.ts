@@ -9,7 +9,6 @@ export interface Branch {
 export const mockBranches: Branch[] = [
   { id: '1', name: 'Downtown Branch', address: '123 Main St, Central', phone: '0901234567', status: 'active' },
   { id: '2', name: 'Uptown Branch', address: '456 High St, North', phone: '0901234568', status: 'active' },
-  { id: '3', name: 'Beachside Branch', address: '789 Coast Rd, East', phone: '0901234569', status: 'inactive' },
 ];
 
 export const mockRestaurant = {
@@ -21,6 +20,112 @@ export const mockRestaurant = {
   email: 'contact@greenbistro.com'
 };
 
+// INVENTORY & SUPPLIERS
+export interface Ingredient {
+  id: string;
+  name: string;
+  unit: string;
+  currentQty: number;
+  minQty: number;
+  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+  lastUpdated: string;
+}
+
+export const mockIngredients: Ingredient[] = [
+  { id: 'i1', name: 'Beef Patty', unit: 'pcs', currentQty: 45, minQty: 50, status: 'Low Stock', lastUpdated: '2024-03-20T10:00:00' },
+  { id: 'i2', name: 'Romaine Lettuce', unit: 'kg', currentQty: 12, minQty: 5, status: 'In Stock', lastUpdated: '2024-03-21T08:30:00' },
+  { id: 'i3', name: 'Burger Buns', unit: 'pcs', currentQty: 0, minQty: 100, status: 'Out of Stock', lastUpdated: '2024-03-21T09:00:00' },
+  { id: 'i4', name: 'Tomato', unit: 'kg', currentQty: 8, minQty: 10, status: 'Low Stock', lastUpdated: '2024-03-21T11:00:00' },
+];
+
+export interface Supplier {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  totalOrders: number;
+}
+
+export const mockSuppliers: Supplier[] = [
+  { id: 's1', name: 'Fresh Farm Co.', phone: '0988123456', email: 'sales@freshfarm.com', address: 'Dalat City', totalOrders: 15 },
+  { id: 's2', name: 'Premium Meat Inc.', phone: '0977445566', email: 'orders@meatinc.com', address: 'Ho Chi Minh City', totalOrders: 8 },
+];
+
+export interface PurchaseOrder {
+  id: string;
+  orderNumber: string;
+  supplierName: string;
+  status: 'Pending' | 'Completed' | 'Cancelled';
+  totalAmount: number;
+  createdAt: string;
+}
+
+export const mockPurchaseOrders: PurchaseOrder[] = [
+  { id: 'po1', orderNumber: 'PO-9921', supplierName: 'Fresh Farm Co.', status: 'Pending', totalAmount: 450.5, createdAt: '2024-03-20T14:20:00' },
+  { id: 'po2', orderNumber: 'PO-9922', supplierName: 'Premium Meat Inc.', status: 'Completed', totalAmount: 1200.0, createdAt: '2024-03-18T10:00:00' },
+];
+
+// EXPENSES & SHIFTS
+export interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  category: 'Utilities' | 'Salary' | 'Rent' | 'Maintenance' | 'Other';
+  date: string;
+  createdBy: string;
+}
+
+export const mockExpenses: Expense[] = [
+  { id: 'ex1', title: 'Electricity Bill March', amount: 850, category: 'Utilities', date: '2024-03-15', createdBy: 'Admin' },
+  { id: 'ex2', title: 'Monthly Rent', amount: 2500, category: 'Rent', date: '2024-03-01', createdBy: 'Admin' },
+];
+
+export interface EmployeeShift {
+  id: string;
+  employeeName: string;
+  branch: string;
+  checkIn: string;
+  checkOut?: string;
+  status: 'Active' | 'Completed';
+}
+
+export const mockShifts: EmployeeShift[] = [
+  { id: 'sh1', employeeName: 'Bob Wilson', branch: 'Downtown', checkIn: '2024-03-21T08:00:00', status: 'Active' },
+  { id: 'sh2', employeeName: 'Alice Cooper', branch: 'Uptown', checkIn: '2024-03-21T09:00:00', checkOut: '2024-03-21T17:00:00', status: 'Completed' },
+];
+
+// BANK ACCOUNTS
+export interface PaymentAccount {
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  branch: string;
+  isDefault: boolean;
+}
+
+export const mockPaymentAccounts: PaymentAccount[] = [
+  { id: 'acc1', bankName: 'Vietcombank', accountNumber: '1234567890', accountName: 'THE GREEN BISTRO', branch: 'Downtown', isDefault: true },
+  { id: 'acc2', bankName: 'Techcombank', accountNumber: '9876543210', accountName: 'THE GREEN BISTRO', branch: 'Uptown', isDefault: false },
+];
+
+// ORDER REQUESTS (FOR EMPLOYEE)
+export interface OrderRequest {
+  id: string;
+  tableNumber: string;
+  customerName: string;
+  requestTime: string;
+  items: Array<{ name: string, quantity: number, note?: string }>;
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+export const mockOrderRequests: OrderRequest[] = [
+  { id: 'req1', tableNumber: '05', customerName: 'John', requestTime: '2024-03-21T12:05:00', items: [{ name: 'Classic Burger', quantity: 2, note: 'No onion' }, { name: 'Iced Coffee', quantity: 1 }], status: 'Pending' },
+  { id: 'req2', tableNumber: '11', customerName: 'Sarah', requestTime: '2024-03-21T12:10:00', items: [{ name: 'Caesar Salad', quantity: 1 }], status: 'Pending' },
+];
+
+// EXISTING DATA
 export interface MenuItem {
   id: string;
   name: string;
@@ -32,88 +137,14 @@ export interface MenuItem {
 }
 
 export const mockMenuItems: MenuItem[] = [
-  { id: 'm1', name: 'Classic Burger', category: 'food', price: 12.99, cost: 4.5, description: 'Beef patty, lettuce, tomato, special sauce', status: 'available' },
-  { id: 'm2', name: 'Caesar Salad', category: 'food', price: 9.99, cost: 3.0, description: 'Romaine lettuce, croutons, parmesan cheese', status: 'available' },
-  { id: 'm3', name: 'Iced Coffee', category: 'drinks', price: 4.5, cost: 1.0, description: 'Cold brewed coffee with milk', status: 'available' },
-  { id: 'm4', name: 'Chocolate Cake', category: 'desserts', price: 6.99, cost: 2.5, description: 'Rich dark chocolate layer cake', status: 'available' },
-];
-
-export interface Table {
-  id: string;
-  number: string;
-  status: 'available' | 'occupied' | 'reserved' | 'waiting-payment';
-  capacity: number;
-  currentOrder?: string;
-}
-
-export const mockTables: Table[] = [
-  { id: 't1', number: '1', status: 'available', capacity: 4 },
-  { id: 't2', number: '2', status: 'occupied', capacity: 2, currentOrder: '$45.00' },
-  { id: 't3', number: '3', status: 'available', capacity: 6 },
-  { id: 't4', number: '4', status: 'reserved', capacity: 4 },
-];
-
-export interface Order {
-  id: string;
-  tableNumber: string;
-  status: 'sent' | 'preparing' | 'ready' | 'served' | 'completed';
-  items: any[];
-  total: number;
-  createdAt: string;
-  customer?: string;
-}
-
-export const mockOrders: Order[] = [
-  { id: 'ORD-001', tableNumber: '2', status: 'preparing', items: [{ id: 'm1', name: 'Classic Burger', price: 12.99, quantity: 2 }], total: 25.98, createdAt: new Date().toISOString() },
-  { id: 'ORD-002', tableNumber: '4', status: 'sent', items: [{ id: 'm2', name: 'Caesar Salad', price: 9.99, quantity: 1 }], total: 9.99, createdAt: new Date().toISOString() },
+  { id: 'm1', name: 'Classic Burger', category: 'food', price: 12.99, cost: 4.5, description: 'Beef patty, lettuce, tomato', status: 'available' },
+  { id: 'm2', name: 'Caesar Salad', category: 'food', price: 9.99, cost: 3.0, description: 'Romaine lettuce, croutons', status: 'available' },
 ];
 
 export const mockCustomers = [
   { id: 'c1', name: 'John Doe', email: 'john@example.com', phone: '0901234567', loyaltyPoints: 1200, totalSpending: 450.5, orderCount: 12 },
-  { id: 'c2', name: 'Jane Smith', email: 'jane@example.com', phone: '0907654321', loyaltyPoints: 450, totalSpending: 120.0, orderCount: 5 },
 ];
 
-export interface JoinRequest {
-  id: string;
-  name: string;
-  role: string;
-  phone: string;
-  email: string;
-  branchName: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string;
-}
-
-export const mockJoinRequests: JoinRequest[] = [
-  { id: 'req1', name: 'Alice Johnson', role: 'waiter', phone: '0912345678', email: 'alice@example.com', branchName: 'Downtown Branch', status: 'pending', createdAt: new Date().toISOString() },
-];
-
-export const mockEmployees = [
-  { id: 'e1', name: 'Bob Wilson', role: 'manager', phone: '0911111111', email: 'bob@greenbistro.com', branch: 'Downtown Branch', status: 'active' },
-];
-
-export const mockRevenueData = [
-  { date: 'Mon', revenue: 1200 },
-  { date: 'Tue', revenue: 1500 },
-  { date: 'Wed', revenue: 1100 },
-  { date: 'Thu', revenue: 1800 },
-  { date: 'Fri', revenue: 2200 },
-  { date: 'Sat', revenue: 2800 },
-  { date: 'Sun', revenue: 2400 },
-];
-
-export const mockTopProducts = [
-  { name: 'Burger', sales: 120, revenue: 1560 },
-  { name: 'Salad', sales: 80, revenue: 800 },
-  { name: 'Coffee', sales: 200, revenue: 900 },
-];
-
-export const mockSalesByCategory = [
-  { category: 'Food', value: 4500 },
-  { category: 'Drinks', value: 2500 },
-  { category: 'Desserts', value: 1200 },
-];
-
-export const mockVouchers = [
-  { id: 'v1', code: 'WELCOME10', type: 'percentage', value: 10, description: '10% off for new customers', validFrom: '2024-01-01', validTo: '2024-12-31', status: 'active' },
+export const mockOrders = [
+  { id: 'ORD-001', tableNumber: '2', status: 'preparing', items: [{ id: 'm1', name: 'Classic Burger', price: 12.99, quantity: 2 }], total: 25.98, createdAt: new Date().toISOString() },
 ];

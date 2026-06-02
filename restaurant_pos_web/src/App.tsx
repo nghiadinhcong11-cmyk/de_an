@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import RegisterOwner from '../pages/RegisterOwner';
+import CustomerRegister from '../customer/CustomerRegister';
 import OwnerLayout from '../layouts/OwnerLayout';
 import CustomerLayout from '../layouts/CustomerLayout';
 
@@ -15,11 +16,18 @@ import { OwnerPayments } from '../owner/Payments';
 import { OwnerVouchers } from '../owner/Vouchers';
 import { OwnerReports } from '../owner/Reports';
 import { OwnerRestaurant } from '../owner/Restaurant';
+import { OwnerInventory } from '../owner/Inventory';
+import { OwnerSuppliers } from '../owner/Suppliers';
+import { OwnerPurchaseOrders } from '../owner/PurchaseOrders';
+import { OwnerExpenses } from '../owner/Expenses';
+import { OwnerShifts } from '../owner/Shifts';
+import { OwnerPaymentAccounts } from '../owner/PaymentAccounts';
 
 // Employee Pages
 import { EmployeePOS } from '../employee/EmployeePOS';
 import { EmployeeOrders } from '../employee/EmployeeOrders';
 import { EmployeeRegister } from '../employee/EmployeeRegister';
+import { EmployeeOrderRequests } from '../employee/OrderRequests';
 
 // Customer Pages
 import { TableOrderPage } from '../customer/TableOrderPage';
@@ -36,6 +44,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register-owner" element={<RegisterOwner />} />
+        <Route path="/register-customer" element={<CustomerRegister />} />
         <Route path="/employee/register" element={<EmployeeRegister />} />
 
         {/* Customer QR Route */}
@@ -62,16 +71,22 @@ function App() {
           <Route path="vouchers" element={<OwnerVouchers />} />
           <Route path="reports" element={<OwnerReports />} />
           <Route path="restaurant" element={<OwnerRestaurant />} />
-          <Route path="inventory" element={<div className="p-8">Inventory Module coming soon...</div>} />
+          <Route path="inventory" element={<OwnerInventory />} />
+          <Route path="suppliers" element={<OwnerSuppliers />} />
+          <Route path="purchase-orders" element={<OwnerPurchaseOrders />} />
+          <Route path="expenses" element={<OwnerExpenses />} />
+          <Route path="shifts" element={<OwnerShifts />} />
+          <Route path="payment-accounts" element={<OwnerPaymentAccounts />} />
         </Route>
 
         {/* Employee Routes */}
         <Route path="/employee/pos" element={<EmployeePOS />} />
         <Route path="/employee/orders" element={<EmployeeOrders />} />
+        <Route path="/employee/requests" element={<EmployeeOrderRequests />} />
 
         {/* Default Redirects */}
         <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="*" element={<div className="p-8 text-center text-2xl font-bold">404 - Trang không tồn tại</div>} />
+        <Route path="*" element={<div className="p-8 text-center text-2xl font-bold text-gray-400">404 - Trang không tồn tại</div>} />
       </Routes>
     </Router>
   );
