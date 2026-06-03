@@ -1,206 +1,98 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { CheckCircle2, Clock, ChefHat, UtensilsCrossed } from "lucide-react";
-
-interface Order {
-  id: string;
-  date: string;
-  status: "sent" | "preparing" | "ready" | "served";
-  items: Array<{ name: string; quantity: number; price: number }>;
-  total: number;
-}
+import { Loader2, ShoppingBag, Calendar, ChevronDown, CheckCircle } from "lucide-react";
+import api from "../services/api";
 
 export function CustomerOrders() {
-  const [orders] = useState<Order[]>([
-    {
-      id: "ORD-001",
-      date: "2026-06-01T11:30:00",
-      status: "preparing",
-      items: [
-        { name: "Classic Burger", quantity: 2, price: 12.99 },
-        { name: "Coca Cola", quantity: 2, price: 2.99 },
-      ],
-      total: 31.96,
-    },
-    {
-      id: "ORD-002",
-      date: "2026-05-28T19:15:00",
-      status: "served",
-      items: [
-        { name: "Grilled Salmon", quantity: 1, price: 19.99 },
-        { name: "Fresh Orange Juice", quantity: 1, price: 4.99 },
-      ],
-      total: 24.98,
-    },
-  ]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const getStatusInfo = (status: Order["status"]) => {
-    switch (status) {
-      case "sent":
-        return {
-          icon: Clock,
-          color: "bg-blue-100 text-blue-800",
-          label: "Đã gửi đơn",
-        };
-      case "preparing":
-        return {
-          icon: ChefHat,
-          color: "bg-yellow-100 text-yellow-800",
-          label: "Đang chế biến",
-        };
-      case "ready":
-        return {
-          icon: CheckCircle2,
-          color: "bg-green-100 text-green-800",
-          label: "Đã xong",
-        };
-      case "served":
-        return {
-          icon: UtensilsCrossed,
-          color: "bg-gray-100 text-gray-800",
-          label: "Đã phục vụ",
-        };
-    }
-  };
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get("/orders/customer/my-orders");
+        setOrders(res.data);
+      } catch (err) {
+        console.error("Lỗi tải đơn hàng");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
 
-  const activeOrder = orders.find((o) => o.status !== "served");
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
 
   return (
-    <div className="pb-24">
-      {/* Header */}
-      <div className="bg-white sticky top-0 z-10 border-b border-gray-200 p-4">
-        <h2 className="text-xl font-bold">Lịch sử đặt món</h2>
-        <p className="text-sm text-gray-600 mt-1">Theo dõi tiến độ đơn hàng</p>
+    <div className="pb-24 bg-gray-50 min-h-screen">
+      <div className="bg-white border-b border-gray-100 p-6 pt-12 sticky top-0 z-20">
+         <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
+            <ShoppingBag className="text-orange-600" /> Đơn hàng của tôi
+         </h1>
+         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Lịch sử thưởng thức món ngon</p>
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Active Order Tracking */}
-        {activeOrder && (
-          <Card className="border-orange-600 shadow-lg">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-bold">Đơn hàng đang chờ</CardTitle>
-                <Badge className={getStatusInfo(activeOrder.status).color}>
-                  {getStatusInfo(activeOrder.status).label}
-                </Badge>
-              </div>
-              <p className="text-xs text-gray-400">Mã đơn: {activeOrder.id}</p>
-            </CardHeader>
-            <CardContent>
-              {/* Timeline */}
-              <div className="space-y-6 mb-8 mt-4">
-                {[
-                  { id: 'sent', label: 'Đã gửi đơn', icon: Clock, desc: 'Đơn hàng đã được bếp tiếp nhận' },
-                  { id: 'preparing', label: 'Đang nấu', icon: ChefHat, desc: 'Đầu bếp đang chuẩn bị món ăn' },
-                  { id: 'ready', label: 'Hoàn thành', icon: CheckCircle2, desc: 'Món ăn đã sẵn sàng phục vụ' },
-                  { id: 'served', label: 'Đã phục vụ', icon: UtensilsCrossed, desc: 'Chúc bạn ngon miệng!' }
-                ].map((step, idx) => {
-                  const isActive = activeOrder.status === step.id ||
-                    (activeOrder.status === 'preparing' && idx < 1) ||
-                    (activeOrder.status === 'ready' && idx < 2) ||
-                    (activeOrder.status === 'served' && idx < 3);
-                  const isDone = (activeOrder.status === 'preparing' && idx < 1) ||
-                    (activeOrder.status === 'ready' && idx < 2) ||
-                    (activeOrder.status === 'served' && idx < 3);
-                  const isCurrent = activeOrder.status === step.id;
-
-                  return (
-                    <div key={step.id} className="flex items-start gap-4 relative">
-                      {idx < 3 && (
-                        <div className={`absolute left-[19px] top-10 w-0.5 h-10 ${isDone ? 'bg-orange-600' : 'bg-gray-200'}`} />
-                      )}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 ${
-                        isActive ? 'bg-orange-600 text-white shadow-md' : 'bg-gray-100 text-gray-400'
-                      }`}>
-                        <step.icon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <div className={`font-bold text-sm ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>{step.label}</div>
-                        <div className="text-xs text-gray-500">{step.desc}</div>
-                      </div>
-                      {isDone && <CheckCircle2 className="w-5 h-5 text-orange-600 mt-1" />}
-                      {isCurrent && <div className="w-2 h-2 rounded-full bg-orange-600 animate-ping mt-2.5" />}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Order Items */}
-              <div className="border-t pt-4 bg-gray-50 -mx-6 px-6 pb-4">
-                <h4 className="font-bold text-sm mb-3">Chi tiết món ăn</h4>
-                <div className="space-y-2 mb-4">
-                  {activeOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-sm">
-                      <span className="text-gray-700">
-                        {item.quantity}x <span className="font-medium text-gray-900">{item.name}</span>
-                      </span>
-                      <span className="text-gray-600">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between font-bold pt-3 border-t border-gray-200">
-                  <span>Tổng thanh toán</span>
-                  <span className="text-orange-600">${activeOrder.total.toFixed(2)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Order History */}
-        <div className="pt-2">
-          <h3 className="font-bold text-gray-900 mb-3">Đơn hàng cũ</h3>
-          <div className="space-y-3">
-            {orders
-              .filter((o) => o.status === "served")
-              .map((order) => {
-                const statusInfo = getStatusInfo(order.status);
-                return (
-                  <Card key={order.id} className="border-none shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="font-bold text-sm">{order.id}</div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(order.date).toLocaleDateString("vi-VN")}
-                          </div>
-                        </div>
-                        <Badge className="bg-gray-100 text-gray-600 border-none">{statusInfo.label}</Badge>
-                      </div>
-
-                      <div className="space-y-2 mb-3">
-                        {order.items.map((item, index) => (
-                          <div key={index} className="flex justify-between text-xs">
-                            <span className="text-gray-500">
-                              {item.quantity}x {item.name}
-                            </span>
-                            <span className="text-gray-400">
-                              ${(item.price * item.quantity).toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <span className="font-bold text-sm text-gray-900">Tổng</span>
-                        <span className="font-bold text-orange-600">
-                          ${order.total.toFixed(2)}
-                        </span>
-                      </div>
-
-                      <Button variant="outline" className="w-full mt-3 border-orange-100 text-orange-600 h-9 text-xs font-bold">
-                        Đặt lại đơn này
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+        {orders.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+             <ShoppingBag className="mx-auto w-16 h-16 text-gray-100 mb-4" />
+             <p className="text-gray-400 font-bold">Bạn chưa đặt đơn hàng nào</p>
+             <Button variant="outline" className="mt-4 border-orange-200 text-orange-600 rounded-full">Đặt món ngay thôi!</Button>
           </div>
-        </div>
+        ) : (
+          orders.map((order) => (
+            <Card key={order.id} className="border-none shadow-sm overflow-hidden bg-white group">
+              <CardContent className="p-0">
+                <div
+                    className="p-4 flex justify-between items-center cursor-pointer"
+                    onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                >
+                  <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
+                        <Calendar className="w-6 h-6" />
+                     </div>
+                     <div>
+                        <div className="font-black text-gray-900 text-sm">#{order.orderNumber.split('-')[1]}</div>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase">{new Date(order.createdAtUtc).toLocaleDateString("vi-VN")}</div>
+                     </div>
+                  </div>
+                  <div className="text-right flex items-center gap-3">
+                     <div>
+                        <div className="font-black text-orange-600 text-lg">${order.totalAmount.toFixed(2)}</div>
+                        <Badge className="bg-green-50 text-green-700 border-none text-[8px] uppercase font-black">{order.status}</Badge>
+                     </div>
+                     <ChevronDown className={`w-5 h-5 text-gray-300 transition-transform ${expandedId === order.id ? 'rotate-180' : ''}`} />
+                  </div>
+                </div>
+
+                {/* Phần chi tiết (Chỉ hiện khi nhấn vào) */}
+                {expandedId === order.id && (
+                  <div className="px-4 pb-4 pt-2 border-t border-gray-50 bg-gray-50/30 animate-in slide-in-from-top-2 duration-200">
+                    <h4 className="text-[10px] font-black text-gray-400 uppercase mb-3 tracking-widest">Danh sách món ăn</h4>
+                    <div className="space-y-3">
+                      {order.orderItems?.map((item: any) => (
+                        <div key={item.id} className="flex justify-between items-center">
+                           <div className="flex gap-2 items-center">
+                              <span className="w-6 h-6 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-xs font-black text-orange-600">{item.quantity}</span>
+                              <span className="text-sm font-bold text-gray-700">{item.product?.name || "Món ăn"}</span>
+                           </div>
+                           <span className="text-sm font-black text-gray-400">${item.totalPrice.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 flex gap-2">
+                       <Button className="flex-1 bg-orange-600 font-bold text-xs uppercase h-10 rounded-xl">Mua lại đơn này</Button>
+                       <Button variant="outline" className="h-10 w-10 border-gray-100 bg-white"><CheckCircle className="w-4 h-4 text-green-500" /></Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
     </div>
   );

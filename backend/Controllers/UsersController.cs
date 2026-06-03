@@ -54,6 +54,6 @@ public class UsersController : ControllerBase
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
-        return Ok(new { message = "Đã từ chối yêu cầu" });
+        return Ok(new { message = "Đã từ chối yêu cầu gia nhập" });
     }
 }

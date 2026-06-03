@@ -21,14 +21,12 @@ const Login = () => {
 
     try {
       const response = await authApi.login({ username, password });
-
-      // LOGIC ĐIỀU HƯỚNG THEO VAI TRÒ
-      const userRole = response.role; // Lấy từ API trả về
+      const userRole = response.role;
 
       if (userRole === 'Owner') {
         navigate('/owner');
       } else if (userRole === 'Manager' || userRole === 'Waiter' || userRole === 'Cashier') {
-        navigate('/employee/orders'); // Nhân viên vào trang quản lý đơn
+        navigate('/employee/orders');
       } else if (userRole === 'Customer') {
         navigate('/customer');
       } else {
@@ -56,7 +54,7 @@ const Login = () => {
               <Utensils className="text-white w-10 h-10" />
             </div>
             <CardTitle className="text-3xl font-black text-gray-900 tracking-tight">Restaurant POS</CardTitle>
-            <CardDescription className="text-gray-500 font-medium mt-1">Đăng nhập hệ thống quản lý</CardDescription>
+            <CardDescription className="text-gray-500 font-medium mt-1">Hệ thống quản lý nhà hàng thông minh</CardDescription>
           </CardHeader>
 
           <CardContent className="px-8 pb-8">
@@ -69,17 +67,17 @@ const Login = () => {
               )}
 
               <div className="space-y-2">
-                <Label className="text-gray-700 font-bold ml-1">Tên đăng nhập</Label>
+                <Label className="text-gray-700 font-bold ml-1">Tên đăng nhập / Số điện thoại</Label>
                 <div className="relative">
                   <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input required placeholder="admin_pos" className="pl-10 h-12 bg-gray-50 rounded-xl" value={username} onChange={(e: any) => setUsername(e.target.value)} />
+                  <Input required placeholder="admin_pos hoặc 090..." className="pl-10 h-12 bg-gray-50 rounded-xl" value={username} onChange={(e: any) => setUsername(e.target.value)} />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
                   <Label className="text-gray-700 font-bold">Mật khẩu</Label>
-                  <Link to="/forgot-password" title="Forgot Password" className="text-xs font-bold text-orange-600 hover:text-orange-700">
+                  <Link to="/forgot-password" title="Forgot Password" className="text-xs font-bold text-orange-600 hover:text-orange-700 underline underline-offset-4">
                     Quên mật khẩu?
                   </Link>
                 </div>
@@ -95,7 +93,7 @@ const Login = () => {
             </form>
 
             <div className="relative my-8 text-center border-t border-gray-100 pt-8">
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">Lựa chọn vai trò</span>
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">Bạn chưa có tài khoản?</span>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
@@ -111,9 +109,17 @@ const Login = () => {
                 </Button>
               </Link>
 
-              <Button onClick={handleGuestAccess} variant="outline" className="w-full h-12 justify-start gap-3 border-orange-100 text-gray-700 font-bold hover:bg-orange-50 rounded-xl">
-                <Heart className="w-5 h-5 text-red-500" /> Tài khoản vãng lai
-              </Button>
+              <Link to="/register-customer">
+                <Button variant="outline" className="w-full h-12 justify-start gap-3 border-orange-100 text-gray-700 font-bold hover:bg-orange-50 rounded-xl">
+                  <Heart className="w-5 h-5 text-red-500" /> Tôi muốn làm thành viên
+                </Button>
+              </Link>
+
+              <div className="pt-4">
+                 <Button onClick={handleGuestAccess} variant="ghost" className="w-full text-xs text-gray-400 font-bold uppercase tracking-widest hover:bg-transparent hover:text-gray-900 transition-colors">
+                   Tiếp tục với tư cách Khách vãng lai
+                 </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -63,4 +63,14 @@ public class AuthController : ControllerBase
         if (restaurant == null) return NotFound();
         return Ok(restaurant);
     }
+
+    [HttpGet("search-restaurants")]
+    public async Task<IActionResult> SearchRestaurants([FromQuery] string name)
+    {
+        var restaurants = await _context.Restaurants
+            .Where(r => string.IsNullOrEmpty(name) || r.Name.ToLower().Contains(name.ToLower()))
+            .Take(10) // Giới hạn 10 kết quả
+            .ToListAsync();
+        return Ok(restaurants);
+    }
 }

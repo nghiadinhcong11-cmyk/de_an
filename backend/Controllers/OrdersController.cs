@@ -20,8 +20,23 @@ public class OrdersController : ControllerBase
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
         var orders = await _context.Orders
-            .Include(o => o.OrderItems) // Đính kèm chi tiết món
+            .Include(o => o.OrderItems)
             .Where(o => o.RestaurantId == restaurantId)
+            .OrderByDescending(o => o.CreatedAtUtc)
+            .ToListAsync();
+        return Ok(orders);
+    }
+
+    [HttpGet("customer/my-orders")]
+    public async Task<IActionResult> GetMyOrders()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+        var userId = Guid.Parse(userIdStr);
+        var orders = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Where(o => o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
         return Ok(orders);
@@ -32,13 +47,11 @@ public class OrdersController : ControllerBase
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
         var branchIds = await _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).ToListAsync();
-
         var requests = await _context.OrderRequests
-            .Include(r => r.OrderRequestItems) // Đính kèm chi tiết món yêu cầu
+            .Include(r => r.OrderRequestItems)
             .Where(r => branchIds.Contains(r.BranchId) && r.Status == "Pending")
             .OrderByDescending(r => r.CreatedAtUtc)
             .ToListAsync();
-
         return Ok(requests);
     }
 
@@ -47,7 +60,6 @@ public class OrdersController : ControllerBase
     {
         var request = await _context.OrderRequests.FindAsync(requestId);
         if (request == null) return NotFound();
-
         var requestItems = await _context.OrderRequestItems.Where(i => i.OrderRequestId == requestId).ToListAsync();
         var branch = await _context.Branches.FindAsync(request.BranchId);
 
@@ -64,7 +76,6 @@ public class OrdersController : ControllerBase
                 Status = "Preparing",
                 PaymentStatus = "Pending"
             };
-
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
@@ -73,7 +84,6 @@ public class OrdersController : ControllerBase
             {
                 var product = await _context.Products.FindAsync(reqItem.ProductId);
                 var itemTotal = (product?.Price ?? 0) * reqItem.Quantity;
-
                 _context.OrderItems.Add(new OrderItem
                 {
                     OrderId = order.Id,
@@ -84,19 +94,13 @@ public class OrdersController : ControllerBase
                 });
                 total += itemTotal;
             }
-
             order.TotalAmount = total;
             order.Subtotal = total;
             request.Status = "Approved";
-
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             return Ok(new { message = "Duyệt món thành công" });
         }
-        catch
-        {
-            await transaction.RollbackAsync();
-            return BadRequest();
-        }
+        catch { await transaction.RollbackAsync(); return BadRequest(); }
     }
 }

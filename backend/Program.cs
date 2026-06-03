@@ -13,24 +13,20 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 2. Cấu hình Route chữ thường (Quan trọng cho Linux/Render)
+// 2. Cấu hình Route
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-// 3. Cấu hình CORS cực kỳ linh hoạt
+// 3. Cấu hình CORS - Cho phép cụ thể domain của bạn
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true) // Cho phép tất cả nguồn gọi tới
+        policy.WithOrigins("https://restaurant-pos-web.onrender.com", "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials(); // Cần thiết cho SignalR
+              .AllowCredentials();
     });
 });
-
-// 4. JWT Authentication Configuration
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
 builder.Services.AddAuthentication(x =>
 {
@@ -44,26 +40,12 @@ builder.Services.AddAuthentication(x =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!)),
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
         ClockSkew = TimeSpan.Zero
-    };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            var accessToken = context.Request.Query["access_token"];
-            var path = context.HttpContext.Request.Path;
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationHub"))
-            {
-                context.Token = accessToken;
-            }
-            return Task.CompletedTask;
-        }
     };
 });
 
@@ -74,17 +56,22 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// THỨ TỰ MIDDLEWARE LÀ SỐ 1
-app.UseCors("AllowAll"); // Phải nằm trước Authentication/Authorization
+// Kích hoạt CORS ngay lập tức
+app.UseCors("AllowAll");
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Xử lý lỗi toàn cục để không bị mất Header CORS
+app.Use(async (context, next) => {
+    try { await next(); }
+    catch (Exception) {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { message = "Lỗi hệ thống phía Backend" });
+    }
+});
+
+if (app.Environment.IsDevelopment()) { app.MapOpenApi(); }
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 

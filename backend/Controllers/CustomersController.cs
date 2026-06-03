@@ -31,6 +31,17 @@ public class CustomersController : ControllerBase
         return Ok(customer);
     }
 
+    [HttpGet("me/points-history")]
+    public async Task<IActionResult> GetMyPointsHistory()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var history = await _context.CustomerPointHistories
+            .Where(h => h.CustomerId == userId)
+            .OrderByDescending(h => h.CreatedAtUtc)
+            .ToListAsync();
+        return Ok(history);
+    }
+
     [HttpPost("loyalty/add-points")]
     public async Task<IActionResult> AddLoyaltyPoints([FromBody] LoyaltyRequest request)
     {
