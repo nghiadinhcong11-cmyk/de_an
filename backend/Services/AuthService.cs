@@ -29,13 +29,24 @@ public class AuthService : IAuthService
         _configuration = configuration;
     }
 
+    // Hàm phụ trợ để đảm bảo Role luôn tồn tại
+    private async Task<Guid> EnsureRoleExistsAsync(string roleName)
+    {
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+        if (role == null)
+        {
+            role = new Role { Name = roleName, Description = $"Tự động tạo cho {roleName}" };
+            _context.Roles.Add(role);
+            await _context.SaveChangesAsync();
+        }
+        return role.Id;
+    }
+
     public async Task<bool> RegisterCustomerAsync(RegisterCustomerRequest request)
     {
-        // 1. Kiểm tra SĐT đã tồn tại chưa
         if (await _context.Customers.AnyAsync(c => c.PhoneNumber == request.PhoneNumber))
             return false;
 
-        // 2. Nếu không có RestaurantId, lấy cái đầu tiên
         var restaurantId = request.RestaurantId;
         if (restaurantId == Guid.Empty)
         {
@@ -61,7 +72,6 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
     {
-        // Kiểm tra User (Chủ/Nhân viên)
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
 
@@ -76,7 +86,6 @@ public class AuthService : IAuthService
             return new LoginResponse { Token = token, Username = user.Username, FullName = user.FullName, Role = userRole };
         }
 
-        // Kiểm tra Customer (Dùng SĐT làm username và pass - tạm thời cho đơn giản)
         var customer = await _context.Customers
             .FirstOrDefaultAsync(c => c.PhoneNumber == request.Username);
 
@@ -112,12 +121,10 @@ public class AuthService : IAuthService
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var ownerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Owner");
-            if (ownerRole != null)
-            {
-                _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = ownerRole.Id });
-                await _context.SaveChangesAsync();
-            }
+            // ĐẢM BẢO ROLE OWNER LUÔN CÓ
+            var roleId = await EnsureRoleExistsAsync("Owner");
+            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = roleId });
+            await _context.SaveChangesAsync();
 
             await transaction.CommitAsync();
             return true;
@@ -146,12 +153,10 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName);
-        if (role != null)
-        {
-            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
-            await _context.SaveChangesAsync();
-        }
+        // ĐẢM BẢO ROLE NHÂN VIÊN LUÔN CÓ
+        var roleId = await EnsureRoleExistsAsync(request.RoleName ?? "Waiter");
+        _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = roleId });
+        await _context.SaveChangesAsync();
 
         return true;
     }
