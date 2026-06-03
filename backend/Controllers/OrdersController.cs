@@ -21,6 +21,7 @@ public class OrdersController : ControllerBase
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product) // Sửa cách gọi ThenInclude cho ICollection
             .Where(o => o.RestaurantId == restaurantId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
@@ -33,9 +34,10 @@ public class OrdersController : ControllerBase
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
         var userId = Guid.Parse(userIdStr);
+
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Product)
+            .ThenInclude(oi => oi.Product) // Sửa tương tự tại đây
             .Where(o => o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
@@ -72,6 +74,7 @@ public class OrdersController : ControllerBase
                 RestaurantId = branch!.RestaurantId,
                 BranchId = request.BranchId,
                 TableId = request.TableId,
+                CustomerId = request.TableId, // Giả sử dùng tạm TableId cho Customer nếu chưa login
                 CreatedByUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
                 Status = "Preparing",
                 PaymentStatus = "Pending"
