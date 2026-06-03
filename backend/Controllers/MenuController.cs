@@ -66,4 +66,30 @@ public class MenuController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok(product);
     }
+
+    [HttpPut("products/{id}")]
+    public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] Product product)
+    {
+        var existing = await _context.Products.FindAsync(id);
+        if (existing == null) return NotFound();
+
+        existing.Name = product.Name;
+        existing.Price = product.Price;
+        existing.CategoryId = product.CategoryId;
+        existing.Description = product.Description;
+        existing.IsAvailable = product.IsAvailable;
+
+        await _context.SaveChangesAsync();
+        return Ok(existing);
+    }
+
+    [HttpDelete("products/{id}")]
+    public async Task<IActionResult> DeleteProduct(Guid id)
+    {
+        var product = await _context.Products.FindAsync(id);
+        if (product == null) return NotFound();
+        _context.Products.Remove(product);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }

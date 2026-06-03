@@ -13,22 +13,22 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// 2. Cấu hình CORS cực kỳ linh hoạt cho Production
+// 2. Cấu hình Route chữ thường (Quan trọng cho Linux/Render)
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
+// 3. Cấu hình CORS cực kỳ linh hoạt
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy
-            .WithOrigins(
-                "https://restaurant-pos-web.onrender.com"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.SetIsOriginAllowed(_ => true) // Cho phép tất cả nguồn gọi tới
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Cần thiết cho SignalR
     });
 });
 
-// 3. JWT Authentication Configuration
+// 4. JWT Authentication Configuration
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
@@ -41,7 +41,6 @@ builder.Services.AddAuthentication(x =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
-
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -59,13 +58,10 @@ builder.Services.AddAuthentication(x =>
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-
-            if (!string.IsNullOrEmpty(accessToken) &&
-                path.StartsWithSegments("/notificationHub"))
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationHub"))
             {
                 context.Token = accessToken;
             }
-
             return Task.CompletedTask;
         }
     };
@@ -74,20 +70,22 @@ builder.Services.AddAuthentication(x =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddSignalR(); // Thêm dòng này
+builder.Services.AddSignalR();
 
 var app = builder.Build();
-app.UseCors("CorsPolicy");
-// THỨ TỰ MIDDLEWARE CỰC KỲ QUAN TRỌNG TRÊN RENDER
+
+// THỨ TỰ MIDDLEWARE LÀ SỐ 1
+app.UseCors("AllowAll"); // Phải nằm trước Authentication/Authorization
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<NotificationHub>("/notificationHub"); // Thêm dòng này
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

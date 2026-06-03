@@ -14,7 +14,7 @@ export function OwnerCustomers() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await api.get("/customers");
+        const res = await api.get("/customers"); // Chữ thường đồng bộ
         setCustomers(res.data);
       } catch (err) {
         console.error("Lỗi tải khách hàng");
