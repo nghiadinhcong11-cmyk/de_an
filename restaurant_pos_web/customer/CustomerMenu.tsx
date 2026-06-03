@@ -4,7 +4,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
-import { Search, Plus, Loader2, ArrowLeft, ShoppingBag } from "lucide-react";
+import { Search, Plus, Loader2, Filter, ShoppingBag } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerMenu() {
@@ -22,10 +22,9 @@ export function CustomerMenu() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Lấy dữ liệu menu dựa trên restaurantId (hoặc mặc định)
         const [catRes, prodRes] = await Promise.all([
-          api.get(`/Menu/categories?restaurantId=${restaurantId}`),
-          api.get(`/Menu/products?restaurantId=${restaurantId}`)
+          api.get(`/menu/categories?restaurantId=${restaurantId}`),
+          api.get(`/menu/products?restaurantId=${restaurantId}`)
         ]);
         setCategories(catRes.data);
         setProducts(prodRes.data);
@@ -42,36 +41,25 @@ export function CustomerMenu() {
     return matchesCategory && matchesSearch;
   });
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-600 w-12 h-12" /></div>;
 
   return (
-    <div className="pb-24 bg-white min-h-screen">
-      {/* Top Header */}
-      <div className="p-4 flex items-center gap-4 sticky top-0 bg-white z-20 shadow-sm border-b border-gray-50">
-         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10"><ArrowLeft className="w-5 h-5" /></Button>
-         <div className="flex-1">
-            <h2 className="text-lg font-black leading-none">Thực đơn</h2>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Hương vị tuyệt hảo</p>
-         </div>
-      </div>
-
-      <div className="p-4 space-y-4">
-         {/* Search */}
-         <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+    <div className="space-y-8">
+      {/* Search & Category Filter Section */}
+      <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-white p-6 rounded-3xl shadow-sm">
+         <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
             <Input
-                placeholder="Tìm món ăn ngon..."
-                className="pl-10 h-11 bg-gray-50 border-none rounded-xl"
+                placeholder="Tìm món ngon bạn thích..."
+                className="pl-12 h-14 bg-gray-50 border-none rounded-2xl text-lg font-medium"
                 value={searchTerm}
                 onChange={(e: any) => setSearchTerm(e.target.value)}
             />
          </div>
-
-         {/* Category Tabs */}
-         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+         <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
             <button
                 onClick={() => setActiveCategory("all")}
-                className={`px-5 py-2 rounded-xl text-xs font-black uppercase transition-all ${activeCategory === 'all' ? 'bg-orange-600 text-white shadow-lg shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}
+                className={`px-8 h-12 rounded-2xl text-sm font-black uppercase transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-orange-600 text-white shadow-xl shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}
             >
                 Tất cả
             </button>
@@ -79,42 +67,49 @@ export function CustomerMenu() {
                <button
                     key={c.id}
                     onClick={() => setActiveCategory(c.id)}
-                    className={`px-5 py-2 rounded-xl text-xs font-black uppercase whitespace-nowrap transition-all ${activeCategory === c.id ? 'bg-orange-600 text-white shadow-lg shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}
+                    className={`px-8 h-12 rounded-2xl text-sm font-black uppercase whitespace-nowrap transition-all ${activeCategory === c.id ? 'bg-orange-600 text-white shadow-xl shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}
                >
                    {c.name}
                </button>
             ))}
          </div>
+      </div>
 
-         {/* Product List */}
-         <div className="grid grid-cols-1 gap-4">
-            {filteredItems.map(p => (
-              <Card key={p.id} className="border-none shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden bg-gray-50/50">
-                 <CardContent className="p-3 flex gap-4">
-                    <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center text-4xl shadow-inner shrink-0">🍽️</div>
-                    <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-                       <div>
-                          <h4 className="font-bold text-gray-900 truncate">{p.name}</h4>
-                          <p className="text-[10px] text-gray-400 line-clamp-1">{p.description || "Món ăn ngon đậm đà bản sắc..."}</p>
-                       </div>
-                       <div className="flex justify-between items-center">
-                          <span className="text-orange-600 font-black text-lg">${p.price.toFixed(2)}</span>
-                          <Button size="sm" className="h-8 w-8 rounded-full p-0 bg-orange-600"><Plus className="w-4 h-4" /></Button>
-                       </div>
-                    </div>
-                 </CardContent>
-              </Card>
-            ))}
+      {/* Main Grid List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {filteredItems.map(p => (
+          <Card key={p.id} className="border-none shadow-sm hover:shadow-2xl transition-all rounded-[32px] overflow-hidden group bg-white">
+             <div className="aspect-square bg-orange-50 flex items-center justify-center text-7xl relative">
+                <div className="absolute top-4 right-4"><Badge className="bg-white/80 backdrop-blur-md text-orange-600 border-none font-black text-[10px]">NEW</Badge></div>
+                🍽️
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
+             </div>
+             <CardContent className="p-6">
+                <div className="mb-4">
+                  <h4 className="font-black text-xl text-gray-900 truncate mb-1">{p.name}</h4>
+                  <p className="text-sm text-gray-400 font-medium line-clamp-2 h-10">{p.description || "Hương vị thơm ngon, chế biến từ nguyên liệu sạch tươi mỗi ngày..."}</p>
+                </div>
+                <div className="flex justify-between items-center pt-4 border-t border-gray-50">
+                  <div>
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">Giá bán</p>
+                    <p className="text-2xl font-black text-orange-600">${p.price.toFixed(2)}</p>
+                  </div>
+                  <Button className="h-12 w-12 rounded-2xl bg-gray-900 hover:bg-orange-600 shadow-lg shadow-gray-200 p-0 transition-all active:scale-90">
+                    <Plus className="w-6 h-6" />
+                  </Button>
+                </div>
+             </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredItems.length === 0 && (
+         <div className="py-32 text-center bg-white rounded-[40px] shadow-sm">
+            <div className="text-6xl mb-6">🏜️</div>
+            <h3 className="text-xl font-black text-gray-900">Không tìm thấy món ăn nào</h3>
+            <p className="text-gray-400 font-medium">Bạn hãy thử tìm kiếm với từ khóa khác nhé</p>
          </div>
-      </div>
-
-      {/* Nút giỏ hàng nổi */}
-      <div className="fixed bottom-24 right-6 z-40">
-         <Button onClick={() => navigate('/customer/cart')} className="h-14 w-14 rounded-full bg-gray-900 shadow-2xl flex flex-col gap-0 items-center justify-center p-0 group hover:bg-orange-600 transition-all">
-            <ShoppingBag className="w-5 h-5" />
-            <span className="text-[8px] font-black uppercase">Cart</span>
-         </Button>
-      </div>
+      )}
     </div>
   );
 }

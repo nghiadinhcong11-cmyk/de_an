@@ -64,6 +64,15 @@ public class AuthController : ControllerBase
         return Ok(restaurant);
     }
 
+    [HttpGet("featured-restaurants")]
+    public async Task<IActionResult> GetFeaturedRestaurants()
+    {
+        var restaurants = await _context.Restaurants
+            .Take(6)
+            .ToListAsync();
+        return Ok(restaurants);
+    }
+
     [HttpGet("search-restaurants")]
     public async Task<IActionResult> SearchRestaurants([FromQuery] string name)
     {
