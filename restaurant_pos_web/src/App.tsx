@@ -52,12 +52,14 @@ function App() {
         {/* Customer QR Route */}
         <Route path="/qr/:tableId" element={<TableOrderPage />} />
 
-        {/* Customer Portal (Chỉ khách hàng vào được) */}
-        <Route element={<ProtectedRoute allowedRoles={['Customer']} />}>
-          <Route path="/customer" element={<CustomerLayout />}>
-            <Route index element={<CustomerWelcome />} />
-            <Route path="menu" element={<CustomerMenu />} />
-            <Route path="cart" element={<CustomerCart />} />
+        {/* Customer Portal - Public Routes for Guest Ordering */}
+        <Route path="/customer" element={<CustomerLayout />}>
+          <Route index element={<CustomerWelcome />} />
+          <Route path="menu" element={<CustomerMenu />} />
+          <Route path="cart" element={<CustomerCart />} />
+
+          {/* Private Customer Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['Customer']} />}>
             <Route path="orders" element={<CustomerOrders />} />
             <Route path="profile" element={<CustomerProfile />} />
           </Route>

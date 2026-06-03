@@ -73,6 +73,24 @@ public class OrdersController : ControllerBase
                 .ThenInclude(ri => ri.Product)
             .Where(r => branchIds.Contains(r.BranchId) && r.Status == "Pending")
             .OrderByDescending(r => r.CreatedAtUtc)
+            .Select(r => new {
+                r.Id,
+                r.BranchId,
+                r.TableId,
+                r.CustomerName,
+                r.Status,
+                r.CreatedAtUtc,
+                TableNumber = _context.DiningTables.Where(t => t.Id == r.TableId).Select(t => t.TableNumber).FirstOrDefault(),
+                OrderRequestItems = r.OrderRequestItems.Select(ri => new {
+                    ri.Id,
+                    ri.Quantity,
+                    ri.Note,
+                    Product = new {
+                        ri.Product.Name,
+                        ri.Product.Price
+                    }
+                })
+            })
             .ToListAsync();
 
         return Ok(requests);
@@ -144,6 +162,23 @@ public class OrdersController : ControllerBase
             await transaction.RollbackAsync();
             return BadRequest();
         }
+    }
+
+    [HttpPost("reject-request/{requestId}")]
+    public async Task<IActionResult> RejectRequest(Guid requestId)
+    {
+        var request = await _context.OrderRequests.FindAsync(requestId);
+        if (request == null) return NotFound();
+
+        request.Status = "Rejected";
+        await _context.SaveChangesAsync();
+
+        await _hubContext.Clients.All.SendAsync("OrderStatusUpdated", new {
+            requestId = request.Id,
+            newStatus = "Đã bị từ chối"
+        });
+
+        return Ok(new { message = "Đã từ chối yêu cầu" });
     }
 
     [HttpPut("{id}/status")]

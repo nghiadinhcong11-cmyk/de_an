@@ -30,6 +30,11 @@ export function CustomerProfile() {
         api.get("/vouchers")
       ]);
       setProfile(pRes.data);
+      // Cập nhật cả user_profile và user (để đồng bộ với authApi)
+      localStorage.setItem("user_profile", JSON.stringify(pRes.data));
+      const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+      localStorage.setItem("user", JSON.stringify({ ...currentUser, fullName: pRes.data.fullName, avatarUrl: pRes.data.avatarUrl }));
+
       setHistory(hRes.data);
       setVouchers(vRes.data);
       setEditName(pRes.data.fullName);

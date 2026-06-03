@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -9,37 +9,55 @@ import api from "../services/api";
 
 export function CustomerCart() {
   const navigate = useNavigate();
-  // Trong thực tế sẽ lấy từ Global State hoặc LocalStorage
-  const [cart, setCart] = useState<any[]>([
-    { id: "1", name: "Classic Burger", price: 12.99, quantity: 2 },
-    { id: "2", name: "Coca Cola", price: 2.99, quantity: 1 },
-  ]);
-
+  const [cart, setCart] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [qrData, setQrData] = useState<any>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem("customer_cart");
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  const saveCart = (newCart: any[]) => {
+    setCart(newCart);
+    localStorage.setItem("customer_cart", JSON.stringify(newCart));
+    window.dispatchEvent(new Event("storage"));
+  };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const serviceCharge = subtotal * 0.05; // 5% phí phục vụ
   const total = subtotal + serviceCharge;
 
   const updateQty = (id: string, delta: number) => {
-      setCart(cart.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i));
+      const newCart = cart.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i);
+      saveCart(newCart);
   };
 
   const removeItem = (id: string) => {
-      setCart(cart.filter(i => i.id !== id));
+      const newCart = cart.filter(i => i.id !== id);
+      saveCart(newCart);
   };
 
   const handlePlaceOrder = async (method: string) => {
     setLoading(true);
     try {
+      const savedTableId = localStorage.getItem("current_table_id") || "t1";
+      const userStr = localStorage.getItem("user");
+      const profile = userStr ? JSON.parse(userStr) : {};
+
       const res = await api.post("/qrordering/submit-request", {
-        tableId: "t1",
-        customerName: "Khách hàng thân thiết",
+        tableId: savedTableId,
+        customerName: profile.fullName || "Khách hàng",
         items: cart.map(i => ({ productId: i.id, quantity: i.quantity }))
       });
+
+      // Xóa giỏ hàng sau khi đặt thành công
+      localStorage.removeItem("customer_cart");
+      window.dispatchEvent(new Event("storage"));
 
       if (method === 'vietqr') {
         const qrRes = await api.get(`/qrordering/generate-qr-request/${res.data.requestId}`);

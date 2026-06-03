@@ -19,17 +19,56 @@ export function CustomerMenu() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      const savedCart = localStorage.getItem("customer_cart");
+      if (savedCart) {
+        const cartItems = JSON.parse(savedCart);
+        setCartCount(cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0));
+      }
+    };
+    updateCartCount();
+    window.addEventListener("storage", updateCartCount);
+    return () => window.removeEventListener("storage", updateCartCount);
+  }, []);
+
+  const addToCart = (product: any) => {
+    const savedCart = localStorage.getItem("customer_cart");
+    let cartItems = savedCart ? JSON.parse(savedCart) : [];
+
+    const existingItem = cartItems.find((i: any) => i.id === product.id);
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cartItems.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        imageUrl: product.imageUrl
+      });
+    }
+
+    localStorage.setItem("customer_cart", JSON.stringify(cartItems));
+    setCartCount(cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0));
+    // Trigger storage event for other tabs/components
+    window.dispatchEvent(new Event("storage"));
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Nếu không có ID trong URL, hãy thử lấy thông tin quán mặc định đầu tiên
-        let targetId = queryRestaurantId;
+        // Thử lấy ID theo thứ tự: URL -> LocalStorage -> API mặc định
+        let targetId = queryRestaurantId || localStorage.getItem("current_restaurant_id");
+
         if (!targetId) {
             const infoRes = await api.get("/auth/find-restaurant-info");
             targetId = infoRes.data.id;
+            localStorage.setItem("current_restaurant_id", targetId || "");
         }
 
         const [catRes, prodRes] = await Promise.all([
@@ -99,7 +138,10 @@ export function CustomerMenu() {
                         <h4 className="font-black text-xl text-gray-900 truncate mb-1">{p.name}</h4>
                         <p className="text-orange-600 font-black text-2xl">${p.price.toFixed(2)}</p>
                     </div>
-                    <Button className="w-full mt-4 bg-gray-900 hover:bg-orange-600 h-12 rounded-2xl font-black gap-2 transition-all">
+                    <Button
+                        onClick={() => addToCart(p)}
+                        className="w-full mt-4 bg-gray-900 hover:bg-orange-600 h-12 rounded-2xl font-black gap-2 transition-all"
+                    >
                         <Plus className="w-5 h-5" /> CHỌN MÓN
                     </Button>
                  </CardContent>
@@ -109,8 +151,13 @@ export function CustomerMenu() {
 
       {/* Floating Cart Button */}
       <div className="fixed bottom-24 right-10 z-40">
-         <Button onClick={() => navigate('/customer/cart')} className="h-16 w-16 rounded-full bg-orange-600 shadow-2xl flex flex-col items-center justify-center p-0 hover:scale-110 transition-all">
+         <Button onClick={() => navigate('/customer/cart')} className="h-16 w-16 rounded-full bg-orange-600 shadow-2xl flex flex-col items-center justify-center p-0 hover:scale-110 transition-all relative">
             <ShoppingBag className="w-6 h-6 text-white" />
+            {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-white text-orange-600 text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-orange-600 shadow-sm animate-in zoom-in">
+                    {cartCount}
+                </span>
+            )}
          </Button>
       </div>
     </div>
