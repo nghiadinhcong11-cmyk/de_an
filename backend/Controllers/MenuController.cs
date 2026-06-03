@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestaurantPOS.DTOs;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.Menu.Entities;
 
@@ -22,7 +23,10 @@ public class MenuController : ControllerBase
     [HttpGet("categories")]
     public async Task<IActionResult> GetCategories()
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(restaurantIdStr);
+
         var categories = await _context.Categories
             .Where(c => c.RestaurantId == restaurantId)
             .OrderBy(c => c.DisplayOrder)
@@ -33,7 +37,10 @@ public class MenuController : ControllerBase
     [HttpPost("categories")]
     public async Task<IActionResult> CreateCategory([FromBody] Category category)
     {
-        category.RestaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+
+        category.RestaurantId = Guid.Parse(restaurantIdStr);
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
         return Ok(category);
@@ -42,42 +49,59 @@ public class MenuController : ControllerBase
     [HttpGet("products")]
     public async Task<IActionResult> GetProducts([FromQuery] Guid? categoryId)
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var query = _context.Products.AsQueryable();
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(restaurantIdStr);
 
-        // Filter theo nhà hàng thông qua Category
-        var categoryIds = await _context.Categories
-            .Where(c => c.RestaurantId == restaurantId)
-            .Select(c => c.Id)
-            .ToListAsync();
-
-        query = query.Where(p => categoryIds.Contains(p.CategoryId));
+        var query = _context.Products.Where(p => p.RestaurantId == restaurantId);
 
         if (categoryId.HasValue)
             query = query.Where(p => p.CategoryId == categoryId);
 
-        return Ok(await query.ToListAsync());
+        var products = await query.ToListAsync();
+        return Ok(products);
     }
 
     [HttpPost("products")]
-    public async Task<IActionResult> CreateProduct([FromBody] Product product)
+    public async Task<IActionResult> CreateProduct([FromBody] ProductCreateUpdateDto dto)
     {
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+
+        var product = new Product
+        {
+            RestaurantId = Guid.Parse(restaurantIdStr),
+            CategoryId = dto.CategoryId,
+            Name = dto.Name,
+            Description = dto.Description,
+            Price = dto.Price,
+            ImageUrl = dto.ImageUrl,
+            IsAvailable = dto.IsAvailable
+        };
+
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
         return Ok(product);
     }
 
     [HttpPut("products/{id}")]
-    public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] Product product)
+    public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductCreateUpdateDto dto)
     {
-        var existing = await _context.Products.FindAsync(id);
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(restaurantIdStr);
+
+        var existing = await _context.Products
+            .FirstOrDefaultAsync(p => p.Id == id && p.RestaurantId == restaurantId);
+
         if (existing == null) return NotFound();
 
-        existing.Name = product.Name;
-        existing.Price = product.Price;
-        existing.CategoryId = product.CategoryId;
-        existing.Description = product.Description;
-        existing.IsAvailable = product.IsAvailable;
+        existing.Name = dto.Name;
+        existing.Price = dto.Price;
+        existing.CategoryId = dto.CategoryId;
+        existing.Description = dto.Description;
+        existing.IsAvailable = dto.IsAvailable;
+        existing.ImageUrl = dto.ImageUrl;
 
         await _context.SaveChangesAsync();
         return Ok(existing);
@@ -86,8 +110,15 @@ public class MenuController : ControllerBase
     [HttpDelete("products/{id}")]
     public async Task<IActionResult> DeleteProduct(Guid id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(restaurantIdStr);
+
+        var product = await _context.Products
+            .FirstOrDefaultAsync(p => p.Id == id && p.RestaurantId == restaurantId);
+
         if (product == null) return NotFound();
+
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
         return Ok();

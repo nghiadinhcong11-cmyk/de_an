@@ -2,8 +2,7 @@ import api from './api';
 
 export const authApi = {
   login: async (data: any) => {
-    // Sửa thành Auth (viết hoa)
-    const response = await api.post('/Auth/login', data);
+    const response = await api.post('/auth/login', data);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data));
@@ -12,11 +11,11 @@ export const authApi = {
   },
 
   registerOwner: async (data: any) => {
-    return await api.post('/Auth/register-owner', data);
+    return await api.post('/auth/register-owner', data);
   },
 
   registerEmployee: async (data: any) => {
-    return await api.post('/Auth/register-employee', data);
+    return await api.post('/auth/register-employee', data);
   },
 
   logout: () => {
