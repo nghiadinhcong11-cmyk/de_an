@@ -145,6 +145,13 @@ public class OrdersController : ControllerBase
             order.Subtotal = total;
             request.Status = "Approved";
 
+            // Cập nhật trạng thái bàn sang "Occupied"
+            var table = await _context.DiningTables.FindAsync(request.TableId);
+            if (table != null)
+            {
+                table.Status = "Occupied";
+            }
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
@@ -152,7 +159,9 @@ public class OrdersController : ControllerBase
             await _hubContext.Clients.All.SendAsync("OrderStatusUpdated", new {
                 orderId = order.Id,
                 orderNumber = order.OrderNumber,
-                newStatus = "Đã tiếp nhận & Đang chuẩn bị"
+                newStatus = "Đã tiếp nhận & Đang chuẩn bị",
+                tableId = order.TableId,
+                tableStatus = "Occupied"
             });
 
             return Ok(new { message = "Duyệt món thành công", orderId = order.Id });
@@ -179,6 +188,103 @@ public class OrdersController : ControllerBase
         });
 
         return Ok(new { message = "Đã từ chối yêu cầu" });
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .Include(o => o.Table)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order == null) return NotFound();
+        return Ok(order);
+    }
+
+    [HttpPost("{id}/payment")]
+    public async Task<IActionResult> ProcessPayment(Guid id, [FromBody] PaymentRequest request)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order == null) return NotFound();
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // 1. Tích điểm nếu có số điện thoại
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == request.PhoneNumber);
+                if (customer == null)
+                {
+                    customer = new Customer
+                    {
+                        RestaurantId = order.RestaurantId,
+                        FullName = request.CustomerName ?? "Khách hàng mới",
+                        PhoneNumber = request.PhoneNumber,
+                        Points = 0,
+                        TotalSpent = 0
+                    };
+                    _context.Customers.Add(customer);
+                    await _context.SaveChangesAsync();
+                }
+
+                int earnedPoints = (int)Math.Floor(order.TotalAmount / 10000);
+                customer.Points += earnedPoints;
+                customer.TotalSpent += order.TotalAmount;
+                customer.LastVisitAtUtc = DateTime.UtcNow;
+                order.CustomerId = customer.Id;
+
+                _context.CustomerPointHistories.Add(new CustomerPointHistory
+                {
+                    CustomerId = customer.Id,
+                    OrderId = order.Id,
+                    Points = earnedPoints,
+                    Type = "Earn",
+                    Description = $"Tích điểm từ đơn hàng {order.OrderNumber}"
+                });
+            }
+
+            // 2. Cập nhật trạng thái đơn hàng
+            order.Status = "Completed";
+            order.PaymentStatus = "Paid";
+
+            // 3. Giải phóng bàn
+            var table = await _context.DiningTables.FindAsync(order.TableId);
+            if (table != null)
+            {
+                table.Status = "Available";
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            // 4. Lấy thông tin VietQR
+            var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == order.BranchId && a.IsActive);
+            string? qrUrl = null;
+            if (account != null)
+            {
+                qrUrl = $"https://img.vietqr.io/image/{account.BankCode}-{account.AccountNumber}-compact.png?amount={order.TotalAmount}&addInfo=Thanh toan don {order.OrderNumber}&accountName={Uri.EscapeDataString(account.AccountName)}";
+            }
+
+            return Ok(new {
+                message = "Thanh toán thành công",
+                qrUrl,
+                totalAmount = order.TotalAmount
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest(ex.Message);
+        }
+    }
+
+    public class PaymentRequest
+    {
+        public string? PhoneNumber { get; set; }
+        public string? CustomerName { get; set; }
     }
 
     [HttpPut("{id}/status")]

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'order_requests_screen.dart';
+import 'tables_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -11,10 +12,10 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 2; // Default to requests for employee
+  int _selectedIndex = 0; // Đổi mặc định về sơ đồ bàn
 
   final List<Widget> _screens = [
-    const Center(child: Text('Danh sách đơn hàng')),
+    const TablesScreen(),
     const Center(child: Text('POS - Đặt món')),
     const OrderRequestsScreen(),
     const Center(child: Text('Cá nhân')),
@@ -59,7 +60,7 @@ class _MainScreenState extends State<MainScreen> {
           unselectedItemColor: Colors.grey,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Đơn hàng'),
+            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Sơ đồ bàn'),
             BottomNavigationBarItem(icon: Icon(Icons.add_shopping_cart), label: 'POS'),
             BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Yêu cầu'),
             BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Cá nhân'),
