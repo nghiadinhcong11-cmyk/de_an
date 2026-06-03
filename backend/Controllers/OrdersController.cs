@@ -19,11 +19,12 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var resIdStr = User.FindFirstValue("RestaurantId");
-        var restaurantId = Guid.Parse(resIdStr!);
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
 
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product) // Cách viết chuẩn cho Collection
+                .ThenInclude(oi => oi.Product)
             .Where(o => o.RestaurantId == restaurantId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
@@ -40,7 +41,7 @@ public class OrdersController : ControllerBase
 
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product) // Cách viết chuẩn cho Collection
+                .ThenInclude(oi => oi.Product)
             .Where(o => o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
@@ -52,7 +53,8 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetPendingRequests()
     {
         var resIdStr = User.FindFirstValue("RestaurantId");
-        var restaurantId = Guid.Parse(resIdStr!);
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
 
         var branchIds = await _context.Branches
             .Where(b => b.RestaurantId == restaurantId)
@@ -60,6 +62,7 @@ public class OrdersController : ControllerBase
 
         var requests = await _context.OrderRequests
             .Include(r => r.OrderRequestItems)
+                .ThenInclude(ri => ri.Product)
             .Where(r => branchIds.Contains(r.BranchId) && r.Status == "Pending")
             .OrderByDescending(r => r.CreatedAtUtc)
             .ToListAsync();
@@ -118,7 +121,7 @@ public class OrdersController : ControllerBase
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            return Ok(new { message = "Duyệt món thành công" });
+            return Ok(new { message = "Duyệt món thành công", orderId = order.Id });
         }
         catch
         {
