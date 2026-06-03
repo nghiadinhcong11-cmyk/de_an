@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.Core.Entities;
+using RestaurantPOS.DTOs;
 
 namespace RestaurantPOS.Controllers;
 
@@ -18,32 +19,30 @@ public class BranchesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetBranches()
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
         return Ok(await _context.Branches.Where(b => b.RestaurantId == restaurantId).ToListAsync());
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Branch branch)
+    public async Task<IActionResult> Create([FromBody] BranchCreateDto dto)
     {
-        branch.RestaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        branch.IsActive = true;
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+
+        var branch = new Branch
+        {
+            RestaurantId = Guid.Parse(resIdStr),
+            Name = dto.Name,
+            Address = dto.Address,
+            Phone = dto.Phone,
+            IsActive = true
+        };
+
         _context.Branches.Add(branch);
         await _context.SaveChangesAsync();
         return Ok(branch);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] Branch branch)
-    {
-        var existing = await _context.Branches.FindAsync(id);
-        if (existing == null) return NotFound();
-
-        existing.Name = branch.Name;
-        existing.Address = branch.Address;
-        existing.Phone = branch.Phone;
-
-        await _context.SaveChangesAsync();
-        return Ok(existing);
     }
 
     [HttpDelete("{id}")]

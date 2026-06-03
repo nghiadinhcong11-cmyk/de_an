@@ -8,46 +8,39 @@ using RestaurantPOS.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Database Connection
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// 1. Cấu hình Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Cấu hình Route
-builder.Services.AddRouting(options => options.LowercaseUrls = true);
-
-// 3. Cấu hình CORS - Cho phép cụ thể domain của bạn
+// 2. CORS - Đặt cấu hình thoáng nhất cho Production để dập lỗi
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://restaurant-pos-web.onrender.com", "http://localhost:5173")
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
 
-builder.Services.AddAuthentication(x =>
-{
-    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
+// 3. JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!)),
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        ClockSkew = TimeSpan.Zero
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddControllers();
@@ -56,15 +49,18 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-// Kích hoạt CORS ngay lập tức
+// THỨ TỰ LÀ SỐ 1 ĐỂ KHÔNG BỊ LỖI CORS
 app.UseCors("AllowAll");
 
-// Xử lý lỗi toàn cục để không bị mất Header CORS
-app.Use(async (context, next) => {
+// Middleware xử lý lỗi để không bao giờ bị mất CORS header
+app.Use(async (context, next) =>
+{
     try { await next(); }
-    catch (Exception) {
+    catch (Exception ex)
+    {
         context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new { message = "Lỗi hệ thống phía Backend" });
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
 

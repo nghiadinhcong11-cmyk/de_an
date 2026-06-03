@@ -16,22 +16,27 @@ public class PaymentsController : ControllerBase
     public PaymentsController(AppDbContext context) => _context = context;
 
     [HttpGet("config")]
-    public async Task<IActionResult> GetPaymentConfig()
+    public async Task<IActionResult> GetConfig()
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var branch = await _context.Branches.FirstOrDefaultAsync(b => b.RestaurantId == restaurantId);
-        if (branch == null) return NotFound();
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
 
-        var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == branch.Id && a.IsActive);
+        var branch = await _context.Branches.FirstOrDefaultAsync(b => b.RestaurantId == restaurantId);
+        if (branch == null) return NotFound("Chưa có chi nhánh nào");
+
+        var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == branch.Id);
+        if (account == null) return NotFound("Chưa cấu hình tài khoản");
+
         return Ok(account);
     }
 
     [HttpPost("config")]
-    public async Task<IActionResult> UpdatePaymentConfig([FromBody] PaymentAccount account)
+    public async Task<IActionResult> UpdateConfig([FromBody] PaymentAccount account)
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var branch = await _context.Branches.FirstOrDefaultAsync(b => b.RestaurantId == restaurantId);
-        if (branch == null) return NotFound();
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        var restaurantId = Guid.Parse(resIdStr!);
+        var branch = await _context.Branches.FirstAsync(b => b.RestaurantId == restaurantId);
 
         var existing = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == branch.Id);
         if (existing != null)
@@ -39,34 +44,14 @@ public class PaymentsController : ControllerBase
             existing.BankCode = account.BankCode;
             existing.AccountNumber = account.AccountNumber;
             existing.AccountName = account.AccountName;
-            existing.IsActive = true;
         }
         else
         {
             account.BranchId = branch.Id;
-            account.IsDefault = true;
-            account.IsActive = true;
             _context.PaymentAccounts.Add(account);
         }
 
         await _context.SaveChangesAsync();
-        return Ok(account);
-    }
-
-    [AllowAnonymous]
-    [HttpGet("generate-qr/{orderId}")]
-    public async Task<IActionResult> GenerateVietQR(Guid orderId)
-    {
-        var order = await _context.Orders.FindAsync(orderId);
-        if (order == null) return NotFound("Không tìm thấy đơn hàng");
-
-        var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == order.BranchId && a.IsActive);
-        if (account == null) return BadRequest("Chi nhánh chưa cấu hình tài khoản nhận tiền");
-
-        // Format VietQR link
-        // Template 'compact' is common for simple display
-        var qrUrl = $"https://img.vietqr.io/image/{account.BankCode}-{account.AccountNumber}-compact.png?amount={order.TotalAmount}&addInfo=Thanh toan don hang {order.OrderNumber}&accountName={Uri.EscapeDataString(account.AccountName)}";
-
-        return Ok(new { qrUrl, amount = order.TotalAmount, orderNumber = order.OrderNumber });
+        return Ok();
     }
 }
