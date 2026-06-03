@@ -25,10 +25,39 @@ public class CustomersController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetMyProfile()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+        var userId = Guid.Parse(userIdStr);
         var customer = await _context.Customers.FindAsync(userId);
         if (customer == null) return NotFound();
         return Ok(customer);
+    }
+
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateCustomerProfileRequest request)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+        var userId = Guid.Parse(userIdStr);
+        var customer = await _context.Customers.FindAsync(userId);
+        if (customer == null) return NotFound();
+
+        customer.FullName = request.FullName;
+        if (!string.IsNullOrEmpty(request.AvatarUrl))
+        {
+            customer.AvatarUrl = request.AvatarUrl;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(customer);
+    }
+
+    public class UpdateCustomerProfileRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string? AvatarUrl { get; set; }
     }
 
     [HttpGet("me/points-history")]

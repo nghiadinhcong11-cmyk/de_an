@@ -13,26 +13,26 @@
 ## 2. Tiến độ dự án (Roadmap)
 
 ### Giai đoạn 1: Xây dựng Cột sống (Backbone) ✅
-- Hoàn thành Schema 33 bảng.
-- Hệ thống xác thực JWT & Phân quyền Roles.
-- Core API (Nhà hàng, Chi nhánh, Nhân viên).
+- Hoàn thành Schema 33 bảng với đầy đủ Foreign Key ràng buộc.
+- Hệ thống xác thực JWT & Phân quyền Roles tự động khởi tạo.
+- Cấu hình bảo mật **Protected Routes** phân tách Owner/Employee/Customer.
 
 ### Giai đoạn 2: Nghiệp vụ & Dữ liệu thật ✅
-- Hệ thống Menu & Quản lý bàn QR.
-- Luồng Đặt món QR cho khách hàng.
+- Hệ thống Menu & Quản lý bàn QR động.
+- Luồng Đặt món QR toàn diện.
 - Kết nối 100% Frontend với API thật, loại bỏ dữ liệu mẫu.
 
 ### Giai đoạn 3: Vận hành & Real-time ✅
-- Tích hợp SignalR: Thông báo gọi món thời gian thực (có âm thanh).
-- Luồng duyệt món (Order Request Approval) cho nhân viên.
-- Tích hợp thanh toán VietQR tự động sinh mã theo đơn hàng.
-- Triển khai đầy đủ các module: Kho (Inventory), Nhà cung cấp, Chi phí, Ca làm việc.
+- Tích hợp SignalR đa chiều: Thông báo cho nhân viên & Cập nhật trạng thái cho khách hàng.
+- Logic **Tự động trừ kho** dựa trên định lượng công thức món ăn (Recipe).
+- Hệ sinh thái khách hàng thân thiết: Tích điểm, Phân hạng thẻ, Đổi điểm lấy Voucher.
+- Chuyển đổi toàn bộ Web Khách hàng sang giao diện Modern Web (Responsive).
 
 ### Giai đoạn 4: Mở rộng & Tối ưu (Next) 🏗️
-1. **Cloud Printing**: Tự động in bếp khi nhân viên duyệt món.
-2. **Auto Inventory Deduction**: Tự động trừ kho dựa trên định lượng (Recipe) khi hoàn thành đơn.
-3. **Advanced Reports**: Biểu đồ phân tích doanh thu theo giờ, món ăn bán chạy nhất.
-4. **Mobile App**: Ứng dụng cho nhân viên phục vụ và khách hàng trung thành.
+1. **Cloud Printing**: Tự động in bếp/hóa đơn từ xa.
+2. **AI Analytics**: Dự báo doanh thu và cảnh báo nhập hàng dựa trên lịch sử kho.
+3. **VietQR Payment Hook**: Tự động nhận diện tiền vào tài khoản để hoàn tất đơn hàng không cần nhân viên nhấn nút.
+4. **Mobile App**: Ứng dụng Hybrid cho nhân viên phục vụ cầm tay.
 
 ## 3. Cấu hình Môi trường
 - **Backend URL**: `https://restaurant-pos-api-uvcz.onrender.com`

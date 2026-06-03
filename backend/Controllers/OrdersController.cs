@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using RestaurantPOS.Infrastructure.Common;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.Ordering.Entities;
 
@@ -13,7 +15,13 @@ namespace RestaurantPOS.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _context;
-    public OrdersController(AppDbContext context) => _context = context;
+    private readonly IHubContext<NotificationHub> _hubContext;
+
+    public OrdersController(AppDbContext context, IHubContext<NotificationHub> hubContext)
+    {
+        _context = context;
+        _hubContext = hubContext;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -121,6 +129,14 @@ public class OrdersController : ControllerBase
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            // THÔNG BÁO CHO KHÁCH: Đơn hàng đã được duyệt
+            await _hubContext.Clients.All.SendAsync("OrderStatusUpdated", new {
+                orderId = order.Id,
+                orderNumber = order.OrderNumber,
+                newStatus = "Đã tiếp nhận & Đang chuẩn bị"
+            });
+
             return Ok(new { message = "Duyệt món thành công", orderId = order.Id });
         }
         catch
@@ -128,5 +144,24 @@ public class OrdersController : ControllerBase
             await transaction.RollbackAsync();
             return BadRequest();
         }
+    }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order == null) return NotFound();
+
+        order.Status = status;
+        await _context.SaveChangesAsync();
+
+        // THÔNG BÁO CHO KHÁCH: Trạng thái thay đổi (Vd: Ready, Served)
+        await _hubContext.Clients.All.SendAsync("OrderStatusUpdated", new {
+            orderId = order.Id,
+            orderNumber = order.OrderNumber,
+            newStatus = status
+        });
+
+        return Ok(order);
     }
 }

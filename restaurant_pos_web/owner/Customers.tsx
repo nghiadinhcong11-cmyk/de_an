@@ -67,9 +67,13 @@ export function OwnerCustomers() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback className="bg-orange-100 text-orange-600">
-                            {customer.fullName.charAt(0)}
-                          </AvatarFallback>
+                          {customer.avatarUrl ? (
+                            <img src={customer.avatarUrl} alt={customer.fullName} className="aspect-square h-full w-full object-cover" />
+                          ) : (
+                            <AvatarFallback className="bg-orange-100 text-orange-600">
+                              {customer.fullName.charAt(0)}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
                         <div className="font-bold">{customer.fullName}</div>
                       </div>

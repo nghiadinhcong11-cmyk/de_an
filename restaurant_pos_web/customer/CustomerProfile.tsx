@@ -4,7 +4,10 @@ import { Button } from "../components/ui/button";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerProfile() {
@@ -12,6 +15,12 @@ export function CustomerProfile() {
   const [history, setHistory] = useState<any[]>([]);
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Edit state
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editAvatar, setEditAvatar] = useState("");
+  const [updating, setUpdating] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -23,10 +32,28 @@ export function CustomerProfile() {
       setProfile(pRes.data);
       setHistory(hRes.data);
       setVouchers(vRes.data);
+      setEditName(pRes.data.fullName);
+      setEditAvatar(pRes.data.avatarUrl || "");
     } catch (err) {
       console.error("Lỗi tải thông tin");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    setUpdating(true);
+    try {
+      await api.put("/customers/me", {
+        fullName: editName,
+        avatarUrl: editAvatar
+      });
+      await fetchData();
+      setIsEditDialogOpen(false);
+    } catch (err) {
+      alert("Lỗi khi cập nhật thông tin");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -38,16 +65,51 @@ export function CustomerProfile() {
     <div className="pb-24 bg-gray-50 min-h-screen">
       {/* Profile Header */}
       <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-6 pt-10 rounded-b-[40px] shadow-lg">
-        <div className="flex items-center gap-4">
-          <Avatar className="w-16 h-16 border-2 border-white/50">
-            <AvatarFallback className="bg-white text-orange-600 font-black text-xl">
-              {profile?.fullName?.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="text-xl font-black">{profile?.fullName}</h2>
-            <p className="text-white/70 text-xs font-bold uppercase tracking-widest">{profile?.phoneNumber}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Avatar className="w-16 h-16 border-2 border-white/50">
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={profile.fullName} className="aspect-square h-full w-full object-cover" />
+              ) : (
+                <AvatarFallback className="bg-white text-orange-600 font-black text-xl">
+                  {profile?.fullName?.charAt(0)}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div>
+              <h2 className="text-xl font-black">{profile?.fullName}</h2>
+              <p className="text-white/70 text-xs font-bold uppercase tracking-widest">{profile?.phoneNumber}</p>
+            </div>
           </div>
+
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogTrigger onClick={() => setIsEditDialogOpen(true)}>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                <Edit2 className="w-5 h-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Chỉnh sửa trang cá nhân</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Họ và tên</Label>
+                  <Input id="name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="avatar">Link ảnh đại diện</Label>
+                  <Input id="avatar" value={editAvatar} placeholder="https://..." onChange={(e) => setEditAvatar(e.target.value)} />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleUpdateProfile} disabled={updating} className="bg-orange-600 hover:bg-orange-700">
+                  {updating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Lưu thay đổi
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <Card className="mt-6 border-none bg-white/10 backdrop-blur-md text-white">

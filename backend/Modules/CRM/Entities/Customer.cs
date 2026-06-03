@@ -8,6 +8,7 @@ public class Customer : BaseEntity
 {
     public Guid RestaurantId { get; set; }
     public string FullName { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
     public string? Email { get; set; }
     public int Points { get; set; }
