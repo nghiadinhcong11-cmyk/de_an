@@ -18,13 +18,16 @@ public class OrdersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        var restaurantId = Guid.Parse(resIdStr!);
+
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Product) // Sửa cách gọi ThenInclude cho ICollection
+                .ThenInclude(oi => oi.Product) // Cách viết chuẩn cho Collection
             .Where(o => o.RestaurantId == restaurantId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
+
         return Ok(orders);
     }
 
@@ -37,23 +40,30 @@ public class OrdersController : ControllerBase
 
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.Product) // Sửa tương tự tại đây
+                .ThenInclude(oi => oi.Product) // Cách viết chuẩn cho Collection
             .Where(o => o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .ToListAsync();
+
         return Ok(orders);
     }
 
     [HttpGet("pending-requests")]
     public async Task<IActionResult> GetPendingRequests()
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var branchIds = await _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).ToListAsync();
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        var restaurantId = Guid.Parse(resIdStr!);
+
+        var branchIds = await _context.Branches
+            .Where(b => b.RestaurantId == restaurantId)
+            .Select(b => b.Id).ToListAsync();
+
         var requests = await _context.OrderRequests
             .Include(r => r.OrderRequestItems)
             .Where(r => branchIds.Contains(r.BranchId) && r.Status == "Pending")
             .OrderByDescending(r => r.CreatedAtUtc)
             .ToListAsync();
+
         return Ok(requests);
     }
 
@@ -62,7 +72,10 @@ public class OrdersController : ControllerBase
     {
         var request = await _context.OrderRequests.FindAsync(requestId);
         if (request == null) return NotFound();
-        var requestItems = await _context.OrderRequestItems.Where(i => i.OrderRequestId == requestId).ToListAsync();
+
+        var requestItems = await _context.OrderRequestItems
+            .Where(i => i.OrderRequestId == requestId).ToListAsync();
+
         var branch = await _context.Branches.FindAsync(request.BranchId);
 
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -74,11 +87,11 @@ public class OrdersController : ControllerBase
                 RestaurantId = branch!.RestaurantId,
                 BranchId = request.BranchId,
                 TableId = request.TableId,
-                CustomerId = request.TableId, // Giả sử dùng tạm TableId cho Customer nếu chưa login
                 CreatedByUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
                 Status = "Preparing",
                 PaymentStatus = "Pending"
             };
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
@@ -87,6 +100,7 @@ public class OrdersController : ControllerBase
             {
                 var product = await _context.Products.FindAsync(reqItem.ProductId);
                 var itemTotal = (product?.Price ?? 0) * reqItem.Quantity;
+
                 _context.OrderItems.Add(new OrderItem
                 {
                     OrderId = order.Id,
@@ -97,13 +111,19 @@ public class OrdersController : ControllerBase
                 });
                 total += itemTotal;
             }
+
             order.TotalAmount = total;
             order.Subtotal = total;
             request.Status = "Approved";
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             return Ok(new { message = "Duyệt món thành công" });
         }
-        catch { await transaction.RollbackAsync(); return BadRequest(); }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return BadRequest();
+        }
     }
 }
