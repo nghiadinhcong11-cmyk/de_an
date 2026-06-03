@@ -22,7 +22,20 @@ public class BranchesController : ControllerBase
         var resIdStr = User.FindFirstValue("RestaurantId");
         if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
         var restaurantId = Guid.Parse(resIdStr);
-        return Ok(await _context.Branches.Where(b => b.RestaurantId == restaurantId).ToListAsync());
+
+        var branches = await _context.Branches
+            .Where(b => b.RestaurantId == restaurantId)
+            .Select(b => new BranchDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Address = b.Address,
+                Phone = b.Phone,
+                IsActive = b.IsActive
+            })
+            .ToListAsync();
+
+        return Ok(branches);
     }
 
     [HttpPost]
@@ -42,7 +55,15 @@ public class BranchesController : ControllerBase
 
         _context.Branches.Add(branch);
         await _context.SaveChangesAsync();
-        return Ok(branch);
+
+        return Ok(new BranchDto
+        {
+            Id = branch.Id,
+            Name = branch.Name,
+            Address = branch.Address,
+            Phone = branch.Phone,
+            IsActive = branch.IsActive
+        });
     }
 
     [HttpDelete("{id}")]

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RestaurantPOS.Infrastructure.Data;
@@ -11,9 +12,11 @@ using RestaurantPOS.Infrastructure.Data;
 namespace RestaurantPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260603060845_TestMigration")]
+    partial class TestMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,8 +62,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RestaurantId");
-
                     b.ToTable("Customers");
                 });
 
@@ -93,8 +94,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
 
                     b.ToTable("CustomerPointHistories");
                 });
@@ -146,8 +145,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.ToTable("Vouchers");
                 });
 
@@ -179,10 +176,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("VoucherId");
 
                     b.ToTable("VoucherUsages");
                 });
@@ -219,8 +212,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ManagerUserId");
 
                     b.HasIndex("RestaurantId");
 
@@ -323,28 +314,28 @@ namespace RestaurantPOS.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(2026, 6, 3, 6, 8, 44, 962, DateTimeKind.Utc).AddTicks(7226),
                             Description = "Chủ nhà hàng",
                             Name = "Owner"
                         },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000002"),
-                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(2026, 6, 3, 6, 8, 44, 962, DateTimeKind.Utc).AddTicks(8182),
                             Description = "Quản lý chi nhánh",
                             Name = "Manager"
                         },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000003"),
-                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(2026, 6, 3, 6, 8, 44, 962, DateTimeKind.Utc).AddTicks(8193),
                             Description = "Thu ngân",
                             Name = "Cashier"
                         },
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000004"),
-                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(2026, 6, 3, 6, 8, 44, 962, DateTimeKind.Utc).AddTicks(8197),
                             Description = "Nhân viên phục vụ",
                             Name = "Waiter"
                         });
@@ -445,10 +436,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("CreatedByUserId");
-
                     b.ToTable("Expenses");
                 });
 
@@ -480,8 +467,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.ToTable("Ingredients");
                 });
 
@@ -507,8 +492,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IngredientId");
 
                     b.ToTable("InventoryItems");
                 });
@@ -540,8 +523,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IngredientId");
-
                     b.ToTable("InventoryTransactions");
                 });
 
@@ -566,8 +547,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("ProductId", "IngredientId");
-
-                    b.HasIndex("IngredientId");
 
                     b.ToTable("ProductIngredients");
                 });
@@ -606,12 +585,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("SupplierId");
-
                     b.ToTable("PurchaseOrders");
                 });
 
@@ -644,10 +617,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IngredientId");
-
-                    b.HasIndex("PurchaseOrderId");
-
                     b.ToTable("PurchaseOrderItems");
                 });
 
@@ -673,15 +642,10 @@ namespace RestaurantPOS.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("RestaurantId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RestaurantId");
 
                     b.ToTable("Suppliers");
                 });
@@ -712,8 +676,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RestaurantId");
 
                     b.ToTable("Categories");
                 });
@@ -746,17 +708,10 @@ namespace RestaurantPOS.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("RestaurantId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("RestaurantId");
 
                     b.ToTable("Products");
                 });
@@ -784,8 +739,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("ProductVariants");
                 });
@@ -873,16 +826,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("RestaurantId");
-
-                    b.HasIndex("TableId");
-
                     b.ToTable("Orders");
                 });
 
@@ -955,10 +898,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("TableId");
-
                     b.ToTable("OrderRequests");
                 });
 
@@ -1025,8 +964,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
 
                     b.ToTable("Payments");
                 });
@@ -1102,8 +1039,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PaymentId");
-
                     b.ToTable("PaymentTransactions");
                 });
 
@@ -1132,10 +1067,6 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("PaymentId");
 
                     b.ToTable("Refunds");
                 });
@@ -1203,10 +1134,6 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
-                    b.HasIndex("UserId");
-
                     b.ToTable("UserShifts");
                 });
 
@@ -1241,69 +1168,16 @@ namespace RestaurantPOS.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.ToTable("DiningTables");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Customer", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", "Restaurant")
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Restaurant");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.CustomerPointHistory", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.CRM.Entities.Customer", null)
-                        .WithMany("PointHistories")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Voucher", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId");
-
-                    b.Navigation("Branch");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.VoucherUsage", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.CRM.Entities.Customer", null)
-                        .WithMany("VoucherUsages")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.CRM.Entities.Voucher", null)
-                        .WithMany("Usages")
-                        .HasForeignKey("VoucherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("RestaurantPOS.Modules.Core.Entities.Branch", b =>
                 {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.User", "ManagerUser")
-                        .WithMany()
-                        .HasForeignKey("ManagerUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", "Restaurant")
                         .WithMany("Branches")
                         .HasForeignKey("RestaurantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ManagerUser");
 
                     b.Navigation("Restaurant");
                 });
@@ -1327,214 +1201,9 @@ namespace RestaurantPOS.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RestaurantPOS.Modules.Finance.Entities.Expense", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", null)
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.Ingredient", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", null)
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.InventoryItem", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Inventory.Entities.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.InventoryTransaction", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Inventory.Entities.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.ProductIngredient", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Inventory.Entities.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Menu.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.PurchaseOrder", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", "Branch")
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Inventory.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Branch");
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.PurchaseOrderItem", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Inventory.Entities.Ingredient", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Inventory.Entities.PurchaseOrder", "PurchaseOrder")
-                        .WithMany()
-                        .HasForeignKey("PurchaseOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("PurchaseOrder");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Inventory.Entities.Supplier", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", "Restaurant")
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Restaurant");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Menu.Entities.Category", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", "Restaurant")
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Restaurant");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Menu.Entities.Product", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Menu.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", "Restaurant")
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Restaurant");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Menu.Entities.ProductVariant", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Menu.Entities.Product", "Product")
-                        .WithMany("Variants")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Ordering.Entities.Order", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", "Branch")
-                        .WithMany("Orders")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.CRM.Entities.Customer", "Customer")
-                        .WithMany("Orders")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", "Restaurant")
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.TableManagement.Entities.DiningTable", "Table")
-                        .WithMany()
-                        .HasForeignKey("TableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Branch");
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("Restaurant");
-
-                    b.Navigation("Table");
-                });
-
             modelBuilder.Entity("RestaurantPOS.Modules.Ordering.Entities.OrderItem", b =>
                 {
-                    b.HasOne("RestaurantPOS.Modules.Ordering.Entities.Order", "Order")
+                    b.HasOne("RestaurantPOS.Modules.Ordering.Entities.Order", null)
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1546,29 +1215,12 @@ namespace RestaurantPOS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Order");
-
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Ordering.Entities.OrderRequest", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", null)
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.TableManagement.Entities.DiningTable", null)
-                        .WithMany()
-                        .HasForeignKey("TableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("RestaurantPOS.Modules.Ordering.Entities.OrderRequestItem", b =>
                 {
-                    b.HasOne("RestaurantPOS.Modules.Ordering.Entities.OrderRequest", "OrderRequest")
+                    b.HasOne("RestaurantPOS.Modules.Ordering.Entities.OrderRequest", null)
                         .WithMany("OrderRequestItems")
                         .HasForeignKey("OrderRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1580,105 +1232,12 @@ namespace RestaurantPOS.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("OrderRequest");
-
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Payment.Entities.Payment", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Ordering.Entities.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Payment.Entities.PaymentTransaction", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Payment.Entities.Payment", "Payment")
-                        .WithMany("Transactions")
-                        .HasForeignKey("PaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Payment");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Payment.Entities.Refund", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Payment.Entities.Payment", "Payment")
-                        .WithMany("Refunds")
-                        .HasForeignKey("PaymentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
-
-                    b.Navigation("Payment");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.System.Entities.UserShift", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", null)
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.TableManagement.Entities.DiningTable", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", null)
-                        .WithMany("DiningTables")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Customer", b =>
-                {
-                    b.Navigation("Orders");
-
-                    b.Navigation("PointHistories");
-
-                    b.Navigation("VoucherUsages");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Voucher", b =>
-                {
-                    b.Navigation("Usages");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Core.Entities.Branch", b =>
-                {
-                    b.Navigation("DiningTables");
-
-                    b.Navigation("Orders");
                 });
 
             modelBuilder.Entity("RestaurantPOS.Modules.Core.Entities.Restaurant", b =>
                 {
                     b.Navigation("Branches");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Menu.Entities.Product", b =>
-                {
-                    b.Navigation("Variants");
                 });
 
             modelBuilder.Entity("RestaurantPOS.Modules.Ordering.Entities.Order", b =>
@@ -1689,13 +1248,6 @@ namespace RestaurantPOS.Migrations
             modelBuilder.Entity("RestaurantPOS.Modules.Ordering.Entities.OrderRequest", b =>
                 {
                     b.Navigation("OrderRequestItems");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.Payment.Entities.Payment", b =>
-                {
-                    b.Navigation("Refunds");
-
-                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }

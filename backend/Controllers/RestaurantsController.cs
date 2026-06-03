@@ -22,20 +22,47 @@ public class RestaurantsController : ControllerBase
     [HttpGet("my-restaurant")]
     public async Task<IActionResult> GetMyRestaurant()
     {
-        var restaurantId = User.FindFirstValue("RestaurantId");
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+
+        var restaurantId = Guid.Parse(restaurantIdStr);
         var restaurant = await _context.Restaurants
             .Include(r => r.Branches)
-            .FirstOrDefaultAsync(r => r.Id == Guid.Parse(restaurantId!));
+            .FirstOrDefaultAsync(r => r.Id == restaurantId);
 
         if (restaurant == null) return NotFound();
-        return Ok(restaurant);
+
+        // Chuyển sang DTO để tránh lỗi Object Cycle
+        var dto = new RestaurantDto
+        {
+            Id = restaurant.Id,
+            Name = restaurant.Name,
+            ContactPhone = restaurant.ContactPhone,
+            ContactEmail = restaurant.ContactEmail,
+            Address = restaurant.Address,
+            LogoUrl = restaurant.LogoUrl,
+            IsActive = restaurant.IsActive,
+            Branches = restaurant.Branches.Select(b => new BranchDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Phone = b.Phone,
+                Address = b.Address,
+                IsActive = b.IsActive
+            }).ToList()
+        };
+
+        return Ok(dto);
     }
 
     [HttpPut]
     public async Task<IActionResult> Update([FromBody] RestaurantUpdateDto dto)
     {
-        var restaurantId = User.FindFirstValue("RestaurantId");
-        var restaurant = await _context.Restaurants.FindAsync(Guid.Parse(restaurantId!));
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+
+        var restaurantId = Guid.Parse(restaurantIdStr);
+        var restaurant = await _context.Restaurants.FindAsync(restaurantId);
 
         if (restaurant == null) return NotFound();
 

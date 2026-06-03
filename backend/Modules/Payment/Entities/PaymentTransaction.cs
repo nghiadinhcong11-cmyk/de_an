@@ -10,4 +10,7 @@ public class PaymentTransaction : BaseEntity
     public decimal Amount { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime? PaidAtUtc { get; set; }
+
+    // Navigation Property
+    public Payment Payment { get; set; } = null!;
 }

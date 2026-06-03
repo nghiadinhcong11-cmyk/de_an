@@ -9,4 +9,8 @@ public class PurchaseOrderItem : BaseEntity
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalPrice { get; set; }
+
+    // Navigation Properties
+    public PurchaseOrder PurchaseOrder { get; set; } = null!;
+    public Ingredient Ingredient { get; set; } = null!;
 }

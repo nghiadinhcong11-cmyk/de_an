@@ -13,6 +13,7 @@ public class OrderItem : BaseEntity
     public decimal TotalPrice { get; set; }
     public string? Note { get; set; }
 
-    // Navigation Property
+    // Navigation Properties
+    public Order Order { get; set; } = null!;
     public Product Product { get; set; } = null!;
 }

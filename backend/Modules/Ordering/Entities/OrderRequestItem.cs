@@ -11,6 +11,7 @@ public class OrderRequestItem : BaseEntity
     public int Quantity { get; set; }
     public string? Note { get; set; }
 
-    // Navigation Property
+    // Navigation Properties
+    public OrderRequest OrderRequest { get; set; } = null!;
     public Product Product { get; set; } = null!;
 }
