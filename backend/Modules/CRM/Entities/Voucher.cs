@@ -5,6 +5,7 @@ namespace RestaurantPOS.Modules.CRM.Entities;
 
 public class Voucher : BaseEntity
 {
+    public Guid RestaurantId { get; set; }
     public Guid? BranchId { get; set; }
     public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

@@ -66,6 +66,20 @@ public class BranchesController : ControllerBase
         });
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] BranchCreateDto dto)
+    {
+        var branch = await _context.Branches.FindAsync(id);
+        if (branch == null) return NotFound();
+
+        branch.Name = dto.Name;
+        branch.Address = dto.Address;
+        branch.Phone = dto.Phone;
+
+        await _context.SaveChangesAsync();
+        return Ok(branch);
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

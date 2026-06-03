@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using RestaurantPOS.Infrastructure.Common;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.Ordering.Entities;
+using RestaurantPOS.Modules.CRM.Entities;
+using RestaurantPOS.Modules.TableManagement.Entities;
 
 namespace RestaurantPOS.Controllers;
 

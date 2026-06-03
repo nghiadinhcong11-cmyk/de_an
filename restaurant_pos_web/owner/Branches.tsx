@@ -13,6 +13,8 @@ export function OwnerBranches() {
   const [restaurant, setRestaurant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<any>(null);
 
   const [form, setForm] = useState({ name: '', address: '', phone: '' });
 
@@ -48,18 +50,29 @@ export function OwnerBranches() {
   const handleCreate = async () => {
     if (!form.name) return alert("Vui lòng nhập tên chi nhánh");
     try {
-      // Gửi đúng định dạng DTO cho Backend
-      await api.post("/branches", {
-          name: form.name,
-          address: form.address,
-          phone: form.phone
-      });
+      if (selectedBranch) {
+        await api.put(`/branches/${selectedBranch.id}`, form);
+      } else {
+        await api.post("/branches", form);
+      }
       setIsAddOpen(false);
+      setIsEditOpen(false);
       setForm({ name: '', address: '', phone: '' });
+      setSelectedBranch(null);
       fetchData();
     } catch (err) {
       alert("Không thể lưu chi nhánh. Vui lòng kiểm tra lại kết nối.");
     }
+  };
+
+  const handleEditClick = (branch: any) => {
+    setSelectedBranch(branch);
+    setForm({
+      name: branch.name,
+      address: branch.address || '',
+      phone: branch.phone || ''
+    });
+    setIsEditOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -123,9 +136,14 @@ export function OwnerBranches() {
                <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="font-black text-xl text-gray-900">{branch.name}</div>
-                    <button onClick={() => handleDelete(branch.id)} className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEditClick(branch)} className="text-gray-300 hover:text-blue-500 p-1">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(branch.id)} className="text-gray-300 hover:text-red-500 p-1">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-gray-500 font-medium"><MapPin className="w-4 h-4 text-orange-500" /> {branch.address || 'Chưa cập nhật'}</div>
@@ -140,6 +158,30 @@ export function OwnerBranches() {
           {branches.length === 0 && <div className="col-span-full text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100 text-gray-400 font-bold uppercase tracking-widest">Chưa có chi nhánh nào</div>}
         </div>
       )}
+
+      {/* EDIT DIALOG */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-bold text-xl">Chỉnh sửa chi nhánh</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-4">
+            <div className="space-y-1.5">
+              <Label className="font-bold text-xs uppercase text-gray-400">Tên chi nhánh</Label>
+              <Input value={form.name} onChange={(e: any) => setForm({...form, name: e.target.value})} placeholder="Vd: Chi nhánh Quận 1" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-bold text-xs uppercase text-gray-400">Địa chỉ</Label>
+              <Input value={form.address} onChange={(e: any) => setForm({...form, address: e.target.value})} placeholder="Số 123 Lê Lợi..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="font-bold text-xs uppercase text-gray-400">Số điện thoại</Label>
+              <Input value={form.phone} onChange={(e: any) => setForm({...form, phone: e.target.value})} placeholder="090..." />
+            </div>
+            <Button onClick={handleCreate} className="w-full bg-orange-600 h-12 font-bold shadow-lg shadow-orange-100 uppercase">Lưu thay đổi</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

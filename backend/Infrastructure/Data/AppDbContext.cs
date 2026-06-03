@@ -131,6 +131,7 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Voucher>(v => {
+            v.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
             v.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId);
         });
 

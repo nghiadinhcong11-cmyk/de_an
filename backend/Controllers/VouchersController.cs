@@ -22,14 +22,20 @@ public class VouchersController : ControllerBase
         if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
         var restaurantId = Guid.Parse(restaurantIdStr);
 
-        var branchIds = await _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).ToListAsync();
-        var vouchers = await _context.Vouchers.Where(v => v.BranchId == null || branchIds.Contains(v.BranchId.Value)).ToListAsync();
+        var vouchers = await _context.Vouchers
+            .Where(v => v.RestaurantId == restaurantId)
+            .ToListAsync();
         return Ok(vouchers);
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Voucher voucher)
     {
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+
+        voucher.RestaurantId = Guid.Parse(restaurantIdStr);
+
         // Tự động gán các giá trị mặc định để tránh lỗi database
         voucher.CreatedAtUtc = DateTime.UtcNow;
         voucher.StartDate = DateTime.UtcNow;

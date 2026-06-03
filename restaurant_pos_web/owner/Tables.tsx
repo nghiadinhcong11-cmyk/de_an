@@ -20,7 +20,8 @@ export function OwnerTables() {
   const [newTable, setNewTable] = useState({
     tableNumber: "",
     capacity: 4,
-    branchId: ""
+    branchId: "",
+    zone: ""
   });
 
   const fetchData = async () => {
@@ -49,7 +50,7 @@ export function OwnerTables() {
     try {
       await api.post("/tables", newTable);
       setIsAddOpen(false);
-      setNewTable({ tableNumber: "", capacity: 4, branchId: "" });
+      setNewTable({ tableNumber: "", capacity: 4, branchId: "", zone: "" });
       fetchData();
     } catch (err) {
       alert("Lỗi khi tạo bàn");
@@ -64,12 +65,26 @@ export function OwnerTables() {
     } catch { alert("Lỗi khi xóa bàn"); }
   };
 
+  // Nhóm bàn theo chi nhánh và khu vực (Zone)
+  const groupedTables = branches.map(branch => {
+    const branchTables = tables.filter(t => t.branchId === branch.id);
+    const zones = Array.from(new Set(branchTables.map(t => t.zone || "Chung")));
+
+    return {
+      ...branch,
+      zones: zones.map(zone => ({
+        name: zone,
+        tables: branchTables.filter(t => (t.zone || "Chung") === zone)
+      }))
+    };
+  }).filter(b => b.zones.length > 0 || b.id); // Giữ lại chi nhánh kể cả chưa có bàn
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-black">Quản lý bàn ăn</h1>
-          <p className="text-gray-500 mt-1">Sơ đồ bàn và mã QR gọi món cho từng cơ sở</p>
+          <p className="text-gray-500 mt-1">Phân chia theo chi nhánh và khu vực (tầng, phòng...)</p>
         </div>
 
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -93,6 +108,10 @@ export function OwnerTables() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label className="font-bold uppercase text-[10px] text-gray-400">Khu vực / Tầng (Vd: Tầng 1, VIP...)</Label>
+                <Input placeholder="Vd: Tầng 1" value={newTable.zone} onChange={(e: any) => setNewTable({...newTable, zone: e.target.value})} />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="font-bold uppercase text-[10px] text-gray-400">Số bàn / Tên bàn</Label>
@@ -110,14 +129,41 @@ export function OwnerTables() {
       </div>
 
       {loading ? <div className="flex justify-center py-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div> : (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {tables.map((table) => (
-            <TableCard
-                key={table.id}
-                table={table}
-                onDelete={() => handleDelete(table.id)}
-                onShowQR={() => setActiveQRTable(table)}
-            />
+        <div className="space-y-12">
+          {groupedTables.map(branch => (
+            <div key={branch.id} className="space-y-6">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-black text-gray-900 px-4 py-2 bg-white rounded-2xl shadow-sm border border-orange-100 flex items-center gap-2">
+                   <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                   {branch.name}
+                </h2>
+                <div className="h-[2px] flex-1 bg-gradient-to-r from-orange-100 to-transparent"></div>
+              </div>
+
+              {branch.zones.map(zone => (
+                <div key={zone.name} className="space-y-4 ml-4">
+                   <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                      <Plus className="w-3 h-3 text-orange-600" /> {zone.name}
+                   </h3>
+                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                      {zone.tables.map((table) => (
+                        <TableCard
+                            key={table.id}
+                            table={table}
+                            onDelete={() => handleDelete(table.id)}
+                            onShowQR={() => setActiveQRTable(table)}
+                        />
+                      ))}
+                   </div>
+                </div>
+              ))}
+
+              {branch.zones.length === 0 && (
+                <div className="text-center py-10 bg-white/50 rounded-3xl border-2 border-dashed border-gray-100 ml-4">
+                   <p className="text-gray-400 text-sm font-bold">Chưa có bàn nào ở chi nhánh này</p>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
