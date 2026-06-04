@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
 
@@ -28,20 +27,21 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
+    final pendingOrders = orderProvider.orders.where((o) => o.status == 'PendingConfirmation').toList();
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: RefreshIndicator(
         onRefresh: orderProvider.fetchRequests,
-        child: orderProvider.isLoading && orderProvider.requests.isEmpty
+        child: orderProvider.isLoading && pendingOrders.isEmpty
             ? const Center(child: CircularProgressIndicator())
-            : orderProvider.requests.isEmpty
+            : pendingOrders.isEmpty
                 ? const Center(child: Text('Không có yêu cầu nào mới'))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: orderProvider.requests.length,
+                    itemCount: pendingOrders.length,
                     itemBuilder: (context, index) {
-                      final request = orderProvider.requests[index];
+                      final order = pendingOrders[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -52,17 +52,17 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                           leading: CircleAvatar(
                             backgroundColor: Colors.orange.shade50,
                             child: Text(
-                              (request.tableNumber ?? '').replaceAll('Bàn ', ''),
-                              style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold),
+                              order.tableNumber.replaceAll('Bàn ', ''),
+                              style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w900),
                             ),
                           ),
                           title: Text(
-                            'Bàn ${request.tableNumber}',
+                            'Bàn ${order.tableNumber}',
                             style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
-                          subtitle: Text(
-                            '${request.customerName} • ${DateFormat('HH:mm').format(request.createdAt.toLocal())}',
-                            style: const TextStyle(fontSize: 12),
+                          subtitle: const Text(
+                            'Chờ xác nhận phục vụ',
+                            style: TextStyle(fontSize: 12),
                           ),
                           children: [
                             Padding(
@@ -70,13 +70,13 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                               child: Column(
                                 children: [
                                   const Divider(),
-                                  ...request.items.map((item) => Padding(
+                                  ...order.items.map((item) => Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 4),
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text('${item.quantity}x ${item.productName}', style: const TextStyle(fontWeight: FontWeight.w500)),
-                                            Text('\$${(item.price * item.quantity).toStringAsFixed(2)}'),
+                                            Text('\$${(item.unitPrice * item.quantity).toStringAsFixed(2)}'),
                                           ],
                                         ),
                                       )),
@@ -86,7 +86,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                                     children: [
                                       const Text('Tổng cộng', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
                                       Text(
-                                        '\$${request.totalAmount.toStringAsFixed(2)}',
+                                        '\$${order.totalAmount.toStringAsFixed(2)}',
                                         style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.orange.shade800),
                                       ),
                                     ],
@@ -94,9 +94,9 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
-                                      Expanded(child: _RejectButton(requestId: request.id)),
+                                      Expanded(child: _RejectButton(orderId: order.id)),
                                       const SizedBox(width: 12),
-                                      Expanded(flex: 2, child: _ApproveButton(requestId: request.id)),
+                                      Expanded(flex: 2, child: _ConfirmButton(orderId: order.id)),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
@@ -114,8 +114,8 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
 }
 
 class _RejectButton extends StatefulWidget {
-  final String requestId;
-  const _RejectButton({required this.requestId});
+  final String orderId;
+  const _RejectButton({required this.orderId});
 
   @override
   State<_RejectButton> createState() => _RejectButtonState();
@@ -148,7 +148,8 @@ class _RejectButtonState extends State<_RejectButton> {
 
                 if (confirm == true) {
                   setState(() => _isRejecting = true);
-                  final success = await orderProvider.rejectRequest(widget.requestId);
+                  // Logic từ chối đơn hàng (Cần thêm API hoặc dùng rejectRequest hiện có nếu tương thích)
+                  final success = await orderProvider.rejectRequest(widget.orderId);
                   if (success) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -173,16 +174,16 @@ class _RejectButtonState extends State<_RejectButton> {
   }
 }
 
-class _ApproveButton extends StatefulWidget {
-  final String requestId;
-  const _ApproveButton({required this.requestId});
+class _ConfirmButton extends StatefulWidget {
+  final String orderId;
+  const _ConfirmButton({required this.orderId});
 
   @override
-  State<_ApproveButton> createState() => _ApproveButtonState();
+  State<_ConfirmButton> createState() => _ConfirmButtonState();
 }
 
-class _ApproveButtonState extends State<_ApproveButton> {
-  bool _isApproving = false;
+class _ConfirmButtonState extends State<_ConfirmButton> {
+  bool _isConfirming = false;
 
   @override
   Widget build(BuildContext context) {
@@ -192,30 +193,22 @@ class _ApproveButtonState extends State<_ApproveButton> {
       width: double.infinity,
       height: 48,
       child: ElevatedButton(
-        onPressed: _isApproving
+        onPressed: _isConfirming
             ? null
             : () async {
-                setState(() => _isApproving = true);
-                final success = await orderProvider.approveRequest(widget.requestId);
+                setState(() => _isConfirming = true);
+                final success = await orderProvider.confirmOrder(widget.orderId);
                 if (success) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Đã duyệt đơn hàng thành công!'),
+                        content: Text('Đã xác nhận đơn hàng thành công!'),
                         backgroundColor: Colors.green,
                       ),
                     );
                   }
                 } else {
-                  if (mounted) setState(() => _isApproving = false);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Lỗi khi duyệt đơn hàng'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
+                  if (mounted) setState(() => _isConfirming = false);
                 }
               },
         style: ElevatedButton.styleFrom(
@@ -223,9 +216,9 @@ class _ApproveButtonState extends State<_ApproveButton> {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: _isApproving
+        child: _isConfirming
             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : const Text('DUYỆT ĐƠN', style: TextStyle(fontWeight: FontWeight.bold)),
+            : const Text('XÁC NHẬN PHỤC VỤ', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }

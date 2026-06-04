@@ -49,12 +49,10 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           onTap: () {
-                            if (order.status != 'Completed') {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => OrderDetailsScreen(order: order)),
-                              );
-                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => OrderDetailsScreen(order: order)),
+                            );
                           },
                           leading: Container(
                             width: 54,

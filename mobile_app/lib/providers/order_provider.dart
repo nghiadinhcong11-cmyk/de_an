@@ -72,15 +72,30 @@ class OrderProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiService.dio.get('/orders/pending-requests');
+      final response = await _apiService.dio.get('/orders/pending-confirmation');
       if (response.statusCode == 200) {
-        _requests = (response.data as List).map((e) => OrderRequest.fromJson(e)).toList();
+        _orders = (response.data as List).map((e) => OrderModel.fromJson(e)).toList();
       }
     } catch (e) {
       debugPrint('Error fetching requests: $e');
     }
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<bool> confirmOrder(String orderId) async {
+    try {
+      final response = await _apiService.dio.post('/orders/$orderId/confirm');
+      if (response.statusCode == 200) {
+        _orders.removeWhere((o) => o.id == orderId);
+        fetchTables();
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Error confirming order: $e');
+    }
+    return false;
   }
 
   Future<void> fetchAllOrders() async {

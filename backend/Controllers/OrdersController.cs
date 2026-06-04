@@ -171,43 +171,41 @@ public class OrdersController : ControllerBase
         return Ok(orders);
     }
 
-    [HttpGet("pending-requests")]
-    public async Task<IActionResult> GetPendingRequests()
+    [HttpPost("{id}/confirm")]
+    public async Task<IActionResult> ConfirmOrder(Guid id)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order == null) return NotFound();
+
+        order.Status = "Confirmed";
+        await _context.SaveChangesAsync();
+
+        // THÔNG BÁO CHO BẾP & KHÁCH
+        await _hubContext.Clients.All.SendAsync("OrderStatusUpdated", new {
+            orderId = order.Id,
+            newStatus = "Confirmed",
+            message = "Đơn hàng đã được xác nhận & Đã gửi vào bếp"
+        });
+
+        return Ok(new { message = "Xác nhận đơn thành công" });
+    }
+
+    [HttpGet("pending-confirmation")]
+    public async Task<IActionResult> GetPendingConfirmation()
     {
         var resIdStr = User.FindFirstValue("RestaurantId");
+        var branchIdStr = User.FindFirstValue("BranchId");
         if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
-        var restaurantId = Guid.Parse(resIdStr);
 
-        var branchIds = await _context.Branches
-            .Where(b => b.RestaurantId == restaurantId)
-            .Select(b => b.Id).ToListAsync();
+        var query = _context.Orders
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+            .Include(o => o.Table)
+            .Where(o => o.RestaurantId == Guid.Parse(resIdStr) && o.Status == "PendingConfirmation");
 
-        var requests = await _context.OrderRequests
-            .Include(r => r.OrderRequestItems)
-                .ThenInclude(ri => ri.Product)
-            .Where(r => branchIds.Contains(r.BranchId) && r.Status == "Pending")
-            .OrderByDescending(r => r.CreatedAtUtc)
-            .Select(r => new {
-                r.Id,
-                r.BranchId,
-                r.TableId,
-                r.CustomerName,
-                r.Status,
-                r.CreatedAtUtc,
-                TableNumber = _context.DiningTables.Where(t => t.Id == r.TableId).Select(t => t.TableNumber).FirstOrDefault(),
-                OrderRequestItems = r.OrderRequestItems.Select(ri => new {
-                    ri.Id,
-                    ri.Quantity,
-                    ri.Note,
-                    Product = new {
-                        ri.Product.Name,
-                        ri.Product.Price
-                    }
-                })
-            })
-            .ToListAsync();
+        if (!string.IsNullOrEmpty(branchIdStr))
+            query = query.Where(o => o.BranchId == Guid.Parse(branchIdStr));
 
-        return Ok(requests);
+        return Ok(await query.ToListAsync());
     }
 
     [HttpPost("approve-request/{requestId}")]

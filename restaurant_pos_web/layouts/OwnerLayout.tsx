@@ -11,7 +11,8 @@ import {
   Settings,
   LogOut,
   Package,
-  KeyRound
+  KeyRound,
+  ShoppingBag
 } from "lucide-react";
 import { authApi } from "../services/authApi";
 

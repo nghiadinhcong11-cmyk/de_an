@@ -24,8 +24,8 @@ class OrderModel {
       status: json['status'],
       paymentStatus: json['paymentStatus'],
       totalAmount: (json['totalAmount'] ?? 0).toDouble(),
-      tableNumber: json['table']?['tableNumber'] ?? '??',
-      items: (json['orderItems'] as List? ?? [])
+      tableNumber: json['tableNumber'] ?? '??',
+      items: (json['items'] as List? ?? [])
           .map((i) => OrderItemModel.fromJson(i))
           .toList(),
     );

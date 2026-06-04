@@ -44,54 +44,73 @@ public class QROrderingController : ControllerBase
         return Ok(new { categories, products, branchName = branch.Name, tableNumber = table.TableNumber });
     }
 
-    // 2. Khách gửi yêu cầu gọi món (Order Request)
+    // 2. Khách gửi yêu cầu gọi món (Tạo Order chờ xác nhận)
     [HttpPost("submit-request")]
     public async Task<IActionResult> SubmitOrderRequest([FromBody] CreateOrderRequestDto dto)
     {
         var table = await _context.DiningTables.FindAsync(dto.TableId);
         if (table == null) return BadRequest("Bàn không hợp lệ");
 
+        var branch = await _context.Branches.FindAsync(table.BranchId);
+
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var request = new OrderRequest
+            // 1. Tạo Order chính thức ở trạng thái chờ xác nhận
+            var order = new Order
             {
+                OrderNumber = $"QR-{DateTime.Now.Ticks.ToString().Substring(10)}",
+                RestaurantId = branch!.RestaurantId,
                 BranchId = table.BranchId,
                 TableId = dto.TableId,
-                CustomerName = dto.CustomerName,
-                Status = "Pending"
+                Status = "PendingConfirmation", // Trạng thái mới
+                PaymentStatus = "Pending",
+                CreatedAtUtc = DateTime.UtcNow
             };
 
-            _context.OrderRequests.Add(request);
+            _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
+            decimal total = 0;
             foreach (var item in dto.Items)
             {
-                _context.OrderRequestItems.Add(new OrderRequestItem
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null) continue;
+
+                var itemTotal = product.Price * item.Quantity;
+                _context.OrderItems.Add(new OrderItem
                 {
-                    OrderRequestId = request.Id,
+                    OrderId = order.Id,
                     ProductId = item.ProductId,
-                    VariantId = item.VariantId,
                     Quantity = item.Quantity,
-                    Note = item.Note
+                    UnitPrice = product.Price,
+                    TotalPrice = itemTotal
                 });
+                total += itemTotal;
             }
+
+            order.Subtotal = total;
+            order.TotalAmount = total;
+
+            // 2. Khóa bàn ngay lập tức
+            table.Status = "Occupied";
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            // Gửi thông báo Real-time tới nhân viên của chi nhánh
+            // 3. Thông báo Real-time cho nhân viên
             await _hubContext.Clients.All.SendAsync("ReceiveNewOrderRequest", new {
-                requestId = request.Id,
-                tableNumber = table.TableNumber
+                orderId = order.Id,
+                tableNumber = table.TableNumber,
+                totalAmount = order.TotalAmount
             });
 
-            return Ok(new { message = "Gửi yêu cầu gọi món thành công!", requestId = request.Id });
+            return Ok(new { message = "Gửi yêu cầu thành công, vui lòng chờ nhân viên xác nhận!", orderId = order.Id });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return StatusCode(500, "Có lỗi xảy ra khi gọi món");
+            return StatusCode(500, ex.Message);
         }
     }
 
