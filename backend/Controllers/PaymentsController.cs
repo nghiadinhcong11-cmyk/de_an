@@ -83,4 +83,55 @@ public class PaymentsController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
+
+    // Endpoints tương thích ngược cho trang cấu hình đơn giản
+    [HttpGet("config")]
+    public async Task<IActionResult> GetDefaultConfig()
+    {
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
+
+        var firstBranch = await _context.Branches.FirstOrDefaultAsync(b => b.RestaurantId == restaurantId);
+        if (firstBranch == null) return NotFound("Chưa có chi nhánh nào");
+
+        var account = await _context.PaymentAccounts
+            .FirstOrDefaultAsync(a => a.BranchId == firstBranch.Id && a.IsDefault);
+
+        // Nếu không có mặc định, lấy tài khoản đầu tiên
+        account ??= await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == firstBranch.Id);
+
+        return Ok(account);
+    }
+
+    [HttpPost("config")]
+    public async Task<IActionResult> UpdateDefaultConfig([FromBody] PaymentAccount account)
+    {
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
+
+        var firstBranch = await _context.Branches.FirstOrDefaultAsync(b => b.RestaurantId == restaurantId);
+        if (firstBranch == null) return BadRequest("Chưa có chi nhánh để gán cấu hình");
+
+        var existing = await _context.PaymentAccounts
+            .FirstOrDefaultAsync(a => a.BranchId == firstBranch.Id && (a.IsDefault || a.AccountNumber == account.AccountNumber));
+
+        if (existing != null)
+        {
+            existing.BankCode = account.BankCode;
+            existing.AccountNumber = account.AccountNumber;
+            existing.AccountName = account.AccountName;
+            existing.IsDefault = true;
+        }
+        else
+        {
+            account.BranchId = firstBranch.Id;
+            account.IsDefault = true;
+            _context.PaymentAccounts.Add(account);
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }
