@@ -14,6 +14,12 @@ export default function CustomerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    if (confirm("Bạn muốn đăng xuất?")) {
+      authApi.logout();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top Navbar chuyên nghiệp */}
@@ -50,24 +56,23 @@ export default function CustomerLayout() {
                 className="relative h-11 w-11 rounded-full bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
              >
                 <ShoppingBag className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-gray-900 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black border-2 border-white">2</span>
              </Button>
 
              <div className="h-8 w-px bg-gray-100 mx-2 hidden md:block"></div>
 
              <Button
-                onClick={() => { if(confirm("Bạn muốn đăng xuất?")) authApi.logout(); }}
+                onClick={handleLogout}
                 variant="ghost"
-                className="text-red-500 font-black text-xs uppercase tracking-wider hidden md:flex items-center gap-2 hover:bg-red-50"
+                className="text-red-500 font-black text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-red-50"
              >
-                <LogOut className="w-4 h-4" /> Thoát
+                <LogOut className="w-4 h-4" /> <span className="hidden md:inline">Thoát</span>
              </Button>
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 container mx-auto px-6 py-12">
+      <main className="flex-1 container mx-auto px-4 py-8 md:px-6 md:py-12 pb-24 md:pb-12">
         <Outlet />
       </main>
 

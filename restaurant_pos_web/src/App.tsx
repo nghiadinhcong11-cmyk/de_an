@@ -6,6 +6,7 @@ import RegisterOwner from '../pages/RegisterOwner';
 import CustomerRegister from '../customer/CustomerRegister';
 import OwnerLayout from '../layouts/OwnerLayout';
 import CustomerLayout from '../layouts/CustomerLayout';
+import EmployeeLayout from '../layouts/EmployeeLayout';
 import ProtectedRoute from '../components/ProtectedRoute';
 
 // Owner Pages
@@ -97,10 +98,12 @@ function App() {
 
         {/* Employee Routes (Chủ và Nhân viên đều vào được) */}
         <Route element={<ProtectedRoute allowedRoles={['Owner', 'Manager', 'Waiter', 'Cashier']} />}>
-          <Route path="/employee/pos" element={<EmployeePOS />} />
-          <Route path="/employee/orders" element={<EmployeeOrders />} />
-          <Route path="/employee/requests" element={<EmployeeOrderRequests />} />
-          <Route path="/employee/change-password" element={<ChangePassword />} />
+          <Route path="/employee" element={<EmployeeLayout />}>
+            <Route path="pos" element={<EmployeePOS />} />
+            <Route path="orders" element={<EmployeeOrders />} />
+            <Route path="requests" element={<EmployeeOrderRequests />} />
+            <Route path="change-password" element={<ChangePassword />} />
+          </Route>
         </Route>
 
         {/* Default Redirects */}

@@ -40,10 +40,6 @@ const Login = () => {
     }
   };
 
-  const handleGuestAccess = () => {
-    navigate('/customer');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -114,12 +110,6 @@ const Login = () => {
                   <Heart className="w-5 h-5 text-red-500" /> Tôi muốn làm thành viên
                 </Button>
               </Link>
-
-              <div className="pt-4">
-                 <Button onClick={handleGuestAccess} variant="ghost" className="w-full text-xs text-gray-400 font-bold uppercase tracking-widest hover:bg-transparent hover:text-gray-900 transition-colors">
-                   Tiếp tục với tư cách Khách vãng lai
-                 </Button>
-              </div>
             </div>
           </CardContent>
         </Card>
