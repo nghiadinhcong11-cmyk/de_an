@@ -8,15 +8,18 @@ import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'api/notification_service.dart';
 
+import 'package:flutter/foundation.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
-    await Firebase.initializeApp();
-    await NotificationService.init();
+    if (!kIsWeb) {
+      await Firebase.initializeApp();
+      await NotificationService.init();
+    }
   } catch (e) {
     debugPrint('Firebase init error: $e');
-    // Vẫn tiếp tục chạy app kể cả khi firebase lỗi (dành cho môi trường dev chưa có file json)
   }
 
   runApp(

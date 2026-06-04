@@ -12,9 +12,11 @@ import {
   LogOut,
   Package,
   KeyRound,
-  ShoppingBag
+  ShoppingBag,
+  UserCircle
 } from "lucide-react";
 import { authApi } from "../services/authApi";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/owner" },
@@ -34,6 +36,7 @@ const navItems = [
 
 export default function OwnerLayout() {
   const location = useLocation();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -65,7 +68,7 @@ export default function OwnerLayout() {
 
         <div className="p-4 border-t border-gray-200">
           <button
-            onClick={() => authApi.logout()}
+            onClick={() => { if(confirm("Bạn muốn đăng xuất?")) authApi.logout(); }}
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-5 h-5" />
@@ -78,13 +81,23 @@ export default function OwnerLayout() {
       <main className="flex-1 overflow-y-auto">
         <header className="h-16 bg-white border-b border-gray-200 px-8 flex items-center justify-between sticky top-0 z-10">
           <div className="text-sm text-gray-500">
-            Welcome back, <span className="font-bold text-gray-900 text-base ml-1">Admin</span>
+            Xin chào, <span className="font-bold text-gray-900 text-base ml-1">{user.fullName || "Admin"}</span>
           </div>
-          <div className="flex items-center gap-4">
-             <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
-               A
+          <Link to="/owner/profile" className="flex items-center gap-3 group">
+             <div className="text-right hidden sm:block">
+                <p className="text-xs font-black text-gray-900 leading-none">{user.fullName}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Chủ nhà hàng</p>
              </div>
-          </div>
+             <Avatar className="w-9 h-9 border-2 border-white shadow-sm group-hover:border-orange-200 transition-all">
+                {user.avatarUrl ? (
+                    <img src={user.avatarUrl} alt={user.fullName} className="aspect-square h-full w-full object-cover" />
+                ) : (
+                    <AvatarFallback className="bg-orange-100 text-orange-600 font-bold text-xs uppercase">
+                        {user.fullName?.charAt(0) || "A"}
+                    </AvatarFallback>
+                )}
+             </Avatar>
+          </Link>
         </header>
         <Outlet />
       </main>

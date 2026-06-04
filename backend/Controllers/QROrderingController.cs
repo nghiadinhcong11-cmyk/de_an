@@ -72,13 +72,15 @@ public class QROrderingController : ControllerBase
             await _context.SaveChangesAsync();
 
             decimal total = 0;
+            var orderItems = new List<OrderItem>();
+
             foreach (var item in dto.Items)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product == null) continue;
 
                 var itemTotal = product.Price * item.Quantity;
-                _context.OrderItems.Add(new OrderItem
+                orderItems.Add(new OrderItem
                 {
                     OrderId = order.Id,
                     ProductId = item.ProductId,
@@ -89,6 +91,9 @@ public class QROrderingController : ControllerBase
                 total += itemTotal;
             }
 
+            if (!orderItems.Any()) return BadRequest("Đơn hàng không có món ăn hợp lệ");
+
+            _context.OrderItems.AddRange(orderItems);
             order.Subtotal = total;
             order.TotalAmount = total;
 

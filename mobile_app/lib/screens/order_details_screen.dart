@@ -248,7 +248,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: const Text('Thanh toán VietQR', style: TextStyle(fontWeight: FontWeight.w900)),
-            content: Column(
+            content: SingleChildScrollView(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (result['qrUrl'] != null) 
@@ -256,11 +257,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 else
                   const Text('Chưa cấu hình tài khoản nhận tiền'),
                 const SizedBox(height: 10),
-                if (result['discountAmount'] > 0)
+                if ((result['discountAmount'] ?? 0) > 0)
                     Text('Giảm giá: -\$${result['discountAmount']}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                 Text('Tổng thanh toán: \$${result['totalAmount']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ],
             ),
+          ),
             actions: [
               TextButton(
                 onPressed: () {

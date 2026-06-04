@@ -29,11 +29,23 @@ class OrderProvider with ChangeNotifier {
       final response = await _apiService.dio.get('/reports/today-shift-summary');
       if (response.statusCode == 200) {
         _shiftSummary = response.data;
-        notifyListeners();
+      } else {
+        _shiftSummary = _getDefaultSummary();
       }
     } catch (e) {
-      debugPrint('Error fetching shift summary: $e');
+      debugPrint('Error fetching shift summary (likely 404 or not deployed): $e');
+      _shiftSummary = _getDefaultSummary();
     }
+    notifyListeners();
+  }
+
+  Map<String, dynamic> _getDefaultSummary() {
+    return {
+      'totalRevenue': 0.0,
+      'totalOrders': 0,
+      'cashRevenue': 0.0,
+      'qrRevenue': 0.0
+    };
   }
 
   Future<void> fetchProducts() async {
@@ -129,6 +141,8 @@ class OrderProvider with ChangeNotifier {
   }
 
   void initSignalR(String token) {
+    if (_signalRService != null) return; // Đã khởi tạo dịch vụ
+
     _signalRService = SignalRService(onNewOrder: (data) {
       // Hiển thị thông báo ngay lập tức
       NotificationService.showLocalNotification(

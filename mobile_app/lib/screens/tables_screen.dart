@@ -120,12 +120,12 @@ class _TablesScreenState extends State<TablesScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Hero(
-                                        tag: 'table-icon-${table.tableNumber}',
+                                        tag: 'table-icon-${table.id}',
                                         child: const Icon(Icons.chair_rounded, size: 24, color: Colors.white24)
                                       ),
                                       const SizedBox(height: 4),
                                       Hero(
-                                        tag: 'table-number-${table.tableNumber}',
+                                        tag: 'table-number-${table.id}',
                                         child: Material(
                                           color: Colors.transparent,
                                           child: Text(

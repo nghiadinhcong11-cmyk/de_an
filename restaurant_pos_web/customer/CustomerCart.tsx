@@ -43,15 +43,20 @@ export function CustomerCart() {
   };
 
   const handlePlaceOrder = async (method: string) => {
+    const savedTableId = localStorage.getItem("current_table_id");
+    if (!savedTableId) {
+        alert("Không tìm thấy thông tin bàn. Vui lòng quét lại mã QR tại bàn.");
+        return;
+    }
+
     setLoading(true);
     try {
-      const savedTableId = localStorage.getItem("current_table_id") || "t1";
       const userStr = localStorage.getItem("user");
       const profile = userStr ? JSON.parse(userStr) : {};
 
       const res = await api.post("/qrordering/submit-request", {
         tableId: savedTableId,
-        customerName: profile.fullName || "Khách hàng",
+        customerName: profile.fullName || "Khách vãng lai",
         items: cart.map(i => ({ productId: i.id, quantity: i.quantity }))
       });
 
