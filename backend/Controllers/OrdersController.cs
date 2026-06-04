@@ -8,6 +8,7 @@ using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.Ordering.Entities;
 using RestaurantPOS.Modules.CRM.Entities;
 using RestaurantPOS.Modules.TableManagement.Entities;
+using RestaurantPOS.Modules.Payment.Entities;
 
 namespace RestaurantPOS.Controllers;
 
@@ -40,6 +41,84 @@ public class OrdersController : ControllerBase
             .ToListAsync();
 
         return Ok(orders);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderManualDto dto)
+    {
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(resIdStr);
+
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = Guid.Parse(userIdStr!);
+
+        var table = await _context.DiningTables.FindAsync(dto.TableId);
+        if (table == null) return BadRequest("Bàn không tồn tại");
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var order = new Order
+            {
+                OrderNumber = $"POS-{DateTime.Now.Ticks.ToString().Substring(10)}",
+                RestaurantId = restaurantId,
+                BranchId = table.BranchId,
+                TableId = dto.TableId,
+                CreatedByUserId = userId,
+                Status = "Preparing",
+                PaymentStatus = "Pending"
+            };
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            decimal total = 0;
+            foreach (var item in dto.Items)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null) continue;
+
+                var itemTotal = product.Price * item.Quantity;
+                _context.OrderItems.Add(new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = product.Price,
+                    TotalPrice = itemTotal
+                });
+                total += itemTotal;
+            }
+
+            order.TotalAmount = total;
+            order.Subtotal = total;
+
+            // Cập nhật trạng thái bàn
+            table.Status = "Occupied";
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(order);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest(ex.Message);
+        }
+    }
+
+    public class CreateOrderManualDto
+    {
+        public Guid TableId { get; set; }
+        public List<OrderItemDto> Items { get; set; } = [];
+    }
+
+    public class OrderItemDto
+    {
+        public Guid ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 
     [HttpGet("customer/my-orders")]
@@ -205,6 +284,48 @@ public class OrdersController : ControllerBase
         return Ok(order);
     }
 
+    [HttpPost("{id}/items")]
+    public async Task<IActionResult> AddItemsToOrder(Guid id, [FromBody] List<OrderItemDto> items)
+    {
+        var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.Id == id);
+        if (order == null) return NotFound();
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            decimal additionalTotal = 0;
+            foreach (var item in items)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null) continue;
+
+                var itemTotal = product.Price * item.Quantity;
+                _context.OrderItems.Add(new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = product.Price,
+                    TotalPrice = itemTotal
+                });
+                additionalTotal += itemTotal;
+            }
+
+            order.Subtotal += additionalTotal;
+            order.TotalAmount += additionalTotal;
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(order);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest(ex.Message);
+        }
+    }
+
     [HttpPost("{id}/payment")]
     public async Task<IActionResult> ProcessPayment(Guid id, [FromBody] PaymentRequest request)
     {
@@ -214,7 +335,18 @@ public class OrdersController : ControllerBase
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. Tích điểm nếu có số điện thoại
+            // 1. Áp dụng Voucher (nếu có)
+            if (!string.IsNullOrEmpty(request.VoucherCode))
+            {
+                var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == request.VoucherCode && v.IsActive && v.RestaurantId == order.RestaurantId);
+                if (voucher != null && order.TotalAmount >= voucher.MinOrderAmount)
+                {
+                    order.DiscountAmount = voucher.DiscountValue;
+                    order.TotalAmount = Math.Max(0, order.Subtotal - order.DiscountAmount);
+                }
+            }
+
+            // 2. Tích điểm nếu có số điện thoại
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
                 var customer = await _context.Customers.FirstOrDefaultAsync(c => c.PhoneNumber == request.PhoneNumber);
@@ -248,11 +380,21 @@ public class OrdersController : ControllerBase
                 });
             }
 
-            // 2. Cập nhật trạng thái đơn hàng
+            // 3. Cập nhật trạng thái đơn hàng
             order.Status = "Completed";
             order.PaymentStatus = "Paid";
 
-            // 3. Giải phóng bàn
+            // 4. Tạo bản ghi thanh toán
+            var payment = new Payment
+            {
+                OrderId = order.Id,
+                Method = request.Method ?? "Cash",
+                Amount = order.TotalAmount,
+                Status = "Success"
+            };
+            _context.Payments.Add(payment);
+
+            // 5. Giải phóng bàn
             var table = await _context.DiningTables.FindAsync(order.TableId);
             if (table != null)
             {
@@ -262,18 +404,26 @@ public class OrdersController : ControllerBase
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            // 4. Lấy thông tin VietQR
-            var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == order.BranchId && a.IsActive);
+            // 5. Lấy thông tin VietQR nếu thanh toán qua QR
             string? qrUrl = null;
-            if (account != null)
+            if (payment.Method == "QR")
             {
-                qrUrl = $"https://img.vietqr.io/image/{account.BankCode}-{account.AccountNumber}-compact.png?amount={order.TotalAmount}&addInfo=Thanh toan don {order.OrderNumber}&accountName={Uri.EscapeDataString(account.AccountName)}";
+                var account = await _context.PaymentAccounts
+                    .Where(a => a.BranchId == order.BranchId && a.IsActive)
+                    .OrderByDescending(a => a.IsDefault)
+                    .FirstOrDefaultAsync();
+
+                if (account != null)
+                {
+                    qrUrl = $"https://img.vietqr.io/image/{account.BankCode}-{account.AccountNumber}-compact.png?amount={order.TotalAmount}&addInfo=Thanh toan don {order.OrderNumber}&accountName={Uri.EscapeDataString(account.AccountName)}";
+                }
             }
 
             return Ok(new {
                 message = "Thanh toán thành công",
                 qrUrl,
-                totalAmount = order.TotalAmount
+                totalAmount = order.TotalAmount,
+                discountAmount = order.DiscountAmount
             });
         }
         catch (Exception ex)
@@ -287,6 +437,8 @@ public class OrdersController : ControllerBase
     {
         public string? PhoneNumber { get; set; }
         public string? CustomerName { get; set; }
+        public string? VoucherCode { get; set; }
+        public string? Method { get; set; } // Cash hoặc QR
     }
 
     [HttpPut("{id}/status")]

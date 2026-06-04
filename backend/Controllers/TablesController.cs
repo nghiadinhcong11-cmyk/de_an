@@ -18,15 +18,41 @@ public class TablesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var branchIds = await _context.Branches
-            .Where(b => b.RestaurantId == restaurantId)
-            .Select(b => b.Id)
-            .ToListAsync();
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        var branchIdStr = User.FindFirstValue("BranchId"); // Nếu là nhân viên sẽ có ID chi nhánh
 
-        var tables = await _context.DiningTables
-            .Where(t => branchIds.Contains(t.BranchId))
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(restaurantIdStr);
+
+        var query = _context.DiningTables.AsQueryable();
+
+        // 1. Nếu là nhân viên (có BranchId), chỉ lấy bàn của chi nhánh đó
+        if (!string.IsNullOrEmpty(branchIdStr))
+        {
+            var branchId = Guid.Parse(branchIdStr);
+            query = query.Where(t => t.BranchId == branchId);
+        }
+        else
+        {
+            // 2. Nếu là Owner (không có BranchId), lấy tất cả chi nhánh của RestaurantId đó
+            var branchIds = await _context.Branches
+                .Where(b => b.RestaurantId == restaurantId)
+                .Select(b => b.Id)
+                .ToListAsync();
+            query = query.Where(t => branchIds.Contains(t.BranchId));
+        }
+
+        var tables = await query
             .OrderBy(t => t.TableNumber)
+            .Select(t => new {
+                t.Id,
+                t.BranchId,
+                t.TableNumber,
+                t.Capacity,
+                t.Zone,
+                t.Status,
+                BranchName = _context.Branches.Where(b => b.Id == t.BranchId).Select(b => b.Name).FirstOrDefault()
+            })
             .ToListAsync();
 
         return Ok(tables);

@@ -14,13 +14,42 @@ class OrderDetailsScreen extends StatefulWidget {
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
+  final _voucherController = TextEditingController();
+  String _paymentMethod = 'Cash'; // Mặc định tiền mặt
   bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chi tiết đơn ${widget.order.tableNumber}', style: const TextStyle(fontWeight: FontWeight.black)),
+        title: Row(
+          children: [
+            Hero(
+              tag: 'table-icon-${widget.order.tableNumber}', 
+              child: Icon(Icons.chair_rounded, size: 20, color: Colors.orange.shade800),
+            ),
+            const SizedBox(width: 10),
+            Hero(
+              tag: 'table-number-${widget.order.tableNumber}',
+              child: Material(
+                color: Colors.transparent,
+                child: Text(
+                  'Bàn ${widget.order.tableNumber}', 
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+            TextButton.icon(
+                onPressed: () {
+                    // Logic mở POS để thêm món vào đơn này
+                }, 
+                icon: const Icon(Icons.add_circle_outline, size: 18), 
+                label: const Text('THÊM MÓN', style: TextStyle(fontWeight: FontWeight.bold))
+            )
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -40,15 +69,95 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
             )),
             const Divider(height: 32),
+            
+            // Voucher Section
+            const Text('MÃ GIẢM GIÁ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _voucherController,
+                    decoration: InputDecoration(
+                      hintText: 'Nhập mã voucher...',
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // Trong thực tế sẽ gọi API check voucher trước
+                    setState(() {}); 
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: const Text('ÁP DỤNG', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                )
+              ],
+            ),
+
+            const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('TỔNG CỘNG', style: TextStyle(fontWeight: FontWeight.black, fontSize: 20)),
+                const Text('TỔNG CỘNG', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
                 Text('\$${widget.order.totalAmount.toStringAsFixed(2)}', 
-                     style: const TextStyle(fontWeight: FontWeight.black, fontSize: 24, color: Colors.orange)),
+                     style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: Colors.orange)),
               ],
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
+
+            const Text('HÌNH THỨC THANH TOÁN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _paymentMethod = 'Cash'),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _paymentMethod == 'Cash' ? Colors.orange.shade50 : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: _paymentMethod == 'Cash' ? Colors.orange : Colors.grey.shade200, width: 2),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.money, color: _paymentMethod == 'Cash' ? Colors.orange : Colors.grey),
+                          const SizedBox(height: 8),
+                          Text('TIỀN MẶT', style: TextStyle(fontWeight: FontWeight.bold, color: _paymentMethod == 'Cash' ? Colors.orange.shade900 : Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _paymentMethod = 'QR'),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _paymentMethod == 'QR' ? Colors.blue.shade50 : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: _paymentMethod == 'QR' ? Colors.blue : Colors.grey.shade200, width: 2),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(Icons.qr_code, color: _paymentMethod == 'QR' ? Colors.blue : Colors.grey),
+                          const SizedBox(height: 8),
+                          Text('VIETQR', style: TextStyle(fontWeight: FontWeight.bold, color: _paymentMethod == 'QR' ? Colors.blue.shade900 : Colors.grey)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
             
             const Text('TÍCH ĐIỂM KHÁCH HÀNG (TÙY CHỌN)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 10),
@@ -76,17 +185,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             const SizedBox(height: 40),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 64,
               child: ElevatedButton(
                 onPressed: _isProcessing ? null : _handlePayment,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade600,
+                  backgroundColor: _paymentMethod == 'QR' ? Colors.blue.shade700 : Colors.orange.shade600,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 child: _isProcessing 
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('XÁC NHẬN THANH TOÁN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  : Text(_paymentMethod == 'QR' ? 'LẤY MÃ VIETQR' : 'XÁC NHẬN TIỀN MẶT', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ),
           ],
@@ -103,40 +212,50 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       widget.order.id, 
       _phoneController.text.isNotEmpty ? _phoneController.text : null,
       _nameController.text.isNotEmpty ? _nameController.text : null,
+      _paymentMethod,
+      _voucherController.text.isNotEmpty ? _voucherController.text : null
     );
 
     if (result != null && mounted) {
-      // Show VietQR
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Thanh toán VietQR', style: TextStyle(fontWeight: FontWeight.black)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (result['qrUrl'] != null) 
-                Image.network(result['qrUrl'])
-              else
-                const Text('Chưa cấu hình tài khoản nhận tiền'),
-              const SizedBox(height: 10),
-              Text('Số tiền: \$${result['totalAmount']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+      if (!context.mounted) return;
+      
+      if (_paymentMethod == 'QR') {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Thanh toán VietQR', style: TextStyle(fontWeight: FontWeight.w900)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (result['qrUrl'] != null) 
+                  Image.network(result['qrUrl'])
+                else
+                  const Text('Chưa cấu hình tài khoản nhận tiền'),
+                const SizedBox(height: 10),
+                if (result['discountAmount'] > 0)
+                    Text('Giảm giá: -\$${result['discountAmount']}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                Text('Tổng thanh toán: \$${result['totalAmount']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  if (context.mounted) Navigator.pop(context); // Trở về màn hình bàn
+                }, 
+                child: const Text('HOÀN TẤT')
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pop(context); // Trở về màn hình bàn
-              }, 
-              child: const Text('HOÀN TẤT')
-            ),
-          ],
-        ),
-      );
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thanh toán tiền mặt thành công!'), backgroundColor: Colors.green));
+        Navigator.pop(context);
+      }
     } else {
-      setState(() => _isProcessing = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi thanh toán')));
+      if (mounted) setState(() => _isProcessing = false);
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi thanh toán')));
     }
   }
 }

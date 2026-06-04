@@ -82,7 +82,7 @@ public class AuthService : IAuthService
                 .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                 .FirstOrDefaultAsync() ?? "Waiter";
 
-            var token = GenerateJwtToken(user.Id, user.Username, userRole, user.RestaurantId);
+            var token = GenerateJwtToken(user.Id, user.Username, userRole, user.RestaurantId, user.BranchId);
             return new LoginResponse { Token = token, Username = user.Username, FullName = user.FullName, Role = userRole };
         }
 
@@ -91,7 +91,7 @@ public class AuthService : IAuthService
 
         if (customer != null)
         {
-             var token = GenerateJwtToken(customer.Id, customer.PhoneNumber, "Customer", customer.RestaurantId);
+             var token = GenerateJwtToken(customer.Id, customer.PhoneNumber, "Customer", customer.RestaurantId, null);
              return new LoginResponse { Token = token, Username = customer.PhoneNumber, FullName = customer.FullName, Role = "Customer" };
         }
 
@@ -161,19 +161,27 @@ public class AuthService : IAuthService
         return true;
     }
 
-    private string GenerateJwtToken(Guid userId, string username, string role, Guid restaurantId)
+    private string GenerateJwtToken(Guid userId, string username, string role, Guid restaurantId, Guid? branchId)
     {
         var jwtSettings = _configuration.GetSection("Jwt");
         var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ClaimTypes.Role, role),
+            new Claim("RestaurantId", restaurantId.ToString())
+        };
+
+        if (branchId.HasValue)
+        {
+            claims.Add(new Claim("BranchId", branchId.Value.ToString()));
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, role),
-                new Claim("RestaurantId", restaurantId.ToString())
-            }),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(double.Parse(jwtSettings["DurationInMinutes"]!)),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = jwtSettings["Issuer"],

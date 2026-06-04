@@ -15,42 +15,71 @@ public class PaymentsController : ControllerBase
     private readonly AppDbContext _context;
     public PaymentsController(AppDbContext context) => _context = context;
 
-    [HttpGet("config")]
-    public async Task<IActionResult> GetConfig()
+    [HttpGet("accounts")]
+    public async Task<IActionResult> GetAccounts()
     {
         var resIdStr = User.FindFirstValue("RestaurantId");
         if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
         var restaurantId = Guid.Parse(resIdStr);
 
-        var branch = await _context.Branches.FirstOrDefaultAsync(b => b.RestaurantId == restaurantId);
-        if (branch == null) return NotFound("Chưa có chi nhánh nào");
+        var branchIds = await _context.Branches
+            .Where(b => b.RestaurantId == restaurantId)
+            .Select(b => b.Id)
+            .ToListAsync();
 
-        var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == branch.Id);
-        if (account == null) return NotFound("Chưa cấu hình tài khoản");
+        var accounts = await _context.PaymentAccounts
+            .Where(a => branchIds.Contains(a.BranchId))
+            .ToListAsync();
 
+        return Ok(accounts);
+    }
+
+    [HttpPost("accounts")]
+    public async Task<IActionResult> CreateAccount([FromBody] PaymentAccount account)
+    {
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+
+        var branch = await _context.Branches.FindAsync(account.BranchId);
+        if (branch == null || branch.RestaurantId != Guid.Parse(resIdStr))
+            return BadRequest("Chi nhánh không hợp lệ");
+
+        if (account.IsDefault)
+        {
+            var otherDefaults = await _context.PaymentAccounts
+                .Where(a => a.BranchId == account.BranchId && a.IsDefault)
+                .ToListAsync();
+            foreach (var d in otherDefaults) d.IsDefault = false;
+        }
+
+        account.IsActive = true;
+        _context.PaymentAccounts.Add(account);
+        await _context.SaveChangesAsync();
         return Ok(account);
     }
 
-    [HttpPost("config")]
-    public async Task<IActionResult> UpdateConfig([FromBody] PaymentAccount account)
+    [HttpPut("accounts/{id}")]
+    public async Task<IActionResult> UpdateAccount(Guid id, [FromBody] PaymentAccount account)
     {
-        var resIdStr = User.FindFirstValue("RestaurantId");
-        var restaurantId = Guid.Parse(resIdStr!);
-        var branch = await _context.Branches.FirstAsync(b => b.RestaurantId == restaurantId);
+        var existing = await _context.PaymentAccounts.FindAsync(id);
+        if (existing == null) return NotFound();
 
-        var existing = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == branch.Id);
-        if (existing != null)
-        {
-            existing.BankCode = account.BankCode;
-            existing.AccountNumber = account.AccountNumber;
-            existing.AccountName = account.AccountName;
-        }
-        else
-        {
-            account.BranchId = branch.Id;
-            _context.PaymentAccounts.Add(account);
-        }
+        existing.BankCode = account.BankCode;
+        existing.AccountNumber = account.AccountNumber;
+        existing.AccountName = account.AccountName;
+        existing.IsActive = account.IsActive;
+        existing.IsDefault = account.IsDefault;
 
+        await _context.SaveChangesAsync();
+        return Ok(existing);
+    }
+
+    [HttpDelete("accounts/{id}")]
+    public async Task<IActionResult> DeleteAccount(Guid id)
+    {
+        var account = await _context.PaymentAccounts.FindAsync(id);
+        if (account == null) return NotFound();
+        _context.PaymentAccounts.Remove(account);
         await _context.SaveChangesAsync();
         return Ok();
     }

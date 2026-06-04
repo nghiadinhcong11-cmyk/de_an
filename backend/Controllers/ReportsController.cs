@@ -85,4 +85,28 @@ public class ReportsController : ControllerBase
 
         return Ok(topProducts);
     }
+
+    // 4. Thống kê nhanh theo ca cho nhân viên (Hôm nay)
+    [HttpGet("today-shift-summary")]
+    public async Task<IActionResult> GetTodayShiftSummary()
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var today = DateTime.UtcNow.Date;
+
+        var ordersToday = await _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.CreatedAtUtc >= today && o.Status == "Completed")
+            .ToListAsync();
+
+        var paymentsToday = await _context.Payments
+            .Where(p => ordersToday.Select(o => o.Id).Contains(p.OrderId))
+            .ToListAsync();
+
+        return Ok(new
+        {
+            TotalRevenue = ordersToday.Sum(o => o.TotalAmount),
+            TotalOrders = ordersToday.Count,
+            CashRevenue = paymentsToday.Where(p => p.Method == "Cash").Sum(p => p.Amount),
+            QrRevenue = paymentsToday.Where(p => p.Method == "QR").Sum(p => p.Amount)
+        });
+    }
 }

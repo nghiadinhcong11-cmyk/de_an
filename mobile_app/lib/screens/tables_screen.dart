@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
+import '../models/dining_table.dart';
 import 'order_details_screen.dart';
 
 class TablesScreen extends StatefulWidget {
@@ -39,21 +40,21 @@ class _TablesScreenState extends State<TablesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
                         child: Row(
                           children: [
                             Container(
-                              width: 4,
-                              height: 20,
+                              width: 12,
+                              height: 12,
                               decoration: BoxDecoration(
-                                color: Colors.orange.shade600,
-                                borderRadius: BorderRadius.circular(2),
+                                color: const Color(0xFFEA580C),
+                                borderRadius: BorderRadius.circular(4),
                               ),
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Text(
-                              branchGroup.branchName,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.black),
+                              branchGroup.branchName.toUpperCase(),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.black87),
                             ),
                           ],
                         ),
@@ -62,15 +63,20 @@ class _TablesScreenState extends State<TablesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 12, bottom: 12),
-                            child: Text(
-                              zone.zoneName.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade500,
-                                letterSpacing: 1.2,
-                              ),
+                            padding: const EdgeInsets.only(left: 12, bottom: 16),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.layers_outlined, size: 14, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  zone.zoneName,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           GridView.builder(
@@ -79,9 +85,9 @@ class _TablesScreenState extends State<TablesScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 3,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: 1,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.9,
                             ),
                             itemCount: zone.tables.length,
                             itemBuilder: (context, tIndex) {
@@ -100,26 +106,54 @@ class _TablesScreenState extends State<TablesScreen> {
                                     }
                                   }
                                 },
-                                child: Card(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  color: isOccupied ? Colors.orange.shade600 : Colors.white,
-                                  elevation: 0,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isOccupied ? const Color(0xFFEA580C) : Colors.white,
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      if (!isOccupied) BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4)),
+                                      if (isOccupied) BoxShadow(color: const Color(0xFFEA580C).withAlpha(40), blurRadius: 12, offset: const Offset(0, 6)),
+                                    ],
+                                    border: isOccupied ? null : Border.all(color: Colors.grey.shade100),
+                                  ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        table.tableNumber,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.black,
-                                          color: isOccupied ? Colors.white : Colors.black,
+                                      Hero(
+                                        tag: 'table-icon-${table.tableNumber}',
+                                        child: const Icon(Icons.chair_rounded, size: 24, color: Colors.white24)
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Hero(
+                                        tag: 'table-number-${table.tableNumber}',
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: Text(
+                                            table.tableNumber,
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w900,
+                                              color: isOccupied ? Colors.white : Colors.black,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
-                                      Icon(
-                                        Icons.circle,
-                                        size: 8,
-                                        color: isOccupied ? Colors.white70 : Colors.green.shade400,
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: isOccupied ? Colors.white.withAlpha(40) : Colors.green.shade50,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          isOccupied ? 'CÓ KHÁCH' : 'TRỐNG',
+                                          style: TextStyle(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w900,
+                                            color: isOccupied ? Colors.white : Colors.green.shade700,
+                                            letterSpacing: 0.5
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -127,7 +161,7 @@ class _TablesScreenState extends State<TablesScreen> {
                               );
                             },
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                         ],
                       )),
                     ],
@@ -143,20 +177,18 @@ class _TablesScreenState extends State<TablesScreen> {
     final groups = <String, _BranchGroup>{};
     
     for (var table in tables) {
-      // Giả sử DiningTable model có thêm branchName hoặc ta map qua id
-      // Để đơn giản, tôi dùng ID làm tên nếu thiếu
-      final branchId = "Chi nhánh"; // Trong thực tế nên lấy tên branch
+      final branchName = table.branchName ?? "Chi nhánh";
       final zoneName = table.zone ?? "Chung";
       
-      if (!groups.containsKey(branchId)) {
-        groups[branchId] = _BranchGroup(branchName: branchId, zones: []);
+      if (!groups.containsKey(branchName)) {
+        groups[branchName] = _BranchGroup(branchName: branchName, zones: []);
       }
       
-      var zone = groups[branchId]!.zones.firstWhere(
+      var zone = groups[branchName]!.zones.firstWhere(
         (z) => z.zoneName == zoneName,
         orElse: () {
           final newZone = _ZoneGroup(zoneName: zoneName, tables: []);
-          groups[branchId]!.zones.add(newZone);
+          groups[branchName]!.zones.add(newZone);
           return newZone;
         },
       );

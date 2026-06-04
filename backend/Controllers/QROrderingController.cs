@@ -101,7 +101,11 @@ public class QROrderingController : ControllerBase
         var request = await _context.OrderRequests.FindAsync(requestId);
         if (request == null) return NotFound();
 
-        var account = await _context.PaymentAccounts.FirstOrDefaultAsync(a => a.BranchId == request.BranchId && a.IsActive);
+        var account = await _context.PaymentAccounts
+            .Where(a => a.BranchId == request.BranchId && a.IsActive)
+            .OrderByDescending(a => a.IsDefault)
+            .FirstOrDefaultAsync();
+
         if (account == null) return BadRequest("Chi nhánh chưa cấu hình thanh toán");
 
         var items = await _context.OrderRequestItems.Where(i => i.OrderRequestId == requestId).ToListAsync();
@@ -112,7 +116,7 @@ public class QROrderingController : ControllerBase
             total += (product?.Price ?? 0) * item.Quantity;
         }
 
-        var qrUrl = $"https://img.vietqr.io/image/{account.BankCode}-{account.AccountNumber}-compact.png?amount={total}&addInfo=Ban {request.TableId.ToString().Substring(0, 4)} goi mon&accountName={Uri.EscapeDataString(account.AccountName)}";
+        var qrUrl = $"https://img.vietqr.io/image/{account.BankCode}-{account.AccountNumber}-compact.png?amount={total}&addInfo=Ban {request.TableId.ToString().Substring(0, 4)} thanh toan&accountName={Uri.EscapeDataString(account.AccountName)}";
 
         return Ok(new { qrUrl, amount = total });
     }

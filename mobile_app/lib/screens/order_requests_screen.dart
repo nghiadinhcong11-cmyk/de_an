@@ -43,7 +43,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                     itemBuilder: (context, index) {
                       final request = orderProvider.requests[index];
                       return Card(
-                        margin: const EdgeInsets.bottom(16),
+                        margin: const EdgeInsets.only(bottom: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         elevation: 0,
                         color: Colors.white,
@@ -52,13 +52,13 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                           leading: CircleAvatar(
                             backgroundColor: Colors.orange.shade50,
                             child: Text(
-                              request.tableNumber.replaceAll('Bàn ', ''),
+                              (request.tableNumber ?? '').replaceAll('Bàn ', ''),
                               style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold),
                             ),
                           ),
                           title: Text(
                             'Bàn ${request.tableNumber}',
-                            style: const TextStyle(fontWeight: FontWeight.black),
+                            style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                           subtitle: Text(
                             '${request.customerName} • ${DateFormat('HH:mm').format(request.createdAt.toLocal())}',
@@ -84,10 +84,10 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('Tổng cộng', style: TextStyle(fontWeight: FontWeight.black, fontSize: 16)),
+                                      const Text('Tổng cộng', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
                                       Text(
                                         '\$${request.totalAmount.toStringAsFixed(2)}',
-                                        style: TextStyle(fontWeight: FontWeight.black, fontSize: 18, color: Colors.orange.shade800),
+                                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.orange.shade800),
                                       ),
                                     ],
                                   ),
@@ -150,11 +150,13 @@ class _RejectButtonState extends State<_RejectButton> {
                   setState(() => _isRejecting = true);
                   final success = await orderProvider.rejectRequest(widget.requestId);
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã từ chối đơn hàng')),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Đã từ chối đơn hàng')),
+                      );
+                    }
                   } else {
-                    setState(() => _isRejecting = false);
+                    if (mounted) setState(() => _isRejecting = false);
                   }
                 }
               },
@@ -196,20 +198,24 @@ class _ApproveButtonState extends State<_ApproveButton> {
                 setState(() => _isApproving = true);
                 final success = await orderProvider.approveRequest(widget.requestId);
                 if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Đã duyệt đơn hàng thành công!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đã duyệt đơn hàng thành công!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 } else {
-                  setState(() => _isApproving = false);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Lỗi khi duyệt đơn hàng'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  if (mounted) setState(() => _isApproving = false);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Lỗi khi duyệt đơn hàng'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 }
               },
         style: ElevatedButton.styleFrom(

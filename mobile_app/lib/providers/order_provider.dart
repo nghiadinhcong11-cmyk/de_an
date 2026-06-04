@@ -1,20 +1,72 @@
 import 'package:flutter/material.dart';
 import '../api/api_service.dart';
 import '../api/signalr_service.dart';
+import '../api/notification_service.dart';
 import '../models/order_request.dart';
 import '../models/dining_table.dart';
 import '../models/order.dart';
+import '../models/product.dart';
 
 class OrderProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
   List<OrderRequest> _requests = [];
   List<DiningTable> _tables = [];
+  List<OrderModel> _orders = [];
+  List<Product> _products = [];
+  Map<String, dynamic>? _shiftSummary;
   bool _isLoading = false;
   SignalRService? _signalRService;
 
   List<OrderRequest> get requests => _requests;
   List<DiningTable> get tables => _tables;
+  List<OrderModel> get orders => _orders;
+  List<Product> get products => _products;
+  Map<String, dynamic>? get shiftSummary => _shiftSummary;
   bool get isLoading => _isLoading;
+
+  Future<void> fetchShiftSummary() async {
+    try {
+      final response = await _apiService.dio.get('/reports/today-shift-summary');
+      if (response.statusCode == 200) {
+        _shiftSummary = response.data;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching shift summary: $e');
+    }
+  }
+
+  Future<void> fetchProducts() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final response = await _apiService.dio.get('/menu/products');
+      if (response.statusCode == 200) {
+        _products = (response.data as List).map((e) => Product.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching products: $e');
+    }
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<bool> createManualOrder(String tableId, List<Map<String, dynamic>> items) async {
+    try {
+      final response = await _apiService.dio.post('/orders', data: {
+        'tableId': tableId,
+        'items': items,
+      });
+      if (response.statusCode == 200) {
+        fetchTables();
+        fetchAllOrders();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Error creating manual order: $e');
+    }
+    return false;
+  }
 
   Future<void> fetchRequests() async {
     _isLoading = true;
@@ -26,6 +78,21 @@ class OrderProvider with ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error fetching requests: $e');
+    }
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchAllOrders() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final response = await _apiService.dio.get('/orders');
+      if (response.statusCode == 200) {
+        _orders = (response.data as List).map((e) => OrderModel.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching all orders: $e');
     }
     _isLoading = false;
     notifyListeners();
@@ -48,8 +115,15 @@ class OrderProvider with ChangeNotifier {
 
   void initSignalR(String token) {
     _signalRService = SignalRService(onNewOrder: (data) {
+      // Hiển thị thông báo ngay lập tức
+      NotificationService.showLocalNotification(
+        title: '🔔 Yêu cầu mới!',
+        body: 'Bàn ${data['tableNumber']} vừa gửi yêu cầu gọi món.',
+      );
+
       fetchRequests();
       fetchTables();
+      fetchAllOrders();
     });
     _signalRService?.init(token);
   }
@@ -90,7 +164,7 @@ class OrderProvider with ChangeNotifier {
         final orders = (response.data as List).map((e) => OrderModel.fromJson(e)).toList();
         // Tìm đơn hàng đang hoạt động (không phải Completed/Cancelled) tại bàn này
         return orders.firstWhere(
-          (o) => o.status != 'Completed' && o.status != 'Cancelled' && o.id != null, // Cần lọc theo tableId nếu API hỗ trợ
+          (o) => o.status != 'Completed' && o.status != 'Cancelled', // Cần lọc theo tableId nếu API hỗ trợ
           orElse: () => throw Exception('Không tìm thấy đơn hàng'),
         );
       }
@@ -112,24 +186,43 @@ class OrderProvider with ChangeNotifier {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('Error fetching order by table id: $e');
+    }
     return null;
   }
 
-  Future<Map<String, dynamic>?> processPayment(String orderId, String? phoneNumber, String? customerName) async {
+  Future<Map<String, dynamic>?> processPayment(String orderId, String? phoneNumber, String? customerName, String method, String? voucherCode) async {
     try {
       final response = await _apiService.dio.post('/orders/$orderId/payment', data: {
         'phoneNumber': phoneNumber,
         'customerName': customerName,
+        'method': method,
+        'voucherCode': voucherCode,
       });
       if (response.statusCode == 200) {
         fetchTables();
+        fetchAllOrders();
+        fetchShiftSummary();
         return response.data;
       }
     } catch (e) {
       debugPrint('Error processing payment: $e');
     }
     return null;
+  }
+
+  Future<bool> addItemsToOrder(String orderId, List<Map<String, dynamic>> items) async {
+    try {
+      final response = await _apiService.dio.post('/orders/$orderId/items', data: items);
+      if (response.statusCode == 200) {
+        fetchAllOrders();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Error adding items to order: $e');
+    }
+    return false;
   }
 
   @override

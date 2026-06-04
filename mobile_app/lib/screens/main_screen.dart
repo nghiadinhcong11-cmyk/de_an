@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'order_requests_screen.dart';
 import 'tables_screen.dart';
+import 'orders_list_screen.dart';
+import 'pos_screen.dart';
+import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -16,9 +19,10 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const TablesScreen(),
-    const Center(child: Text('POS - Đặt món')),
+    const OrdersListScreen(),
+    const POSScreen(),
     const OrderRequestsScreen(),
-    const Center(child: Text('Cá nhân')),
+    const ProfileScreen(),
   ];
 
   @override
@@ -27,43 +31,87 @@ class _MainScreenState extends State<MainScreen> {
     final user = authProvider.user;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Restaurant POS', style: TextStyle(fontWeight: FontWeight.black, fontSize: 18)),
-            Text(
-              '${user?['fullName'] ?? 'Nhân viên'} - ${user?['role'] ?? ''}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
+      appBar: _selectedIndex == 4 ? null : AppBar(
+        toolbarHeight: 80,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Restaurant POS', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22, letterSpacing: -0.5)),
+              Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(color: Color(0xFFEA580C), shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${user?['fullName'] ?? 'Nhân viên'} • ${user?['role'] ?? ''}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => authProvider.logout(),
+          Padding(
+            padding: const EdgeInsets.only(right: 12, top: 8),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey.shade100,
+              child: IconButton(
+                icon: const Icon(Icons.notifications_none_rounded, color: Colors.black, size: 22),
+                onPressed: () => setState(() => _selectedIndex = 3),
+              ),
+            ),
           ),
         ],
       ),
-      body: _screens[_selectedIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.05, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(_selectedIndex),
+          child: _screens[_selectedIndex],
+        ),
+      ),
       bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
+          color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+            BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 20, offset: const Offset(0, -5)),
           ],
         ),
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: (index) => setState(() => _selectedIndex = index),
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.orange.shade600,
-          unselectedItemColor: Colors.grey,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          selectedItemColor: const Color(0xFFEA580C),
+          unselectedItemColor: Colors.grey.shade400,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.grid_view_rounded), label: 'Sơ đồ bàn'),
-            BottomNavigationBarItem(icon: Icon(Icons.add_shopping_cart), label: 'POS'),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Yêu cầu'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Cá nhân'),
+            BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.grid_view_rounded)), label: 'BÀN'),
+            BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.list_alt_rounded)), label: 'ĐƠN HÀNG'),
+            BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.add_circle_outline_rounded, size: 28)), label: 'POS'),
+            BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.notifications_active_outlined)), label: 'YÊU CẦU'),
+            BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.person_2_outlined)), label: 'HỒ SƠ'),
           ],
         ),
       ),
