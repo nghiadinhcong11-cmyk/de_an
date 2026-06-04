@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantPOS.DTOs;
@@ -28,6 +30,28 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Sai tài khoản hoặc mật khẩu" });
 
         return Ok(response);
+    }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+        var userId = Guid.Parse(userIdStr);
+        var result = await _authService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
+
+        if (!result) return BadRequest(new { message = "Mật khẩu cũ không chính xác" });
+        return Ok(new { message = "Đổi mật khẩu thành công" });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var result = await _authService.ResetPasswordAsync(request.Username, request.Email, request.NewPassword);
+        if (!result) return BadRequest(new { message = "Thông tin không khớp. Không thể đặt lại mật khẩu" });
+        return Ok(new { message = "Mật khẩu đã được đặt lại thành công" });
     }
 
     [HttpPost("register-owner")]

@@ -10,7 +10,8 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Package
+  Package,
+  KeyRound
 } from "lucide-react";
 import { authApi } from "../services/authApi";
 
@@ -26,6 +27,7 @@ const navItems = [
   { icon: Ticket, label: "Vouchers", path: "/owner/vouchers" },
   { icon: BarChart3, label: "Reports", path: "/owner/reports" },
   { icon: Settings, label: "Restaurant", path: "/owner/restaurant" },
+  { icon: KeyRound, label: "Password", path: "/owner/change-password" },
 ];
 
 export default function OwnerLayout() {

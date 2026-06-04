@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save, KeyRound } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerProfile() {
@@ -87,12 +88,18 @@ export function CustomerProfile() {
             </div>
           </div>
 
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogTrigger onClick={() => setIsEditDialogOpen(true)}>
+          <div className="flex gap-2">
+            <Link to="/customer/change-password">
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                <Edit2 className="w-5 h-5" />
+                <KeyRound className="w-5 h-5" />
               </Button>
-            </DialogTrigger>
+            </Link>
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogTrigger onClick={() => setIsEditDialogOpen(true)}>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                  <Edit2 className="w-5 h-5" />
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Chỉnh sửa trang cá nhân</DialogTitle>

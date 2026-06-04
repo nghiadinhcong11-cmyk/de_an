@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
+import 'user_info_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -133,7 +134,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     icon: Icons.person_outline,
                     title: 'Thông tin cá nhân',
                     subtitle: '@${user?['username']}',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const UserInfoScreen()),
+                      );
+                    },
                   ),
                   _ProfileItem(
                     icon: Icons.history,

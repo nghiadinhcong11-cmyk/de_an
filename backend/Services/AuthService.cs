@@ -16,6 +16,8 @@ public interface IAuthService
     Task<bool> RegisterOwnerAsync(RegisterOwnerRequest request);
     Task<bool> RegisterEmployeeAsync(RegisterEmployeeRequest request);
     Task<bool> RegisterCustomerAsync(RegisterCustomerRequest request);
+    Task<bool> ChangePasswordAsync(Guid userId, string oldPassword, string newPassword);
+    Task<bool> ResetPasswordAsync(string username, string email, string newPassword);
 }
 
 public class AuthService : IAuthService
@@ -158,6 +160,27 @@ public class AuthService : IAuthService
         _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = roleId });
         await _context.SaveChangesAsync();
 
+        return true;
+    }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, string oldPassword, string newPassword)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash))
+            return false;
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ResetPasswordAsync(string username, string email, string newPassword)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username && u.Email == email);
+        if (user == null) return false;
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _context.SaveChangesAsync();
         return true;
     }
 

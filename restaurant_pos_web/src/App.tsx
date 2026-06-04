@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
+import ForgotPassword from '../pages/ForgotPassword';
+import ChangePassword from '../pages/ChangePassword';
 import RegisterOwner from '../pages/RegisterOwner';
 import CustomerRegister from '../customer/CustomerRegister';
 import OwnerLayout from '../layouts/OwnerLayout';
@@ -45,6 +47,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register-owner" element={<RegisterOwner />} />
         <Route path="/register-customer" element={<CustomerRegister />} />
         <Route path="/employee/register" element={<EmployeeRegister />} />
@@ -62,6 +65,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['Customer']} />}>
             <Route path="orders" element={<CustomerOrders />} />
             <Route path="profile" element={<CustomerProfile />} />
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Route>
 
@@ -85,6 +89,7 @@ function App() {
             <Route path="expenses" element={<OwnerExpenses />} />
             <Route path="shifts" element={<OwnerShifts />} />
             <Route path="payment-accounts" element={<OwnerPaymentAccounts />} />
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
         </Route>
 
@@ -93,6 +98,7 @@ function App() {
           <Route path="/employee/pos" element={<EmployeePOS />} />
           <Route path="/employee/orders" element={<EmployeeOrders />} />
           <Route path="/employee/requests" element={<EmployeeOrderRequests />} />
+          <Route path="/employee/change-password" element={<ChangePassword />} />
         </Route>
 
         {/* Default Redirects */}

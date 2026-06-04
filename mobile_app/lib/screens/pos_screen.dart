@@ -57,7 +57,17 @@ class _POSScreenState extends State<POSScreen> {
                   ),
                   items: availableTables.map((t) => DropdownMenuItem(
                     value: t.id,
-                    child: Text(t.tableNumber, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(4)),
+                          child: Text(t.branchName ?? 'CH', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.orange.shade900)),
+                        ),
+                        const SizedBox(width: 8),
+                        Text('${t.zone ?? 'Chung'} - ${t.tableNumber}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      ],
+                    ),
                   )).toList(),
                   onChanged: (val) => setState(() => _selectedTableId = val),
                 ),

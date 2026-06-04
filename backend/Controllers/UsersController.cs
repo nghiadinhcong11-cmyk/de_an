@@ -67,6 +67,61 @@ public class UsersController : ControllerBase
         return Ok(await _context.Roles.ToListAsync());
     }
 
+    [HttpGet("me")]
+    public async Task<IActionResult> GetMyProfile()
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+        var userId = Guid.Parse(userIdStr);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        return Ok(new {
+            user.Id,
+            user.Username,
+            user.FullName,
+            user.AvatarUrl,
+            user.Email,
+            user.PhoneNumber,
+            BranchName = _context.Branches.Where(b => b.Id == user.BranchId).Select(b => b.Name).FirstOrDefault() ?? "Toàn hệ thống",
+            RoleName = _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
+                .FirstOrDefault() ?? "Nhân viên"
+        });
+    }
+
+    [HttpPut("me")]
+    public async Task<IActionResult> UpdateMyProfile([FromBody] UpdateMyProfileRequest request)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
+        var userId = Guid.Parse(userIdStr);
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        user.FullName = request.FullName;
+        user.Email = request.Email;
+        user.PhoneNumber = request.PhoneNumber;
+        if (!string.IsNullOrEmpty(request.AvatarUrl))
+        {
+            user.AvatarUrl = request.AvatarUrl;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(user);
+    }
+
+    public class UpdateMyProfileRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public string? PhoneNumber { get; set; }
+        public string? AvatarUrl { get; set; }
+    }
+
     [HttpPut("{userId}")]
     public async Task<IActionResult> UpdateEmployee(Guid userId, [FromBody] UpdateEmployeeRequest request)
     {
