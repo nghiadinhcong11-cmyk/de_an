@@ -30,14 +30,47 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var resIdStr = User.FindFirstValue("RestaurantId");
+        var branchIdStr = User.FindFirstValue("BranchId");
+
         if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
         var restaurantId = Guid.Parse(resIdStr);
 
-        var orders = await _context.Orders
+        var query = _context.Orders
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
-            .Where(o => o.RestaurantId == restaurantId)
+            .Include(o => o.Customer)
+            .Include(o => o.Table)
+            .Where(o => o.RestaurantId == restaurantId);
+
+        // Nếu là nhân viên, chỉ xem đơn của chi nhánh mình
+        if (!string.IsNullOrEmpty(branchIdStr))
+        {
+            var branchId = Guid.Parse(branchIdStr);
+            query = query.Where(o => o.BranchId == branchId);
+        }
+
+        var orders = await query
             .OrderByDescending(o => o.CreatedAtUtc)
+            .Select(o => new {
+                o.Id,
+                o.OrderNumber,
+                o.Status,
+                o.PaymentStatus,
+                o.TotalAmount,
+                o.DiscountAmount,
+                o.Subtotal,
+                o.CreatedAtUtc,
+                o.TableId,
+                TableNumber = o.Table.TableNumber,
+                CustomerName = o.Customer != null ? o.Customer.FullName : "Khách vãng lai",
+                CustomerPhone = o.Customer != null ? o.Customer.PhoneNumber : null,
+                Items = o.OrderItems.Select(oi => new {
+                    oi.Product.Name,
+                    oi.Quantity,
+                    oi.UnitPrice,
+                    oi.TotalPrice
+                })
+            })
             .ToListAsync();
 
         return Ok(orders);

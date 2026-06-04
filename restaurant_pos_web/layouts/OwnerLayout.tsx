@@ -17,6 +17,7 @@ import { authApi } from "../services/authApi";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/owner" },
+  { icon: ShoppingBag, label: "Orders History", path: "/owner/orders" },
   { icon: Store, label: "Branches", path: "/owner/branches" },
   { icon: Users, label: "Employees", path: "/owner/employees" },
   { icon: Package, label: "Inventory", path: "/owner/inventory" },
