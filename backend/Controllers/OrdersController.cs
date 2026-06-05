@@ -198,6 +198,7 @@ public class OrdersController : ControllerBase
         return Ok(new { message = "Xác nhận đơn thành công" });
     }
 
+    [HttpGet("pending-requests")]
     [HttpGet("pending-confirmation")]
     public async Task<IActionResult> GetPendingConfirmation()
     {
@@ -208,7 +209,7 @@ public class OrdersController : ControllerBase
         var query = _context.Orders
             .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
             .Include(o => o.Table)
-            .Where(o => o.RestaurantId == Guid.Parse(resIdStr) && o.Status == "PendingConfirmation");
+            .Where(o => o.RestaurantId == Guid.Parse(resIdStr) && (o.Status == "PendingConfirmation" || o.Status == "Pending"));
 
         if (!string.IsNullOrEmpty(branchIdStr))
             query = query.Where(o => o.BranchId == Guid.Parse(branchIdStr));
@@ -326,7 +327,7 @@ public class OrdersController : ControllerBase
         return Ok(new { message = "Đã từ chối yêu cầu" });
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var order = await _context.Orders
