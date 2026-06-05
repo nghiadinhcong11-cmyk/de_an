@@ -22,6 +22,14 @@ export function OwnerMenu() {
   const [currentProduct, setCurrentProduct] = useState<any>(null);
   const [recipeItems, setRecipeItems] = useState<any[]>([]);
 
+  // Product Form State
+  const [productForm, setEditForm] = useState({
+    name: "",
+    price: 0,
+    categoryId: "",
+    imageUrl: ""
+  });
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -33,12 +41,60 @@ export function OwnerMenu() {
       setCategories(catRes.data);
       setProducts(prodRes.data);
       setIngredients(ingRes.data);
+
+      // Set default category if any
+      if (catRes.data.length > 0) {
+        setEditForm(prev => ({ ...prev, categoryId: catRes.data[0].id }));
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  // Mở Modal Thêm/Sửa sản phẩm
+  const handleOpenProduct = (product: any = null) => {
+    if (product) {
+      setCurrentProduct(product);
+      setEditForm({
+        name: product.name,
+        price: product.price,
+        categoryId: product.categoryId,
+        imageUrl: product.imageUrl || ""
+      });
+    } else {
+      setCurrentProduct(null);
+      setEditForm({
+        name: "",
+        price: 0,
+        categoryId: categories.length > 0 ? categories[0].id : "",
+        imageUrl: ""
+      });
+    }
+    setIsProductModalOpen(true);
+  };
+
+  const handleSaveProduct = async () => {
+    if (!productForm.name || !productForm.categoryId) return alert("Vui lòng điền đủ tên và danh mục");
+    try {
+      if (currentProduct) {
+        await api.put(`/menu/products/${currentProduct.id}`, productForm);
+      } else {
+        await api.post("/menu/products", productForm);
+      }
+      setIsProductModalOpen(false);
+      fetchData();
+    } catch { alert("Lỗi khi lưu sản phẩm"); }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("Xóa món này khỏi thực đơn?")) return;
+    try {
+      await api.delete(`/menu/products/${id}`);
+      fetchData();
+    } catch { alert("Lỗi khi xóa"); }
+  };
 
   // Mở Modal định lượng món ăn
   const handleOpenRecipe = async (product: any) => {
@@ -71,26 +127,79 @@ export function OwnerMenu() {
     <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-black">Thực đơn & Định lượng</h1>
-        <Button className="bg-orange-600 font-bold"><Plus className="w-4 h-4 mr-2" /> Thêm món mới</Button>
+        <Button onClick={() => handleOpenProduct()} className="bg-orange-600 font-bold shadow-lg shadow-orange-100">
+            <Plus className="w-4 h-4 mr-2" /> Thêm món mới
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {products.map(p => (
-          <Card key={p.id} className="border-none shadow-sm group bg-white overflow-hidden">
-            <div className="h-32 bg-orange-50 flex items-center justify-center text-5xl">🍽️</div>
-            <CardContent className="p-4">
+          <Card key={p.id} className="border-none shadow-sm group bg-white overflow-hidden rounded-[24px]">
+            <div className="h-40 bg-orange-50 flex items-center justify-center text-6xl relative">
+                {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                ) : "🍽️"}
+            </div>
+            <CardContent className="p-5">
               <div className="flex justify-between items-start mb-2">
-                <h4 className="font-bold text-gray-900">{p.name}</h4>
+                <div>
+                    <h4 className="font-black text-gray-900 leading-tight">{p.name}</h4>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                        {categories.find(c => c.id === p.categoryId)?.name}
+                    </p>
+                </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenRecipe(p)} className="h-8 w-8 text-orange-600 bg-orange-50"><ChefHat className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 bg-blue-50"><Edit className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" title="Công thức" onClick={() => handleOpenRecipe(p)} className="h-8 w-8 text-orange-600 bg-orange-50 rounded-lg"><ChefHat className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" title="Chỉnh sửa" onClick={() => handleOpenProduct(p)} className="h-8 w-8 text-blue-600 bg-blue-50 rounded-lg"><Edit className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" title="Xóa" onClick={() => handleDeleteProduct(p.id)} className="h-8 w-8 text-red-600 bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></Button>
                 </div>
               </div>
-              <p className="text-orange-600 font-black text-xl">${p.price.toFixed(2)}</p>
+              <p className="text-orange-600 font-black text-2xl mt-4">${p.price.toFixed(2)}</p>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* MODAL THÊM / SỬA SẢN PHẨM */}
+      <Dialog open={isProductModalOpen} onOpenChange={setIsProductModalOpen}>
+          <DialogContent className="max-w-md rounded-[32px]">
+              <DialogHeader>
+                  <DialogTitle className="text-2xl font-black">{currentProduct ? "Chỉnh sửa món" : "Thêm món mới"}</DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-5 py-4">
+                  <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Tên món ăn</Label>
+                      <Input value={productForm.name} onChange={(e: any) => setEditForm({...productForm, name: e.target.value})} className="h-12 rounded-xl" placeholder="Vd: Phở bò đặc biệt" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Giá bán ($)</Label>
+                        <Input type="number" value={productForm.price} onChange={(e: any) => setEditForm({...productForm, price: parseFloat(e.target.value)})} className="h-12 rounded-xl" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Danh mục</Label>
+                        <Select value={productForm.categoryId} onValueChange={(v) => setEditForm({...productForm, categoryId: v})}>
+                            <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Link ảnh (Không bắt buộc)</Label>
+                      <Input value={productForm.imageUrl} onChange={(e: any) => setEditForm({...productForm, imageUrl: e.target.value})} className="h-12 rounded-xl" placeholder="https://..." />
+                  </div>
+
+                  <Button onClick={handleSaveProduct} className="w-full h-12 bg-orange-600 hover:bg-orange-700 font-black text-lg shadow-xl shadow-orange-100 rounded-xl mt-4">
+                      {currentProduct ? "CẬP NHẬT MÓN" : "THÊM VÀO THỰC ĐƠN"}
+                  </Button>
+              </div>
+          </DialogContent>
+      </Dialog>
 
       {/* MODAL QUẢN LÝ ĐỊNH LƯỢNG (RECIPE) */}
       <Dialog open={isRecipeModalOpen} onOpenChange={setIsRecipeModalOpen}>

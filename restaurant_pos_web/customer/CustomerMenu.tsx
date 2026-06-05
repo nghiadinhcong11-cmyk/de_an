@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
-import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
-import { Search, Plus, Loader2, ArrowLeft, ShoppingBag } from "lucide-react";
+import { Search, Loader2, Info } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerMenu() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
-  // Lấy restaurantId từ URL (Khi khách nhấn từ trang Explore)
   const queryRestaurantId = searchParams.get("restaurantId");
 
   const [categories, setCategories] = useState<any[]>([]);
@@ -19,56 +14,16 @@ export function CustomerMenu() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    const updateCartCount = () => {
-      const savedCart = localStorage.getItem("customer_cart");
-      if (savedCart) {
-        const cartItems = JSON.parse(savedCart);
-        setCartCount(cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0));
-      }
-    };
-    updateCartCount();
-    window.addEventListener("storage", updateCartCount);
-    return () => window.removeEventListener("storage", updateCartCount);
-  }, []);
-
-  const addToCart = (product: any) => {
-    const savedCart = localStorage.getItem("customer_cart");
-    let cartItems = savedCart ? JSON.parse(savedCart) : [];
-
-    const existingItem = cartItems.find((i: any) => i.id === product.id);
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      cartItems.push({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        imageUrl: product.imageUrl
-      });
-    }
-
-    localStorage.setItem("customer_cart", JSON.stringify(cartItems));
-    setCartCount(cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0));
-    // Trigger storage event for other tabs/components
-    window.dispatchEvent(new Event("storage"));
-  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Thử lấy ID theo thứ tự: URL -> LocalStorage -> API mặc định
         let targetId = queryRestaurantId || localStorage.getItem("current_restaurant_id");
 
         if (!targetId) {
             const infoRes = await api.get("/auth/find-restaurant-info");
             targetId = infoRes.data.id;
-            localStorage.setItem("current_restaurant_id", targetId || "");
         }
 
         const [catRes, prodRes] = await Promise.all([
@@ -96,13 +51,24 @@ export function CustomerMenu() {
 
   return (
     <div className="space-y-8">
+      <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+         <div>
+            <h1 className="text-3xl font-black text-gray-900">Thực đơn nhà hàng</h1>
+            <p className="text-gray-500 font-medium">Khám phá các món ăn tinh hoa được chế biến từ đầu bếp hàng đầu</p>
+         </div>
+         <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-2xl flex items-center gap-3">
+            <Info className="w-5 h-5" />
+            <p className="text-xs font-black uppercase tracking-wider">Chỉ xem & Tham khảo</p>
+         </div>
+      </div>
+
       {/* Search & Category Tabs */}
-      <div className="flex flex-col md:flex-row gap-6 items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+      <div className="flex flex-col md:flex-row gap-6 items-center">
          <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
             <Input
-                placeholder="Tìm món ăn ngon..."
-                className="pl-12 h-14 bg-gray-50 border-none rounded-2xl text-lg font-bold"
+                placeholder="Bạn muốn tìm món gì hôm nay?"
+                className="pl-12 h-14 bg-white border-none rounded-2xl text-lg font-bold shadow-sm"
                 value={searchTerm}
                 onChange={(e: any) => setSearchTerm(e.target.value)}
             />
@@ -110,7 +76,7 @@ export function CustomerMenu() {
          <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
             <button
                 onClick={() => setActiveCategory("all")}
-                className={`px-8 h-12 rounded-2xl text-sm font-black uppercase transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-orange-600 text-white shadow-lg shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}
+                className={`px-8 h-12 rounded-2xl text-xs font-black uppercase transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-400 shadow-sm'}`}
             >
                 Tất cả
             </button>
@@ -118,7 +84,7 @@ export function CustomerMenu() {
                <button
                     key={c.id}
                     onClick={() => setActiveCategory(c.id)}
-                    className={`px-8 h-12 rounded-2xl text-sm font-black uppercase whitespace-nowrap transition-all ${activeCategory === c.id ? 'bg-orange-600 text-white shadow-lg shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}
+                    className={`px-8 h-12 rounded-2xl text-xs font-black uppercase whitespace-nowrap transition-all ${activeCategory === c.id ? 'bg-orange-600 text-white shadow-lg' : 'bg-white text-gray-400 shadow-sm'}`}
                >
                    {c.name}
                </button>
@@ -129,37 +95,27 @@ export function CustomerMenu() {
       {/* Product List */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {filteredItems.map(p => (
-              <Card key={p.id} className="border-none shadow-sm hover:shadow-2xl transition-all rounded-[32px] overflow-hidden group bg-white">
+              <Card key={p.id} className="border-none shadow-sm hover:shadow-xl transition-all rounded-[32px] overflow-hidden group bg-white">
                  <div className="aspect-square bg-orange-50 flex items-center justify-center text-7xl relative group-hover:scale-105 transition-transform duration-500">
-                    🍽️
+                    {p.imageUrl ? <img src={p.imageUrl} className="w-full h-full object-cover" /> : "🍽️"}
                  </div>
                  <CardContent className="p-6">
-                    <div>
-                        <h4 className="font-black text-xl text-gray-900 truncate mb-1">{p.name}</h4>
+                    <h4 className="font-black text-xl text-gray-900 truncate mb-1">{p.name}</h4>
+                    <p className="text-gray-400 text-xs font-medium mb-4 line-clamp-2">{p.description || "Hương vị thơm ngon, đậm đà chuẩn vị truyền thống."}</p>
+                    <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Giá bán</span>
                         <p className="text-orange-600 font-black text-2xl">${p.price.toFixed(2)}</p>
                     </div>
-                    <Button
-                        onClick={() => addToCart(p)}
-                        className="w-full mt-4 bg-gray-900 hover:bg-orange-600 h-12 rounded-2xl font-black gap-2 transition-all"
-                    >
-                        <Plus className="w-5 h-5" /> CHỌN MÓN
-                    </Button>
                  </CardContent>
               </Card>
             ))}
       </div>
 
-      {/* Floating Cart Button */}
-      <div className="fixed bottom-24 right-10 z-40">
-         <Button onClick={() => navigate('/customer/cart')} className="h-16 w-16 rounded-full bg-orange-600 shadow-2xl flex flex-col items-center justify-center p-0 hover:scale-110 transition-all relative">
-            <ShoppingBag className="w-6 h-6 text-white" />
-            {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-white text-orange-600 text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-orange-600 shadow-sm animate-in zoom-in">
-                    {cartCount}
-                </span>
-            )}
-         </Button>
-      </div>
+      {filteredItems.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-[40px] shadow-sm border border-dashed border-gray-200">
+              <p className="text-gray-400 font-bold">Không tìm thấy món ăn phù hợp</p>
+          </div>
+      )}
     </div>
   );
 }

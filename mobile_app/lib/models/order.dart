@@ -44,9 +44,8 @@ class OrderItemModel {
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
-    final product = json['product'];
     return OrderItemModel(
-      productName: product != null ? product['name'] : 'Sản phẩm',
+      productName: json['productName'] ?? json['name'] ?? 'Sản phẩm',
       quantity: json['quantity'] ?? 0,
       unitPrice: (json['unitPrice'] ?? 0).toDouble(),
     );

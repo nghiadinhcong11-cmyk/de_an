@@ -56,4 +56,57 @@ public class VouchersController : ControllerBase
         await _context.SaveChangesAsync();
         return Ok();
     }
+
+    [HttpPost("{id}/redeem")]
+    public async Task<IActionResult> Redeem(Guid id)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+        var userId = Guid.Parse(userIdStr);
+
+        var voucher = await _context.Vouchers.FindAsync(id);
+        if (voucher == null) return NotFound("Voucher không tồn tại");
+
+        var customer = await _context.Customers.FindAsync(userId);
+        if (customer == null) return NotFound("Không tìm thấy khách hàng");
+
+        int cost = (int)voucher.DiscountValue * 10; // Giả sử 1% giảm giá = 10 điểm
+
+        if (customer.Points < cost)
+            return BadRequest("Bạn không đủ điểm để đổi voucher này");
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // 1. Trừ điểm khách hàng
+            customer.Points -= cost;
+
+            // 2. Lưu lịch sử đổi điểm
+            _context.CustomerPointHistories.Add(new CustomerPointHistory
+            {
+                CustomerId = customer.Id,
+                Points = -cost,
+                Type = "Redeem",
+                Description = $"Đổi điểm lấy mã giảm giá: {voucher.Name}"
+            });
+
+            // 3. Tạo bản ghi sử dụng voucher (Lưu ý: VoucherUsage có thể dùng để lưu mã code mới cho khách)
+            _context.VoucherUsages.Add(new VoucherUsage
+            {
+                VoucherId = voucher.Id,
+                CustomerId = customer.Id,
+                UsedAtUtc = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(new { message = "Đổi điểm thành công!", remainingPoints = customer.Points });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest(ex.Message);
+        }
+    }
 }

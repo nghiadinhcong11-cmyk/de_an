@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductVariant> ProductVariants { get; set; }
     public DbSet<DiningTable> DiningTables { get; set; }
+    public DbSet<Zone> Zones { get; set; }
     public DbSet<CustomerSession> CustomerSessions { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
@@ -38,6 +39,7 @@ public class AppDbContext : DbContext
     public DbSet<CustomerPointHistory> CustomerPointHistories { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<VoucherUsage> VoucherUsages { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<ProductIngredient> ProductIngredients { get; set; }
     public DbSet<InventoryItem> InventoryItems { get; set; }
@@ -80,8 +82,13 @@ public class AppDbContext : DbContext
         });
 
         // 3. TABLES & ORDERING
+        modelBuilder.Entity<Zone>(z => {
+            z.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId);
+        });
+
         modelBuilder.Entity<DiningTable>(dt => {
             dt.HasOne<Branch>().WithMany(x => x.DiningTables).HasForeignKey(x => x.BranchId);
+            dt.HasOne(x => x.Zone).WithMany(x => x.Tables).HasForeignKey(x => x.ZoneId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Order>(o => {
@@ -138,6 +145,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<VoucherUsage>(vu => {
             vu.HasOne<Voucher>().WithMany(x => x.Usages).HasForeignKey(x => x.VoucherId);
             vu.HasOne<Customer>().WithMany(x => x.VoucherUsages).HasForeignKey(x => x.CustomerId);
+        });
+
+        modelBuilder.Entity<Feedback>(f => {
+            f.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
         });
 
         // 6. INVENTORY

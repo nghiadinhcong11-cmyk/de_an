@@ -60,9 +60,9 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                             'Bàn ${order.tableNumber}',
                             style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
-                          subtitle: const Text(
-                            'Chờ xác nhận phục vụ',
-                            style: TextStyle(fontSize: 12),
+                          subtitle: Text(
+                            'Tổng: \$${order.totalAmount.toStringAsFixed(2)} • Chờ xác nhận',
+                            style: const TextStyle(fontSize: 12),
                           ),
                           children: [
                             Padding(

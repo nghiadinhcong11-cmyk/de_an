@@ -47,10 +47,11 @@ public class TablesController : ControllerBase
             .Select(t => new {
                 t.Id,
                 t.BranchId,
+                t.ZoneId,
                 t.TableNumber,
                 t.Capacity,
-                t.Zone,
                 t.Status,
+                ZoneName = t.Zone != null ? t.Zone.Name : "Chung",
                 BranchName = _context.Branches.Where(b => b.Id == t.BranchId).Select(b => b.Name).FirstOrDefault()
             })
             .ToListAsync();

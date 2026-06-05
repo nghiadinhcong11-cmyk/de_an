@@ -178,6 +178,14 @@ public class OrdersController : ControllerBase
         if (order == null) return NotFound();
 
         order.Status = "Confirmed";
+
+        // Gán nhân viên xác nhận vào đơn hàng
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(userIdStr))
+        {
+            order.CreatedByUserId = Guid.Parse(userIdStr);
+        }
+
         await _context.SaveChangesAsync();
 
         // THÔNG BÁO CHO BẾP & KHÁCH
@@ -205,7 +213,23 @@ public class OrdersController : ControllerBase
         if (!string.IsNullOrEmpty(branchIdStr))
             query = query.Where(o => o.BranchId == Guid.Parse(branchIdStr));
 
-        return Ok(await query.ToListAsync());
+        var results = await query.OrderByDescending(o => o.CreatedAtUtc)
+            .Select(o => new {
+                o.Id,
+                o.OrderNumber,
+                o.Status,
+                o.PaymentStatus,
+                o.TotalAmount,
+                TableNumber = o.Table.TableNumber,
+                Items = o.OrderItems.Select(oi => new {
+                    ProductName = oi.Product.Name,
+                    oi.Quantity,
+                    Price = oi.UnitPrice
+                })
+            })
+            .ToListAsync();
+
+        return Ok(results);
     }
 
     [HttpPost("approve-request/{requestId}")]

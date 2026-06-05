@@ -1,7 +1,7 @@
 class DiningTable {
   final String id;
   final String tableNumber;
-  final String? zone;
+  final String? zoneName;
   final String? branchName;
   final int capacity;
   final String status; // Available, Occupied
@@ -9,7 +9,7 @@ class DiningTable {
   DiningTable({
     required this.id,
     required this.tableNumber,
-    this.zone,
+    this.zoneName,
     this.branchName,
     required this.capacity,
     required this.status,
@@ -19,7 +19,7 @@ class DiningTable {
     return DiningTable(
       id: json['id'],
       tableNumber: json['tableNumber'],
-      zone: json['zone'],
+      zoneName: json['zoneName'],
       branchName: json['branchName'],
       capacity: json['capacity'] ?? 4,
       status: json['status'] ?? 'Available',

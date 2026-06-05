@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RestaurantPOS.Infrastructure.Data;
@@ -11,9 +12,11 @@ using RestaurantPOS.Infrastructure.Data;
 namespace RestaurantPOS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260605045659_CreateZonesTable")]
+    partial class CreateZonesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,47 +103,6 @@ namespace RestaurantPOS.Migrations
                     b.HasIndex("CustomerId");
 
                     b.ToTable("CustomerPointHistories");
-                });
-
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Feedback", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("RestaurantId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RestaurantId");
-
-                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Voucher", b =>
@@ -887,7 +849,7 @@ namespace RestaurantPOS.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CreatedByUserId")
+                    b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("CustomerId")
@@ -1352,15 +1314,6 @@ namespace RestaurantPOS.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Feedback", b =>
-                {
-                    b.HasOne("RestaurantPOS.Modules.Core.Entities.Restaurant", null)
-                        .WithMany()
-                        .HasForeignKey("RestaurantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("RestaurantPOS.Modules.CRM.Entities.Voucher", b =>
                 {
                     b.HasOne("RestaurantPOS.Modules.Core.Entities.Branch", "Branch")
@@ -1602,7 +1555,8 @@ namespace RestaurantPOS.Migrations
                     b.HasOne("RestaurantPOS.Modules.Core.Entities.User", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("RestaurantPOS.Modules.CRM.Entities.Customer", "Customer")
                         .WithMany("Orders")

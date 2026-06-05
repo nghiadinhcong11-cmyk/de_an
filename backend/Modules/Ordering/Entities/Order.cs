@@ -12,7 +12,7 @@ public class Order : BaseEntity
     public Guid BranchId { get; set; }
     public Guid TableId { get; set; }
     public Guid? CustomerId { get; set; }
-    public Guid CreatedByUserId { get; set; } // Nhân viên tạo đơn
+    public Guid? CreatedByUserId { get; set; } // Nhân viên tạo đơn (Nullable cho khách tự đặt)
 
     public string Status { get; set; } = "Pending";
     public string PaymentStatus { get; set; } = "Pending";

@@ -62,6 +62,21 @@ export function CustomerProfile() {
     }
   };
 
+  const handleRedeem = async (voucherId: string) => {
+    if (!confirm("Bạn có chắc chắn muốn dùng điểm để đổi mã giảm giá này không?")) return;
+
+    try {
+      setUpdating(true);
+      await api.post(`/vouchers/${voucherId}/redeem`);
+      alert("Đổi quà thành công! Mã giảm giá đã được thêm vào kho của bạn.");
+      await fetchData();
+    } catch (err: any) {
+      alert(err.response?.data || "Lỗi khi đổi quà");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   useEffect(() => { fetchData(); }, []);
 
   if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600" /></div>;
@@ -198,8 +213,13 @@ export function CustomerProfile() {
                       </div>
                     </div>
                     <div className="p-3 flex items-center">
-                      <Button size="sm" className="h-8 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-600 hover:text-white font-black text-[10px] uppercase">
-                        Đổi
+                      <Button
+                        onClick={() => handleRedeem(v.id)}
+                        disabled={updating || (profile?.points < v.discountValue * 10)}
+                        size="sm"
+                        className="h-8 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-600 hover:text-white font-black text-[10px] uppercase"
+                      >
+                        {profile?.points < (v.discountValue * 10) ? 'Thiếu điểm' : 'Đổi'}
                       </Button>
                     </div>
                   </CardContent>

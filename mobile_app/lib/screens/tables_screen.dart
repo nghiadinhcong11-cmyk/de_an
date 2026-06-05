@@ -178,7 +178,7 @@ class _TablesScreenState extends State<TablesScreen> {
     
     for (var table in tables) {
       final branchName = table.branchName ?? "Chi nhánh";
-      final zoneName = table.zone ?? "Chung";
+      final zoneName = table.zoneName ?? "Chung";
       
       if (!groups.containsKey(branchName)) {
         groups[branchName] = _BranchGroup(branchName: branchName, zones: []);

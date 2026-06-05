@@ -41,7 +41,13 @@ public class QROrderingController : ControllerBase
             .Where(p => categoryIds.Contains(p.CategoryId) && p.IsAvailable)
             .ToListAsync();
 
-        return Ok(new { categories, products, branchName = branch.Name, tableNumber = table.TableNumber });
+        return Ok(new {
+            categories,
+            products,
+            branchName = branch.Name,
+            tableNumber = table.TableNumber,
+            restaurantId = branch.RestaurantId
+        });
     }
 
     // 2. Khách gửi yêu cầu gọi món (Tạo Order chờ xác nhận)

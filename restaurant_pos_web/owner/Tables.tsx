@@ -13,15 +13,23 @@ import api from "../services/api";
 export function OwnerTables() {
   const [tables, setTables] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const [allZones, setAllZones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isZoneOpen, setIsZoneOpen] = useState(false);
   const [activeQRTable, setActiveQRTable] = useState<any>(null);
 
   const [newTable, setNewTable] = useState({
     tableNumber: "",
     capacity: 4,
     branchId: "",
-    zone: ""
+    zoneId: ""
+  });
+
+  const [newZone, setNewZone] = useState({
+    name: "",
+    branchId: "",
+    displayOrder: 0
   });
 
   const fetchData = async () => {
@@ -33,6 +41,13 @@ export function OwnerTables() {
       ]);
       setTables(tableRes.data);
       setBranches(branchRes.data);
+
+      // Lấy toàn bộ zone của tất cả branch
+      const zonePromises = branchRes.data.map((b: any) => api.get(`/zones?branchId=${b.id}`));
+      const zoneResponses = await Promise.all(zonePromises);
+      const combinedZones = zoneResponses.flatMap(r => r.data);
+      setAllZones(combinedZones);
+
     } catch (err) {
       console.error("Lỗi lấy dữ liệu bàn");
     } finally {
@@ -43,18 +58,37 @@ export function OwnerTables() {
   useEffect(() => { fetchData(); }, []);
 
   const handleAddTable = async () => {
-    if (!newTable.tableNumber || !newTable.branchId) {
-        alert("Vui lòng nhập đầy đủ số bàn và chọn chi nhánh");
+    if (!newTable.tableNumber || !newTable.branchId || !newTable.zoneId) {
+        alert("Vui lòng nhập đầy đủ số bàn, chọn chi nhánh và khu vực");
         return;
     }
     try {
       await api.post("/tables", newTable);
       setIsAddOpen(false);
-      setNewTable({ tableNumber: "", capacity: 4, branchId: "", zone: "" });
+      setNewTable({ tableNumber: "", capacity: 4, branchId: "", zoneId: "" });
       fetchData();
     } catch (err) {
       alert("Lỗi khi tạo bàn");
     }
+  };
+
+  const handleAddZone = async () => {
+      if (!newZone.name || !newZone.branchId) return alert("Vui lòng nhập tên và chọn chi nhánh");
+      try {
+          await api.post("/zones", newZone);
+          setNewZone({ name: "", branchId: "", displayOrder: 0 });
+          fetchData();
+      } catch { alert("Lỗi khi tạo khu vực"); }
+  };
+
+  const handleDeleteZone = async (id: string) => {
+      if (!confirm("Xóa khu vực này?")) return;
+      try {
+          await api.delete(`/zones/${id}`);
+          fetchData();
+      } catch (err: any) {
+          alert(err.response?.data || "Lỗi khi xóa khu vực");
+      }
   };
 
   const handleDelete = async (id: string) => {
@@ -65,19 +99,26 @@ export function OwnerTables() {
     } catch { alert("Lỗi khi xóa bàn"); }
   };
 
-  // Nhóm bàn theo chi nhánh và khu vực (Zone)
+  // Nhóm bàn theo chi nhánh và khu vực (Zone) từ dữ liệu API
   const groupedTables = branches.map(branch => {
     const branchTables = tables.filter(t => t.branchId === branch.id);
-    const zones = Array.from(new Set(branchTables.map(t => t.zone || "Chung")));
+    const branchZones = allZones.filter(z => z.branchId === branch.id);
+
+    // Đảm bảo các bàn không có zone vẫn hiện ở mục "Chung"
+    const tablesWithNoZone = branchTables.filter(t => !t.zoneId);
 
     return {
       ...branch,
-      zones: zones.map(zone => ({
-        name: zone,
-        tables: branchTables.filter(t => (t.zone || "Chung") === zone)
-      }))
+      zones: [
+          ...branchZones.map(zone => ({
+            id: zone.id,
+            name: zone.name,
+            tables: branchTables.filter(t => t.zoneId === zone.id)
+          })),
+          ...(tablesWithNoZone.length > 0 ? [{ id: 'none', name: 'Chung', tables: tablesWithNoZone }] : [])
+      ]
     };
-  }).filter(b => b.zones.length > 0 || b.id); // Giữ lại chi nhánh kể cả chưa có bàn
+  });
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
@@ -87,46 +128,111 @@ export function OwnerTables() {
           <p className="text-gray-500 mt-1">Phân chia theo chi nhánh và khu vực (tầng, phòng...)</p>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger onClick={() => setIsAddOpen(true)}>
-            <Button className="bg-orange-600 font-bold shadow-lg shadow-orange-100">
-              <Plus className="w-4 h-4 mr-2" /> Thêm bàn
+        <div className="flex gap-3">
+            <Button onClick={() => setIsZoneOpen(true)} variant="outline" className="font-bold border-orange-200 text-orange-600">
+               Thiết lập khu vực
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="font-bold">Thêm bàn mới</DialogTitle>
-              <DialogDescription>Bàn sẽ được tạo kèm mã QR định danh duy nhất</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label className="font-bold uppercase text-[10px] text-gray-400">Chi nhánh</Label>
-                <Select onValueChange={(val: any) => setNewTable({...newTable, branchId: val})}>
-                  <SelectTrigger><SelectValue placeholder="Chọn chi nhánh" /></SelectTrigger>
-                  <SelectContent>
-                    {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold uppercase text-[10px] text-gray-400">Khu vực / Tầng (Vd: Tầng 1, VIP...)</Label>
-                <Input placeholder="Vd: Tầng 1" value={newTable.zone} onChange={(e: any) => setNewTable({...newTable, zone: e.target.value})} />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-bold uppercase text-[10px] text-gray-400">Số bàn / Tên bàn</Label>
-                  <Input placeholder="Vd: Bàn 01" value={newTable.tableNumber} onChange={(e: any) => setNewTable({...newTable, tableNumber: e.target.value})} />
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger onClick={() => setIsAddOpen(true)}>
+                <Button className="bg-orange-600 font-bold shadow-lg shadow-orange-100">
+                  <Plus className="w-4 h-4 mr-2" /> Thêm bàn
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="font-bold">Thêm bàn mới</DialogTitle>
+                  <DialogDescription>Bàn sẽ được tạo kèm mã QR định danh duy nhất</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label className="font-bold uppercase text-[10px] text-gray-400">Chi nhánh</Label>
+                    <Select onValueChange={(val: any) => {
+                        setNewTable({...newTable, branchId: val, zoneId: ""});
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Chọn chi nhánh" /></SelectTrigger>
+                      <SelectContent>
+                        {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="font-bold uppercase text-[10px] text-gray-400">Khu vực / Tầng</Label>
+                    <Select
+                        disabled={!newTable.branchId}
+                        value={newTable.zoneId}
+                        onValueChange={(val: any) => setNewTable({...newTable, zoneId: val})}
+                    >
+                      <SelectTrigger><SelectValue placeholder={newTable.branchId ? "Chọn khu vực..." : "Hãy chọn chi nhánh trước"} /></SelectTrigger>
+                      <SelectContent>
+                        {allZones.filter(z => z.branchId === newTable.branchId).map(z => (
+                            <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="font-bold uppercase text-[10px] text-gray-400">Số bàn / Tên bàn</Label>
+                      <Input placeholder="Vd: Bàn 01" value={newTable.tableNumber} onChange={(e: any) => setNewTable({...newTable, tableNumber: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="font-bold uppercase text-[10px] text-gray-400">Số chỗ ngồi</Label>
+                      <Input type="number" value={newTable.capacity} onChange={(e: any) => setNewTable({...newTable, capacity: parseInt(e.target.value)})} />
+                    </div>
+                  </div>
+                  <Button className="w-full bg-orange-600 font-bold h-12" onClick={handleAddTable}>XÁC NHẬN TẠO BÀN</Button>
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-bold uppercase text-[10px] text-gray-400">Số chỗ ngồi</Label>
-                  <Input type="number" value={newTable.capacity} onChange={(e: any) => setNewTable({...newTable, capacity: parseInt(e.target.value)})} />
-                </div>
-              </div>
-              <Button className="w-full bg-orange-600 font-bold h-12" onClick={handleAddTable}>XÁC NHẬN TẠO BÀN</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+              </DialogContent>
+            </Dialog>
+        </div>
       </div>
+
+      {/* MODAL QUẢN LÝ KHU VỰC */}
+      <Dialog open={isZoneOpen} onOpenChange={setIsZoneOpen}>
+          <DialogContent className="max-w-xl">
+              <DialogHeader><DialogTitle className="font-black">Thiết lập khu vực (Zones)</DialogTitle></DialogHeader>
+              <div className="space-y-6 py-4">
+                  <div className="bg-orange-50 p-4 rounded-2xl flex flex-wrap gap-3 items-end">
+                      <div className="flex-1 min-w-[150px] space-y-1">
+                          <Label className="text-[10px] font-bold uppercase text-gray-400">Tên khu vực</Label>
+                          <Input value={newZone.name} onChange={(e: any) => setNewZone({...newZone, name: e.target.value})} placeholder="Vd: Tầng 1" />
+                      </div>
+                      <div className="w-20 space-y-1">
+                          <Label className="text-[10px] font-bold uppercase text-gray-400">Thứ tự</Label>
+                          <Input type="number" value={newZone.displayOrder} onChange={(e: any) => setNewZone({...newZone, displayOrder: parseInt(e.target.value) || 0})} />
+                      </div>
+                      <div className="w-40 space-y-1">
+                          <Label className="text-[10px] font-bold uppercase text-gray-400">Chi nhánh</Label>
+                          <Select onValueChange={(v) => setNewZone({...newZone, branchId: v})}>
+                              <SelectTrigger><SelectValue placeholder="Chọn..." /></SelectTrigger>
+                              <SelectContent>
+                                  {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                              </SelectContent>
+                          </Select>
+                      </div>
+                      <Button onClick={handleAddZone} className="bg-gray-900 h-10 px-6 font-bold">THÊM</Button>
+                  </div>
+
+                  <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+                      {allZones.map(z => (
+                          <div key={z.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                              <div>
+                                  <div className="font-bold text-gray-900">{z.name}</div>
+                                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                                      {branches.find(b => b.id === z.branchId)?.name}
+                                  </div>
+                              </div>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteZone(z.id)} className="text-red-300 hover:text-red-500 hover:bg-red-50 rounded-xl">
+                                  <Trash2 className="w-4 h-4" />
+                              </Button>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+          </DialogContent>
+      </Dialog>
 
       {loading ? <div className="flex justify-center py-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div> : (
         <div className="space-y-12">

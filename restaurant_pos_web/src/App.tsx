@@ -13,6 +13,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import { OwnerDashboard } from '../owner/Dashboard';
 import { OwnerOrders } from '../owner/Orders';
 import { OwnerProfile } from '../owner/OwnerProfile';
+import { OwnerFeedbacks } from '../owner/Feedbacks';
 import { OwnerBranches } from '../owner/Branches';
 import { OwnerEmployees } from '../owner/Employees';
 import { OwnerMenu } from '../owner/Menu';
@@ -43,6 +44,7 @@ import { CustomerMenu } from '../customer/CustomerMenu';
 import { CustomerCart } from '../customer/CustomerCart';
 import { CustomerOrders } from '../customer/CustomerOrders';
 import { CustomerProfile } from '../customer/CustomerProfile';
+import { CustomerContact } from '../customer/CustomerContact';
 
 function App() {
   return (
@@ -63,6 +65,7 @@ function App() {
           <Route index element={<CustomerWelcome />} />
           <Route path="menu" element={<CustomerMenu />} />
           <Route path="cart" element={<CustomerCart />} />
+          <Route path="contact" element={<CustomerContact />} />
 
           {/* Private Customer Routes */}
           <Route element={<ProtectedRoute allowedRoles={['Customer']} />}>
@@ -77,6 +80,7 @@ function App() {
           <Route path="/owner" element={<OwnerLayout />}>
             <Route index element={<OwnerDashboard />} />
             <Route path="orders" element={<OwnerOrders />} />
+            <Route path="feedbacks" element={<OwnerFeedbacks />} />
             <Route path="profile" element={<OwnerProfile />} />
             <Route path="branches" element={<OwnerBranches />} />
             <Route path="employees" element={<OwnerEmployees />} />

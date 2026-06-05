@@ -30,6 +30,7 @@ const navItems = [
   { icon: CreditCard, label: "Payments", path: "/owner/payments" },
   { icon: Ticket, label: "Vouchers", path: "/owner/vouchers" },
   { icon: BarChart3, label: "Reports", path: "/owner/reports" },
+  { icon: MessageSquare, label: "Feedbacks", path: "/owner/feedbacks" },
   { icon: Settings, label: "Restaurant", path: "/owner/restaurant" },
   { icon: KeyRound, label: "Password", path: "/owner/change-password" },
 ];
