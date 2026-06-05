@@ -13,6 +13,7 @@ const navItems = [
 export default function CustomerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const handleLogout = () => {
     if (confirm("Bạn muốn đăng xuất?")) {

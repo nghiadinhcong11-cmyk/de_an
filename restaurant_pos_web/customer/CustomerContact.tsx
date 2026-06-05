@@ -5,6 +5,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { MapPin, Phone, Mail, Send, CheckCircle2, Loader2, MessageSquare, Heart } from "lucide-react";
+import api from "../services/api";
 
 export function CustomerContact() {
   const [loading, setLoading] = useState(false);

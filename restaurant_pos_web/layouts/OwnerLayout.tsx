@@ -13,7 +13,8 @@ import {
   Package,
   KeyRound,
   ShoppingBag,
-  UserCircle
+  UserCircle,
+  MessageSquare
 } from "lucide-react";
 import { authApi } from "../services/authApi";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
