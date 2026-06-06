@@ -14,12 +14,19 @@ export default function CustomerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentTableId = localStorage.getItem("current_table_id");
 
   const handleLogout = () => {
     if (confirm("Bạn muốn đăng xuất?")) {
       authApi.logout();
     }
   };
+
+  // Chỉ hiển thị "Đơn hàng" nếu khách hàng đang ngồi tại một bàn cụ thể (có Table ID)
+  const filteredNavItems = navItems.filter(item => {
+    if (item.path === "/customer/orders" && !currentTableId) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -32,7 +39,7 @@ export default function CustomerLayout() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
@@ -135,7 +142,7 @@ export default function CustomerLayout() {
 
       {/* Mobile Nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex items-center justify-around h-20 px-6 z-50 rounded-t-3xl shadow-2xl">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link key={item.path} to={item.path} className={`p-3 rounded-2xl ${isActive ? "bg-orange-50 text-orange-600" : "text-gray-300"}`}>
