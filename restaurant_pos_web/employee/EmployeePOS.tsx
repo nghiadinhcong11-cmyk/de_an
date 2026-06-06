@@ -1,121 +1,100 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../components/ui/dialog";
-import { Label } from "../components/ui/label";
-import { CheckCircle2, UserPlus, Loader2, ArrowRight, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "../components/ui/card";
+import { Loader2, Search, Info } from "lucide-react";
 import api from "../services/api";
-import { mockMenuItems, mockTables } from "../data/mockData";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Input } from "../components/ui/input";
 
 export function EmployeePOS() {
-  const [selectedTable, setSelectedTable] = useState("");
-  const [cart, setCart] = useState<any[]>([]);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [showLoyaltyModal, setShowLoyaltyModal] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [loyaltyForm, setLoyaltyForm] = useState({ phoneNumber: '', fullName: '' });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get("/menu/products");
+        setProducts(res.data);
+      } catch (err) {
+        console.error("Lỗi tải dữ liệu thực đơn");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleCheckout = () => {
-    // Giả lập thanh toán -> Tạo order
-    setCurrentOrderId("ORD-DEMO-ID"); // Trong thực tế lấy ID từ API create order
-    setShowLoyaltyModal(true);
-  };
-
-  const handleAddPoints = async () => {
-    setLoading(true);
-    try {
-      await api.post("/customers/loyalty/add-points", {
-          ...loyaltyForm,
-          orderId: currentOrderId
-      });
-      alert(`Đã cộng điểm thành công cho khách ${loyaltyForm.fullName}!`);
-      resetPOS();
-    } catch {
-      alert("Lỗi khi tích điểm");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPOS = () => {
-    setCart([]);
-    setSelectedTable("");
-    setShowLoyaltyModal(false);
-    setLoyaltyForm({ phoneNumber: '', fullName: '' });
-  };
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 text-gray-900">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-10">
-          <h2 className="text-xl font-black italic">GREEN POS</h2>
-          <Button onClick={handleCheckout} disabled={cart.length === 0} className="bg-green-600 font-bold">THANH TOÁN ({total.toLocaleString("vi-VN")}đ)</Button>
+      {/* Header chỉ để quan sát */}
+      <div className="bg-white border-b border-gray-200 p-4 md:px-8 flex flex-col md:flex-row items-center justify-between sticky top-0 z-10 shadow-sm gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-white font-bold">
+                <Search className="w-5 h-5" />
+            </div>
+            <div>
+                <h2 className="text-xl font-black tracking-tighter uppercase">Tra cứu thực đơn</h2>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1">Danh mục món ăn & Giá bán hệ thống</p>
+            </div>
+          </div>
+
+          <div className="relative w-full md:w-96">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+             <Input
+                placeholder="Tìm tên món ăn..."
+                className="pl-10 h-11 bg-gray-50 border-none rounded-xl font-bold"
+                value={searchTerm}
+                onChange={(e: any) => setSearchTerm(e.target.value)}
+             />
+          </div>
+
+          <div className="hidden lg:flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase border border-blue-100">
+             <Info className="w-3.5 h-3.5" />
+             Chế độ quan sát (Thanh toán trên Mobile)
+          </div>
       </div>
 
-      <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-          <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-4">Thực đơn nhà hàng</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {mockMenuItems.map(item => (
-                  <Card key={item.id} className="cursor-pointer hover:border-orange-500 transition-colors shadow-sm rounded-2xl overflow-hidden" onClick={() => setCart([...cart, {...item, quantity: 1}])}>
-                      <div className="h-32 bg-gray-100 flex items-center justify-center text-4xl">🍽️</div>
-                      <CardContent className="p-4">
-                        <div className="font-bold text-sm truncate">{item.name}</div>
-                        <div className="text-orange-600 font-black mt-1">{item.price.toLocaleString("vi-VN")}đ</div>
+      {/* Main Content: Product Catalog */}
+      <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {filteredProducts.map(item => (
+                  <Card
+                    key={item.id}
+                    className="rounded-[32px] overflow-hidden border-none shadow-sm bg-white group hover:shadow-xl transition-all duration-300"
+                  >
+                      <div className="h-40 bg-orange-50 flex items-center justify-center text-6xl relative overflow-hidden">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        ) : "🍽️"}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors"></div>
+                      </div>
+                      <CardContent className="p-5">
+                        <div className="font-black text-gray-900 leading-tight group-hover:text-orange-600 transition-colors">{item.name}</div>
+                        <div className="flex justify-between items-end mt-4">
+                           <div>
+                              <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Giá bán niêm yết</p>
+                              <p className="text-orange-600 font-black text-xl leading-none">{item.price.toLocaleString("vi-VN")}đ</p>
+                           </div>
+                        </div>
                       </CardContent>
                   </Card>
               ))}
           </div>
+
+          {filteredProducts.length === 0 && (
+              <div className="py-40 text-center opacity-30">
+                  <Search className="w-20 h-20 mx-auto mb-4" />
+                  <p className="font-black uppercase tracking-widest">Không tìm thấy món ăn</p>
+              </div>
+          )}
       </div>
-
-      {/* LOYALTY MODAL (SAU THANH TOÁN) */}
-      <Dialog open={showLoyaltyModal} onOpenChange={setShowLoyaltyModal}>
-        <DialogContent className="max-w-md border-none shadow-2xl">
-          <div className="text-center mb-6">
-             <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Star className="text-orange-600 w-8 h-8 fill-current" />
-             </div>
-             <DialogTitle className="text-2xl font-black">Tích điểm thành viên?</DialogTitle>
-             <DialogDescription>Hỏi khách hàng SĐT để cộng điểm thưởng</DialogDescription>
-          </div>
-
-          <div className="space-y-4">
-             <div className="space-y-1.5">
-                <Label className="font-bold text-xs uppercase text-gray-400 ml-1">Số điện thoại</Label>
-                <Input
-                    placeholder="090..."
-                    className="h-12 text-lg font-bold rounded-xl bg-gray-50 border-none"
-                    value={loyaltyForm.phoneNumber}
-                    onChange={(e: any) => setLoyaltyForm({...loyaltyForm, phoneNumber: e.target.value})}
-                />
-             </div>
-             <div className="space-y-1.5">
-                <Label className="font-bold text-xs uppercase text-gray-400 ml-1">Họ tên khách hàng</Label>
-                <Input
-                    placeholder="Nguyễn Văn A"
-                    className="h-12 font-bold rounded-xl bg-gray-50 border-none"
-                    value={loyaltyForm.fullName}
-                    onChange={(e: any) => setLoyaltyForm({...loyaltyForm, fullName: e.target.value})}
-                />
-             </div>
-
-             <div className="pt-4 flex gap-3">
-                <Button variant="ghost" className="flex-1 font-bold text-gray-400" onClick={resetPOS}>BỎ QUA</Button>
-                <Button
-                    className="flex-1 bg-orange-600 hover:bg-orange-700 font-bold h-12 rounded-xl shadow-lg shadow-orange-100 gap-2"
-                    onClick={handleAddPoints}
-                    disabled={loading || !loyaltyForm.phoneNumber}
-                >
-                    {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 className="w-4 h-4" /> LƯU & TÍCH ĐIỂM</>}
-                </Button>
-             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
+
+
