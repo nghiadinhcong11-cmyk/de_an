@@ -145,7 +145,6 @@ export function CustomerWelcome() {
     </div>
   );
 }
-}
 
 function Badge({ text }: { text: string }) {
     return (
