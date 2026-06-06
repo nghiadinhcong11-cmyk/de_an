@@ -41,22 +41,22 @@
         fetchReports();
       }, []);
 
-      if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600" /></div>;
+      if (loading) return <div className="flex justify-center p-10 md:p-20"><Loader2 className="animate-spin text-orange-600" /></div>;
 
       return (
-        <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
-          <div className="mb-8 flex justify-between items-end">
+        <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
+          <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-end gap-4">
             <div>
               <h1 className="text-3xl font-black">Phân tích kinh doanh</h1>
               <p className="text-gray-500 font-medium">Dữ liệu kinh doanh thời gian thực từ các chi nhánh</p>
             </div>
-            <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 hidden md:flex">
+            <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 flex w-fit">
                 <button className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold text-xs">7 NGÀY</button>
                 <button className="px-4 py-2 text-gray-400 font-bold text-xs hover:text-gray-900">30 NGÀY</button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
              <StatItem
                 label="Tổng doanh thu"
                 val={`${overview?.totalRevenue?.toLocaleString("vi-VN")}đ`}
@@ -94,13 +94,13 @@
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Doanh thu biểu đồ */}
             <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden bg-white rounded-[32px]">
-              <CardHeader className="pb-0 pt-8 px-8">
+              <CardHeader className="pb-0 pt-8 px-4 md:px-8">
                 <CardTitle className="text-xl font-black flex items-center gap-2">
                     Biểu đồ doanh thu tuần này
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 pt-4">
-                <div className="h-80 w-full">
+              <CardContent className="p-4 md:p-8 pt-4">
+                <div className="h-64 md:h-80 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={revenueData}>
                       <defs>
@@ -121,6 +121,7 @@
                         axisLine={false}
                         tickLine={false}
                         tick={{fontSize: 10, fontWeight: 'bold', fill: '#94a3b8'}}
+                        width={40}
                       />
                       <Tooltip
                           contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px' }}
@@ -143,10 +144,10 @@
 
             {/* Top Products */}
             <Card className="border-none shadow-sm bg-white rounded-[32px]">
-               <CardHeader className="pt-8 px-8">
+               <CardHeader className="pt-8 px-4 md:px-8">
                   <CardTitle className="text-xl font-black">Món bán chạy</CardTitle>
                </CardHeader>
-               <CardContent className="px-8 pb-8">
+               <CardContent className="px-4 md:px-8 pb-8">
                   <div className="space-y-6">
                      {topProducts.map((p, idx) => (
                         <div key={idx} className="flex items-center justify-between">

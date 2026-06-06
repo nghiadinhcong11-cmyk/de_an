@@ -76,25 +76,25 @@ export function EmployeeOrders() {
     return <div className="flex justify-center p-20"><Loader2 className="animate-spin w-10 h-10 text-orange-600" /></div>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
-      <div className="mb-8 flex justify-between items-center">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
+      <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black uppercase tracking-tight">Quản lý phục vụ</h1>
           <p className="text-gray-500 font-medium">Theo dõi và xác nhận món ăn tại bàn (Real-time)</p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 text-green-600 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest border border-green-100 shadow-sm">
+        <div className="flex items-center gap-2 bg-green-50 text-green-600 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest border border-green-100 shadow-sm w-fit">
            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
            Hệ thống trực tuyến
         </div>
       </div>
 
       <Tabs defaultValue="requests">
-        <TabsList className="mb-8 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 w-fit">
-          <TabsTrigger value="requests" className="gap-2 px-8 font-bold rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">
-            Yêu cầu chờ duyệt
+        <TabsList className="mb-8 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap h-auto w-full sm:w-fit">
+          <TabsTrigger value="requests" className="flex-1 sm:flex-none gap-2 px-8 font-bold rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+            Yêu cầu
             {requests.length > 0 && <Badge className="bg-orange-600 text-white border-none h-5 min-w-5 flex items-center justify-center p-0 text-[10px]">{requests.length}</Badge>}
           </TabsTrigger>
-          <TabsTrigger value="active" className="px-8 font-bold rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Đang phục vụ</TabsTrigger>
+          <TabsTrigger value="active" className="flex-1 sm:flex-none px-8 font-bold rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Đang phục vụ</TabsTrigger>
         </TabsList>
 
         <TabsContent value="requests">

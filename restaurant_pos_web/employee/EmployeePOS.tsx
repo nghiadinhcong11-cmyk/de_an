@@ -52,17 +52,21 @@ export function EmployeePOS() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 text-gray-900">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-10">
           <h2 className="text-xl font-black italic">GREEN POS</h2>
-          <Button onClick={handleCheckout} disabled={cart.length === 0} className="bg-green-600 font-bold">THANH TOÁN (${total.toFixed(2)})</Button>
+          <Button onClick={handleCheckout} disabled={cart.length === 0} className="bg-green-600 font-bold">THANH TOÁN ({total.toLocaleString("vi-VN")}đ)</Button>
       </div>
 
-      <div className="flex-1 p-8">
-          <p className="text-gray-400">Giao diện POS chính... (Chọn món ăn bên dưới)</p>
-          <div className="grid grid-cols-4 gap-4 mt-4">
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+          <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-4">Thực đơn nhà hàng</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {mockMenuItems.map(item => (
-                  <Card key={item.id} className="cursor-pointer" onClick={() => setCart([...cart, {...item, quantity: 1}])}>
-                      <CardContent className="p-4 font-bold">{item.name}</CardContent>
+                  <Card key={item.id} className="cursor-pointer hover:border-orange-500 transition-colors shadow-sm rounded-2xl overflow-hidden" onClick={() => setCart([...cart, {...item, quantity: 1}])}>
+                      <div className="h-32 bg-gray-100 flex items-center justify-center text-4xl">🍽️</div>
+                      <CardContent className="p-4">
+                        <div className="font-bold text-sm truncate">{item.name}</div>
+                        <div className="text-orange-600 font-black mt-1">{item.price.toLocaleString("vi-VN")}đ</div>
+                      </CardContent>
                   </Card>
               ))}
           </div>

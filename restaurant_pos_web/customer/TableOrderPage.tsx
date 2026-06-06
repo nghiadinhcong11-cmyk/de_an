@@ -102,7 +102,7 @@ export function TableOrderPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-black text-gray-900 truncate">{p.name}</h4>
-                      <p className="text-orange-600 font-black text-lg">${p.price.toFixed(2)}</p>
+                      <p className="text-orange-600 font-black text-lg">{p.price.toLocaleString("vi-VN")}đ</p>
                     </div>
 
                     <div className="flex items-center gap-3 bg-gray-50 p-1.5 rounded-xl">
@@ -155,7 +155,7 @@ export function TableOrderPage() {
                       </div>
                       <div className="text-left">
                           <p className="text-[10px] font-black uppercase opacity-60 leading-none">Xem giỏ hàng</p>
-                          <p className="text-lg font-black tracking-tight">${totalPrice.toFixed(2)}</p>
+                          <p className="text-lg font-black tracking-tight">{totalPrice.toLocaleString("vi-VN")}đ</p>
                       </div>
                   </div>
                   <div className="flex items-center gap-2 font-black text-sm uppercase">

@@ -36,28 +36,28 @@ export function OwnerLoyalty() {
   if (loading) return <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div>;
 
   return (
-    <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
+    <div className="p-4 md:p-8 space-y-8 bg-gray-50 min-h-screen">
       <div>
         <h1 className="text-2xl font-black text-gray-900">Quản lý Thành viên & Tích điểm</h1>
-        <p className="text-gray-500">Theo dõi lòng trung thành và hạng thẻ khách hàng</p>
+        <p className="text-gray-500 text-sm">Theo dõi lòng trung thành và hạng thẻ khách hàng</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="TỔNG THÀNH VIÊN" val={customers.length} icon={Users} color="text-blue-600" />
-        <StatCard label="TỔNG ĐIỂM ĐÃ CẤP" val={customers.reduce((s, c) => s + c.points, 0)} icon={Award} color="text-orange-600" />
+        <StatCard label="TỔNG ĐIỂM ĐÃ CẤP" val={customers.reduce((s, c) => s + c.points, 0).toLocaleString("vi-VN")} icon={Award} color="text-orange-600" />
         <StatCard label="KHÁCH VIP (GOLD)" val={customers.filter(c => c.points >= 2000).length} icon={Star} color="text-yellow-600" />
-        <StatCard label="TỔNG CHI TIÊU NHÓM" val={`$${customers.reduce((s, c) => s + c.totalSpent, 0).toLocaleString()}`} icon={TrendingUp} color="text-green-600" />
+        <StatCard label="TỔNG CHI TIÊU NHÓM" val={`${customers.reduce((s, c) => s + (c.totalSpent || 0), 0).toLocaleString("vi-VN")}đ`} icon={TrendingUp} color="text-green-600" />
       </div>
 
-      <Card className="border-none shadow-sm">
-        <CardHeader className="border-b border-gray-50 flex flex-row items-center justify-between">
-           <div className="relative w-96">
+      <Card className="border-none shadow-sm overflow-hidden">
+        <CardHeader className="border-b border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-4">
+           <div className="relative w-full sm:w-96">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Tìm tên hoặc số điện thoại..." className="pl-10 h-10 border-none bg-gray-100" value={searchTerm} onChange={(e: any) => setSearchTerm(e.target.value)} />
+              <Input placeholder="Tìm tên hoặc số điện thoại..." className="pl-10 h-10 border-none bg-gray-100 w-full" value={searchTerm} onChange={(e: any) => setSearchTerm(e.target.value)} />
            </div>
-           <Button variant="outline" className="font-bold border-orange-100 text-orange-600">Xuất báo cáo</Button>
+           <Button variant="outline" className="w-full sm:w-auto font-bold border-orange-100 text-orange-600">Xuất báo cáo</Button>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-gray-50/50">
               <TableRow>
@@ -80,8 +80,8 @@ export function OwnerLoyalty() {
                     <TableCell className="text-center">
                       <Badge className={`${level.color} border-none font-bold uppercase text-[10px]`}>{level.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-center font-black text-orange-600">{c.points.toLocaleString()}</TableCell>
-                    <TableCell className="text-center font-bold text-gray-600">${c.totalSpent.toLocaleString()}</TableCell>
+                    <TableCell className="text-center font-black text-orange-600">{c.points.toLocaleString("vi-VN")} điểm</TableCell>
+                    <TableCell className="text-center font-bold text-gray-600">{(c.totalSpent || 0).toLocaleString("vi-VN")}đ</TableCell>
                     <TableCell className="text-right text-xs text-gray-400 font-medium">
                       {c.lastVisitAtUtc ? new Date(c.lastVisitAtUtc).toLocaleDateString() : '—'}
                     </TableCell>

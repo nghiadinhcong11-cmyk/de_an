@@ -43,14 +43,14 @@ export function OwnerOrders() {
   );
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
       <div className="mb-8">
         <h1 className="text-2xl font-black">Lịch sử đơn hàng</h1>
         <p className="text-gray-500">Quản lý và tra cứu tất cả giao dịch của hệ thống</p>
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-white">
-        <CardHeader className="bg-white border-b border-gray-50 flex flex-row items-center justify-between">
+        <CardHeader className="bg-white border-b border-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
            <div className="relative max-w-sm w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -61,8 +61,8 @@ export function OwnerOrders() {
               />
            </div>
         </CardHeader>
-        <CardContent className="p-0">
-           {loading ? <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div> : (
+        <CardContent className="p-0 overflow-x-auto">
+           {loading ? <div className="p-10 md:p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div> : (
              <Table>
                 <TableHeader className="bg-gray-50/50"><TableRow>
                    <TableHead className="font-bold">Mã đơn</TableHead>

@@ -28,10 +28,10 @@ export function OwnerDashboard() {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600" /></div>;
+  if (loading) return <div className="flex justify-center p-10 md:p-20"><Loader2 className="animate-spin text-orange-600" /></div>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
       <div className="mb-8">
         <h1 className="text-2xl font-black">Bảng điều khiển</h1>
         <p className="text-gray-500">Tổng quan tình hình kinh doanh của chuỗi nhà hàng</p>

@@ -174,21 +174,21 @@ export function OwnerMenu() {
       } catch { alert("Lỗi khi lưu định lượng"); }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
+  if (loading) return <div className="flex justify-center p-10 md:p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
             <h1 className="text-2xl font-black">Thực đơn & Định lượng</h1>
             <p className="text-gray-500 text-sm">Quản lý danh sách món ăn và cấu phần nguyên liệu</p>
         </div>
         <div className="flex gap-3">
-            <Button onClick={() => handleOpenCategory()} variant="outline" className="font-bold border-orange-200 text-orange-600">
-                <Plus className="w-4 h-4 mr-2" /> Thêm danh mục
+            <Button onClick={() => handleOpenCategory()} variant="outline" className="flex-1 sm:flex-none font-bold border-orange-200 text-orange-600">
+                <Plus className="w-4 h-4 mr-2" /> Danh mục
             </Button>
-            <Button onClick={() => handleOpenProduct()} className="bg-orange-600 font-bold shadow-lg shadow-orange-100">
-                <Plus className="w-4 h-4 mr-2" /> Thêm món mới
+            <Button onClick={() => handleOpenProduct()} className="flex-1 sm:flex-none bg-orange-600 font-bold shadow-lg shadow-orange-100">
+                <Plus className="w-4 h-4 mr-2" /> Món mới
             </Button>
         </div>
       </div>
@@ -225,7 +225,7 @@ export function OwnerMenu() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredProducts.map(p => (
           <Card key={p.id} className="border-none shadow-sm group bg-white overflow-hidden rounded-[24px]">
             <div className="h-40 bg-orange-50 flex items-center justify-center text-6xl relative">

@@ -16,10 +16,10 @@ void main() async {
   try {
     if (!kIsWeb) {
       await Firebase.initializeApp();
-      await NotificationService.init();
     }
+    await NotificationService.init();
   } catch (e) {
-    debugPrint('Firebase init error: $e');
+    debugPrint('Initialization error: $e');
   }
 
   runApp(

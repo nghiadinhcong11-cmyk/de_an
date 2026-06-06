@@ -51,13 +51,13 @@ export function CustomerMenu() {
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin text-orange-600 w-12 h-12" /></div>;
 
   return (
-    <div className="space-y-8">
-      <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div className="space-y-8 p-4 md:p-0">
+      <div className="bg-white p-6 md:p-8 rounded-[40px] shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
          <div>
-            <h1 className="text-3xl font-black text-gray-900">Thực đơn {branchName ? `tại ${branchName}` : "nhà hàng"}</h1>
-            <p className="text-gray-500 font-medium">Khám phá các món ăn tinh hoa được chế biến từ đầu bếp hàng đầu</p>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">Thực đơn {branchName ? `tại ${branchName}` : "nhà hàng"}</h1>
+            <p className="text-gray-500 font-medium text-sm md:text-base">Khám phá các món ăn tinh hoa được chế biến từ đầu bếp hàng đầu</p>
          </div>
-         <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-2xl flex items-center gap-3">
+         <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-2xl flex items-center gap-3 w-full md:w-auto justify-center">
             <Info className="w-5 h-5" />
             <p className="text-xs font-black uppercase tracking-wider">Chỉ xem & Tham khảo</p>
          </div>

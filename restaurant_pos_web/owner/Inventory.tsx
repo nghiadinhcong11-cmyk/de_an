@@ -91,38 +91,38 @@ export function OwnerInventory() {
     }
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
+  if (loading) return <div className="flex justify-center p-10 md:p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Chi phí & Nhập hàng</h1>
           <p className="text-gray-500 font-medium">Theo dõi ngân sách nhập hàng và quản lý nhà cung cấp</p>
         </div>
 
-        <div className="flex gap-2">
-            <Button onClick={() => setIsCategoryOpen(true)} variant="outline" className="font-bold border-orange-100 text-orange-600 bg-white">
+        <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setIsCategoryOpen(true)} variant="outline" className="font-bold border-orange-100 text-orange-600 bg-white flex-1 sm:flex-none">
                 <Package className="w-4 h-4 mr-2" /> Nguyên liệu
             </Button>
-            <Button onClick={() => setIsSupplierOpen(true)} variant="outline" className="font-bold border-orange-100 text-orange-600 bg-white">
+            <Button onClick={() => setIsSupplierOpen(true)} variant="outline" className="font-bold border-orange-100 text-orange-600 bg-white flex-1 sm:flex-none">
                 <Truck className="w-4 h-4 mr-2" /> Nhà cung cấp
             </Button>
-            <Button onClick={() => setIsPurchaseOpen(true)} className="bg-orange-600 font-bold shadow-lg shadow-orange-100">
+            <Button onClick={() => setIsPurchaseOpen(true)} className="bg-orange-600 font-bold shadow-lg shadow-orange-100 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" /> Tạo phiếu mua hàng
             </Button>
         </div>
       </div>
 
       <Tabs defaultValue="history">
-        <TabsList className="bg-white border p-1 rounded-2xl shadow-sm mb-8">
-            <TabsTrigger value="history" className="px-8 font-black uppercase text-[10px] tracking-widest rounded-xl">Lịch sử nhập hàng</TabsTrigger>
-            <TabsTrigger value="stats" className="px-8 font-black uppercase text-[10px] tracking-widest rounded-xl">Thống kê chi phí</TabsTrigger>
+        <TabsList className="bg-white border p-1 rounded-2xl shadow-sm mb-8 flex flex-wrap h-auto">
+            <TabsTrigger value="history" className="flex-1 sm:flex-none px-8 font-black uppercase text-[10px] tracking-widest rounded-xl">Lịch sử nhập hàng</TabsTrigger>
+            <TabsTrigger value="stats" className="flex-1 sm:flex-none px-8 font-black uppercase text-[10px] tracking-widest rounded-xl">Thống kê chi phí</TabsTrigger>
         </TabsList>
 
         <TabsContent value="history">
            <Card className="border-none shadow-sm overflow-hidden bg-white rounded-[32px]">
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                  <Table>
                     <TableHeader className="bg-gray-50/50">
                         <TableRow>
@@ -141,7 +141,7 @@ export function OwnerInventory() {
                                 </TableCell>
                                 <TableCell className="font-bold text-blue-600">{p.supplier?.name || "Lẻ (Chợ/Siêu thị)"}</TableCell>
                                 <TableCell>
-                                    <div className="flex gap-1 flex-wrap">
+                                    <div className="flex gap-1 flex-wrap min-w-[200px]">
                                         {p.items.map((item: any, idx: number) => (
                                             <Badge key={idx} variant="outline" className="text-[10px] border-gray-100 bg-gray-50">{item.ingredient.name} x{item.quantity}</Badge>
                                         ))}
@@ -163,6 +163,7 @@ export function OwnerInventory() {
               </CardContent>
            </Card>
         </TabsContent>
+
 
         <TabsContent value="stats">
             <div className="bg-white rounded-[40px] p-20 text-center border-2 border-dashed border-gray-100">

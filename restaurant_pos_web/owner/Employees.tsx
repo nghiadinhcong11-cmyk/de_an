@@ -86,31 +86,31 @@ export function OwnerEmployees() {
   );
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-black">Quản lý đội ngũ</h1>
           <p className="text-gray-500">Phê duyệt và quản lý tài khoản nhân viên</p>
         </div>
-        <Button className="bg-orange-600 font-bold shadow-lg shadow-orange-100"><UserPlus className="w-4 h-4 mr-2" /> Thêm nhân viên</Button>
+        <Button className="bg-orange-600 font-bold shadow-lg shadow-orange-100 w-full sm:w-auto"><UserPlus className="w-4 h-4 mr-2" /> Thêm nhân viên</Button>
       </div>
 
       <Tabs defaultValue="list">
-        <TabsList className="mb-6 bg-white border border-gray-100 p-1 rounded-xl shadow-sm">
-          <TabsTrigger value="list" className="px-8 font-bold">Đang làm việc ({employees.length})</TabsTrigger>
-          <TabsTrigger value="requests" className="px-8 font-bold gap-2">Yêu cầu mới {pendingRequests.length > 0 && <Badge className="bg-red-500 text-white border-none">{pendingRequests.length}</Badge>}</TabsTrigger>
+        <TabsList className="mb-6 bg-white border border-gray-100 p-1 rounded-xl shadow-sm flex flex-wrap h-auto">
+          <TabsTrigger value="list" className="flex-1 sm:flex-none px-8 font-bold">Đang làm việc ({employees.length})</TabsTrigger>
+          <TabsTrigger value="requests" className="flex-1 sm:flex-none px-8 font-bold gap-2">Yêu cầu mới {pendingRequests.length > 0 && <Badge className="bg-red-500 text-white border-none">{pendingRequests.length}</Badge>}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list">
           <Card className="border-none shadow-sm overflow-hidden">
             <CardHeader className="bg-white border-b border-gray-50">
-               <div className="relative max-w-sm">
+               <div className="relative max-w-sm w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input placeholder="Tìm theo tên..." className="pl-10 h-10 border-none bg-gray-50" value={searchTerm} onChange={(e: any) => setSearchTerm(e.target.value)} />
                </div>
             </CardHeader>
-            <CardContent className="p-0">
-               {loading ? <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div> : (
+            <CardContent className="p-0 overflow-x-auto">
+               {loading ? <div className="p-10 md:p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div> : (
                  <Table>
                     <TableHeader className="bg-gray-50/50"><TableRow>
                        <TableHead className="font-bold">Họ tên</TableHead>

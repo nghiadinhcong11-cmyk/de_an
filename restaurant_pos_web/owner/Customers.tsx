@@ -32,7 +32,7 @@ export function OwnerCustomers() {
   );
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-black text-gray-900">Quản lý khách hàng</h1>
         <p className="text-gray-600 mt-1">Danh sách khách hàng thân thiết của nhà hàng</p>
@@ -40,7 +40,7 @@ export function OwnerCustomers() {
 
       <Card className="border-none shadow-sm">
         <CardHeader>
-          <div className="relative max-w-md">
+          <div className="relative max-w-md w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               placeholder="Tìm theo tên hoặc số điện thoại..."
@@ -50,8 +50,8 @@ export function OwnerCustomers() {
             />
           </div>
         </CardHeader>
-        <CardContent>
-          {loading ? <Loader2 className="animate-spin mx-auto" /> : (
+        <CardContent className="overflow-x-auto">
+          {loading ? <Loader2 className="animate-spin mx-auto my-10" /> : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -85,10 +85,10 @@ export function OwnerCustomers() {
                       </div>
                     </TableCell>
                     <TableCell>
-                        <span className="font-bold text-orange-600">{customer.points} pts</span>
+                        <span className="font-bold text-orange-600">{customer.points.toLocaleString("vi-VN")} điểm</span>
                     </TableCell>
                     <TableCell>
-                      <span className="font-bold">${customer.totalSpent?.toFixed(2)}</span>
+                      <span className="font-bold">{(customer.totalSpent || 0).toLocaleString("vi-VN")}đ</span>
                     </TableCell>
                   </TableRow>
                 ))}
