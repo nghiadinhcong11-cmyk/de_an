@@ -1,68 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
-import { Plus, DollarSign, Wallet, Calendar, User, Trash2 } from "lucide-react";
-import { mockExpenses } from "../data/mockData";
+import { Plus, Loader2, Trash2, Calendar, User, Wallet } from "lucide-react";
+import api from "../services/api";
 
 export function OwnerExpenses() {
-  const [expenses] = useState(mockExpenses);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/expenses");
+      setExpenses(res.data);
+    } catch (err) {
+      console.error("Lỗi tải chi phí");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Xóa bản ghi này?")) return;
+    try {
+      await api.delete(`/expenses/${id}`);
+      fetchData();
+    } catch { alert("Lỗi khi xóa"); }
+  };
 
   return (
     <div className="p-8 space-y-8 bg-gray-50 min-h-screen text-gray-900">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black">Business Expenses</h1>
-          <p className="text-gray-500">Track all operational costs and spending</p>
+          <h1 className="text-2xl font-black">Lịch sử chi phí</h1>
+          <p className="text-gray-500">Xem lại tất cả các khoản chi vận hành hệ thống</p>
         </div>
-        <Button className="bg-orange-600 font-bold"><Plus className="w-4 h-4 mr-2" /> Log Expense</Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: 'TODAY', val: '$120', color: 'text-orange-600' },
-          { label: 'THIS MONTH', val: '$3,420', color: 'text-gray-900' },
-          { label: 'TOTAL YEAR', val: '$45,000', color: 'text-gray-900' },
-        ].map((s, i) => (
-          <Card key={i} className="border-none shadow-sm overflow-hidden">
-            <CardContent className="pt-6">
-                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{s.label} EXPENSES</div>
-                <div className={`text-3xl font-black ${s.color}`}>{s.val}</div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card className="border-none shadow-sm overflow-hidden">
+      <Card className="border-none shadow-sm overflow-hidden bg-white rounded-[32px]">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-gray-50/50">
-              <TableRow>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">Title & Category</TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">Amount</TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">Date</TableHead>
-                <TableHead className="font-bold text-xs uppercase tracking-wider">Logged By</TableHead>
-                <TableHead className="text-right"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {expenses.map((e) => (
-                <TableRow key={e.id} className="hover:bg-gray-50/50 transition-colors">
-                  <TableCell>
-                    <div className="font-bold text-gray-900">{e.title}</div>
-                    <Badge variant="outline" className="text-[10px] font-black uppercase mt-1 border-gray-100 text-gray-400">{e.category}</Badge>
-                  </TableCell>
-                  <TableCell className="font-black text-orange-600 text-lg">${e.amount.toLocaleString()}</TableCell>
-                  <TableCell className="text-sm text-gray-500 font-medium">{new Date(e.date).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-xs font-bold text-gray-400 uppercase">{e.createdBy}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="text-gray-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                  </TableCell>
+          {loading ? <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div> : (
+            <Table>
+              <TableHeader className="bg-gray-50/50">
+                <TableRow>
+                  <TableHead className="font-bold text-xs uppercase tracking-wider px-8">Nội dung</TableHead>
+                  <TableHead className="font-bold text-xs uppercase tracking-wider">Số tiền</TableHead>
+                  <TableHead className="font-bold text-xs uppercase tracking-wider text-center">Ngày chi</TableHead>
+                  <TableHead className="text-right px-8"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {expenses.map((e) => (
+                  <TableRow key={e.id} className="hover:bg-gray-50/50 transition-colors">
+                    <TableCell className="px-8 py-5">
+                      <div className="font-bold text-gray-900">{e.title}</div>
+                      <p className="text-[10px] text-gray-400 font-medium mt-1">{e.description || "Không có ghi chú"}</p>
+                    </TableCell>
+                    <TableCell className="font-black text-orange-600 text-lg">{e.amount.toLocaleString("vi-VN")}đ</TableCell>
+                    <TableCell className="text-sm text-gray-500 font-medium text-center">{new Date(e.expenseDate).toLocaleDateString("vi-VN")}</TableCell>
+                    <TableCell className="text-right px-8">
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(e.id)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+          {!loading && expenses.length === 0 && (
+              <div className="text-center py-20 text-gray-400 font-bold uppercase tracking-widest text-xs">Chưa có dữ liệu</div>
+          )}
         </CardContent>
       </Card>
     </div>

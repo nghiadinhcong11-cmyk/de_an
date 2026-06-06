@@ -130,32 +130,6 @@ public class MenuController : ControllerBase
         return Ok();
     }
 
-    // QUẢN LÝ ĐỊNH LƯỢNG (RECIPE)
-    [HttpGet("products/{id}/ingredients")]
-    public async Task<IActionResult> GetProductIngredients(Guid id)
-    {
-        var items = await _context.ProductIngredients
-            .Where(pi => pi.ProductId == id)
-            .ToListAsync();
-        return Ok(items);
-    }
-
-    [HttpPost("products/{id}/ingredients")]
-    public async Task<IActionResult> UpdateProductIngredients(Guid id, [FromBody] List<ProductIngredient> ingredients)
-    {
-        var existing = await _context.ProductIngredients.Where(pi => pi.ProductId == id).ToListAsync();
-        _context.ProductIngredients.RemoveRange(existing);
-
-        foreach (var item in ingredients)
-        {
-            item.ProductId = id;
-            _context.ProductIngredients.Add(item);
-        }
-
-        await _context.SaveChangesAsync();
-        return Ok();
-    }
-
     private Guid GetRestaurantIdFromToken()
     {
         var idStr = User.FindFirstValue("RestaurantId");

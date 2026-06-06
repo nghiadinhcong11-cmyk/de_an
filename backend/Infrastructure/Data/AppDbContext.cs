@@ -41,12 +41,9 @@ public class AppDbContext : DbContext
     public DbSet<VoucherUsage> VoucherUsages { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
-    public DbSet<ProductIngredient> ProductIngredients { get; set; }
-    public DbSet<InventoryItem> InventoryItems { get; set; }
-    public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
-    public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
-    public DbSet<PurchaseOrderItem> PurchaseOrderItems { get; set; }
+    public DbSet<PurchaseRecord> PurchaseRecords { get; set; }
+    public DbSet<PurchaseItem> PurchaseItems { get; set; }
     public DbSet<Expense> Expenses { get; set; }
     public DbSet<UserShift> UserShifts { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
@@ -165,38 +162,23 @@ public class AppDbContext : DbContext
             f.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
         });
 
-        // 6. INVENTORY
+        // 6. INGREDIENT COST MANAGEMENT
         modelBuilder.Entity<Ingredient>(i => {
-            i.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId);
-        });
-
-        modelBuilder.Entity<ProductIngredient>(pi => {
-            pi.HasKey(x => new { x.ProductId, x.IngredientId });
-            pi.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
-            pi.HasOne(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId);
-        });
-
-        modelBuilder.Entity<InventoryItem>(ii => {
-            ii.HasOne(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId);
-        });
-
-        modelBuilder.Entity<InventoryTransaction>(it => {
-            it.HasOne(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId);
+            i.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
         });
 
         modelBuilder.Entity<Supplier>(s => {
-            s.HasOne(x => x.Restaurant).WithMany().HasForeignKey(x => x.RestaurantId);
+            s.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
         });
 
-        modelBuilder.Entity<PurchaseOrder>(po => {
-            po.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId);
-            po.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
-            po.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId);
+        modelBuilder.Entity<PurchaseRecord>(pr => {
+            pr.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
+            pr.HasOne(x => x.Supplier).WithMany().HasForeignKey(x => x.SupplierId).OnDelete(DeleteBehavior.SetNull);
         });
 
-        modelBuilder.Entity<PurchaseOrderItem>(poi => {
-            poi.HasOne(x => x.PurchaseOrder).WithMany().HasForeignKey(x => x.PurchaseOrderId);
-            poi.HasOne(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId);
+        modelBuilder.Entity<PurchaseItem>(pi => {
+            pi.HasOne(x => x.PurchaseRecord).WithMany(x => x.Items).HasForeignKey(x => x.PurchaseRecordId);
+            pi.HasOne(x => x.Ingredient).WithMany().HasForeignKey(x => x.IngredientId);
         });
 
         // 7. FINANCE & SYSTEM

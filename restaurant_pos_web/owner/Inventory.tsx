@@ -1,39 +1,54 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Plus, Loader2, Trash2 } from "lucide-react";
+import { Plus, Loader2, Trash2, Wallet, Calendar, ShoppingCart, Truck, Package, Search, Receipt } from "lucide-react";
 import api from "../services/api";
 
 export function OwnerInventory() {
-  const [items, setItems] = useState<any[]>([]);
-  const [branches, setBranches] = useState<any[]>([]);
+  const [ingredients, setIngredients] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [branches, setBranches] = useState<any[]>([]);
 
-  const [newIngredient, setNewIngredient] = useState({
-      name: '',
-      unit: 'kg',
-      costPrice: 0,
-      branchId: ''
+  // Modals
+  const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
+  const [isIngredientOpen, setIsCategoryOpen] = useState(false);
+  const [isSupplierOpen, setIsSupplierOpen] = useState(false);
+
+  // New Purchase State
+  const [newPurchase, setNewPurchase] = useState({
+      purchaseDate: new Date().toISOString().split('T')[0],
+      supplierId: '',
+      branchId: '',
+      notes: '',
+      items: [] as any[]
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [invRes, branchRes] = await Promise.all([
-        api.get("/inventory"),
+      const [ingRes, supRes, purRes, brRes] = await Promise.all([
+        api.get("/ingredients"),
+        api.get("/suppliers"),
+        api.get("/purchases"),
         api.get("/branches")
       ]);
-      setItems(invRes.data);
-      setBranches(branchRes.data);
-    } catch (err) {
-        console.error("Lỗi lấy dữ liệu kho");
+      setIngredients(ingRes.data);
+      setSuppliers(supRes.data);
+      setPurchases(purRes.data);
+      setBranches(brRes.data);
+
+      if (brRes.data.length > 0 && !newPurchase.branchId) {
+          setNewPurchase(p => ({ ...p, branchId: brRes.data[0].id }));
+      }
     } finally {
       setLoading(false);
     }
@@ -41,105 +56,262 @@ export function OwnerInventory() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleCreate = async () => {
-      if (!newIngredient.name || !newIngredient.branchId) {
-          alert("Vui lòng nhập đầy đủ thông tin");
-          return;
-      }
-      try {
-          await api.post("/inventory", newIngredient);
-          setIsAddOpen(false);
-          setNewIngredient({ name: '', unit: 'kg', costPrice: 0, branchId: '' });
-          fetchData();
-      } catch { alert("Lỗi khi thêm nguyên liệu"); }
+  const handleAddPurchaseItem = () => {
+      if (ingredients.length === 0) return alert("Vui lòng thêm danh mục nguyên liệu trước");
+      setNewPurchase({
+          ...newPurchase,
+          items: [...newPurchase.items, { ingredientId: ingredients[0].id, quantity: 1, unitPrice: 0 }]
+      });
   };
 
-  const handleDelete = async (id: string) => {
-      if (!confirm("Xóa nguyên liệu này khỏi kho?")) return;
+  const handleSavePurchase = async () => {
+      if (newPurchase.items.length === 0) return alert("Vui lòng chọn ít nhất 1 mặt hàng");
       try {
-          await api.delete(`/inventory/${id}`);
+          await api.post("/purchases", newPurchase);
+          setIsPurchaseOpen(false);
+          setNewPurchase({ ...newPurchase, items: [], notes: '' });
           fetchData();
-      } catch { alert("Lỗi khi xóa"); }
+      } catch { alert("Lỗi khi lưu phiếu mua hàng"); }
   };
+
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-black">Quản lý kho</h1>
-          <p className="text-gray-600 mt-1">Danh mục nguyên liệu và định lượng</p>
+          <h1 className="text-3xl font-black tracking-tight">Chi phí & Nhập hàng</h1>
+          <p className="text-gray-500 font-medium">Theo dõi ngân sách nhập hàng và quản lý nhà cung cấp</p>
         </div>
 
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger onClick={() => setIsAddOpen(true)}>
-                <Button className="bg-orange-600 font-bold"><Plus className="w-4 h-4 mr-2" /> Thêm nguyên liệu</Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader><DialogTitle className="font-bold">Thêm vào kho</DialogTitle></DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label className="font-bold uppercase text-[10px] text-gray-400">Tên nguyên liệu</Label>
-                        <Input value={newIngredient.name} onChange={(e: any) => setNewIngredient({...newIngredient, name: e.target.value})} placeholder="Vd: Thịt bò, Trứng, Gạo..." />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="font-bold uppercase text-[10px] text-gray-400">Đơn vị (Vd: kg, lit, cái)</Label>
-                            <Input value={newIngredient.unit} onChange={(e: any) => setNewIngredient({...newIngredient, unit: e.target.value})} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="font-bold uppercase text-[10px] text-gray-400">Chi nhánh</Label>
-                            <Select onValueChange={(v: any) => setNewIngredient({...newIngredient, branchId: v})}>
-                                <SelectTrigger><SelectValue placeholder="Chọn..." /></SelectTrigger>
-                                <SelectContent>
-                                    {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold uppercase text-[10px] text-gray-400">Giá nhập dự kiến</Label>
-                        <Input type="number" value={newIngredient.costPrice} onChange={(e: any) => setNewIngredient({...newIngredient, costPrice: parseFloat(e.target.value)})} />
-                    </div>
-                    <Button onClick={handleCreate} className="w-full bg-orange-600 font-bold h-12">LƯU KHO</Button>
-                </div>
-            </DialogContent>
-        </Dialog>
+        <div className="flex gap-2">
+            <Button onClick={() => setIsCategoryOpen(true)} variant="outline" className="font-bold border-orange-100 text-orange-600 bg-white">
+                <Package className="w-4 h-4 mr-2" /> Nguyên liệu
+            </Button>
+            <Button onClick={() => setIsSupplierOpen(true)} variant="outline" className="font-bold border-orange-100 text-orange-600 bg-white">
+                <Truck className="w-4 h-4 mr-2" /> Nhà cung cấp
+            </Button>
+            <Button onClick={() => setIsPurchaseOpen(true)} className="bg-orange-600 font-bold shadow-lg shadow-orange-100">
+                <Plus className="w-4 h-4 mr-2" /> Tạo phiếu mua hàng
+            </Button>
+        </div>
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden">
-        <CardContent className="p-0">
-          {loading ? <div className="p-20 flex justify-center"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div> : (
-            <Table>
-              <TableHeader className="bg-gray-50/50">
-                <TableRow>
-                  <TableHead className="font-bold">Nguyên liệu</TableHead>
-                  <TableHead className="font-bold text-center">Đơn vị</TableHead>
-                  <TableHead className="font-bold text-center">Đơn giá nhập</TableHead>
-                  <TableHead className="font-bold text-right">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                    <TableCell className="font-bold text-gray-900">{item.name}</TableCell>
-                    <TableCell className="text-center uppercase text-xs font-bold text-gray-400">{item.unit}</TableCell>
-                    <TableCell className="text-center font-black text-orange-600">${item.costPrice.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-          {!loading && items.length === 0 && (
-              <div className="text-center py-20 bg-white">
-                  <div className="text-4xl mb-4">📦</div>
-                  <p className="text-gray-400 font-bold">Kho hàng đang trống. Hãy nhập thêm nguyên liệu.</p>
+      <Tabs defaultValue="history">
+        <TabsList className="bg-white border p-1 rounded-2xl shadow-sm mb-8">
+            <TabsTrigger value="history" className="px-8 font-black uppercase text-[10px] tracking-widest rounded-xl">Lịch sử nhập hàng</TabsTrigger>
+            <TabsTrigger value="stats" className="px-8 font-black uppercase text-[10px] tracking-widest rounded-xl">Thống kê chi phí</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="history">
+           <Card className="border-none shadow-sm overflow-hidden bg-white rounded-[32px]">
+              <CardContent className="p-0">
+                 <Table>
+                    <TableHeader className="bg-gray-50/50">
+                        <TableRow>
+                            <TableHead className="font-bold px-8">Mã phiếu & Ngày</TableHead>
+                            <TableHead className="font-bold">Nhà cung cấp</TableHead>
+                            <TableHead className="font-bold">Nội dung</TableHead>
+                            <TableHead className="font-bold text-right px-8">Tổng tiền</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {purchases.map(p => (
+                            <TableRow key={p.id} className="hover:bg-gray-50/50">
+                                <TableCell className="px-8 py-5">
+                                    <div className="font-black text-gray-900 uppercase">#{p.id.substring(0, 8)}</div>
+                                    <div className="text-[10px] text-gray-400 font-bold">{new Date(p.purchaseDate).toLocaleDateString("vi-VN")}</div>
+                                </TableCell>
+                                <TableCell className="font-bold text-blue-600">{p.supplier?.name || "Lẻ (Chợ/Siêu thị)"}</TableCell>
+                                <TableCell>
+                                    <div className="flex gap-1 flex-wrap">
+                                        {p.items.map((item: any, idx: number) => (
+                                            <Badge key={idx} variant="outline" className="text-[10px] border-gray-100 bg-gray-50">{item.ingredient.name} x{item.quantity}</Badge>
+                                        ))}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right px-8 font-black text-orange-600 text-lg">
+                                    {p.totalAmount.toLocaleString("vi-VN")}đ
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                 </Table>
+                 {purchases.length === 0 && (
+                     <div className="py-32 text-center">
+                        <Receipt className="mx-auto w-12 h-12 text-gray-200 mb-4" />
+                        <p className="text-gray-400 font-bold text-xs uppercase tracking-widest">Chưa có phiếu mua hàng nào</p>
+                     </div>
+                 )}
+              </CardContent>
+           </Card>
+        </TabsContent>
+
+        <TabsContent value="stats">
+            <div className="bg-white rounded-[40px] p-20 text-center border-2 border-dashed border-gray-100">
+                <p className="text-gray-400 font-black uppercase tracking-widest">Biểu đồ thống kê đang được chuẩn bị...</p>
+            </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* MODAL: TẠO PHIẾU MUA HÀNG */}
+      <Dialog open={isPurchaseOpen} onOpenChange={setIsPurchaseOpen}>
+          <DialogContent className="max-w-3xl rounded-[40px] p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-gray-900 p-8 text-white">
+                  <DialogTitle className="text-2xl font-black">Phiếu mua nguyên liệu</DialogTitle>
+                  <p className="text-gray-400 text-sm mt-1 font-medium">Ghi lại hóa đơn nhập hàng thực tế</p>
               </div>
-          )}
-        </CardContent>
-      </Card>
+              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase text-gray-400">Ngày nhập hàng</Label>
+                          <Input type="date" value={newPurchase.purchaseDate} onChange={(e: any) => setNewPurchase({...newPurchase, purchaseDate: e.target.value})} className="h-12 rounded-xl" />
+                      </div>
+                      <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase text-gray-400">Nhà cung cấp</Label>
+                          <Select onValueChange={(v) => setNewPurchase({...newPurchase, supplierId: v})}>
+                              <SelectTrigger className="h-12 rounded-xl"><SelectValue placeholder="Chọn..." /></SelectTrigger>
+                              <SelectContent>
+                                  <SelectItem value="">Mua lẻ / Không có sẵn</SelectItem>
+                                  {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                              </SelectContent>
+                          </Select>
+                      </div>
+                  </div>
+
+                  <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-[10px] font-black uppercase text-gray-400">Danh sách nguyên liệu mua</Label>
+                        <Button variant="ghost" onClick={handleAddPurchaseItem} className="text-orange-600 font-bold text-xs h-8">+ Thêm món</Button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {newPurchase.items.map((item, idx) => (
+                            <div key={idx} className="flex gap-3 items-end bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <div className="flex-1 space-y-1">
+                                    <Select value={item.ingredientId} onValueChange={(v) => {
+                                        const items = [...newPurchase.items];
+                                        items[idx].ingredientId = v;
+                                        setNewPurchase({...newPurchase, items});
+                                    }}>
+                                        <SelectTrigger className="h-10 border-none bg-white"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {ingredients.map(i => <SelectItem key={i.id} value={i.id}>{i.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="w-20 space-y-1">
+                                    <Input type="number" value={item.quantity} onChange={(e: any) => {
+                                        const items = [...newPurchase.items];
+                                        items[idx].quantity = parseFloat(e.target.value);
+                                        setNewPurchase({...newPurchase, items});
+                                    }} className="h-10 text-center font-bold" />
+                                </div>
+                                <div className="w-32 space-y-1">
+                                    <Input type="number" placeholder="Đơn giá" value={item.unitPrice} onChange={(e: any) => {
+                                        const items = [...newPurchase.items];
+                                        items[idx].unitPrice = parseFloat(e.target.value);
+                                        setNewPurchase({...newPurchase, items});
+                                    }} className="h-10 text-right font-bold" />
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => {
+                                    const items = newPurchase.items.filter((_, i) => i !== idx);
+                                    setNewPurchase({...newPurchase, items});
+                                }} className="text-red-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                            </div>
+                        ))}
+                      </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase text-gray-400">Ghi chú (Tùy chọn)</Label>
+                      <Input value={newPurchase.notes} onChange={(e: any) => setNewPurchase({...newPurchase, notes: e.target.value})} className="h-12 rounded-xl" placeholder="Vd: Nợ tiền, hàng khuyến mãi..." />
+                  </div>
+              </div>
+              <div className="p-8 bg-gray-50 border-t flex justify-between items-center">
+                  <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tổng tiền phiếu</p>
+                      <p className="text-2xl font-black text-gray-900">
+                          {newPurchase.items.reduce((sum, i) => sum + (i.quantity * i.unitPrice), 0).toLocaleString("vi-VN")}đ
+                      </p>
+                  </div>
+                  <Button onClick={handleSavePurchase} className="bg-orange-600 h-14 px-10 rounded-2xl font-black text-lg shadow-xl shadow-orange-100">
+                      LƯU PHIẾU CHI
+                  </Button>
+              </div>
+          </DialogContent>
+      </Dialog>
+
+      {/* MODAL: QUẢN LÝ DANH MỤC NGUYÊN LIỆU */}
+      <Dialog open={isIngredientOpen} onOpenChange={setIsCategoryOpen}>
+          <DialogContent className="max-w-md rounded-[32px]">
+              <DialogHeader><DialogTitle className="text-2xl font-black">Danh mục Nguyên liệu</DialogTitle></DialogHeader>
+              <div className="py-4 space-y-6">
+                 <div className="bg-orange-50 p-4 rounded-2xl flex gap-2 items-end">
+                    <div className="flex-1 space-y-1">
+                        <Label className="text-[10px] font-bold">Tên nguyên liệu</Label>
+                        <Input id="new-ing-name" className="h-10 bg-white" placeholder="Vd: Thịt heo" />
+                    </div>
+                    <div className="w-20 space-y-1">
+                        <Label className="text-[10px] font-bold">Đơn vị</Label>
+                        <Input id="new-ing-unit" className="h-10 bg-white" placeholder="kg" />
+                    </div>
+                    <Button onClick={async () => {
+                        const name = (document.getElementById('new-ing-name') as HTMLInputElement).value;
+                        const unit = (document.getElementById('new-ing-unit') as HTMLInputElement).value;
+                        if (!name) return;
+                        await api.post("/ingredients", { name, unit });
+                        fetchData();
+                        (document.getElementById('new-ing-name') as HTMLInputElement).value = '';
+                    }} className="bg-gray-900 h-10 px-4 font-bold">THÊM</Button>
+                 </div>
+                 <div className="max-h-64 overflow-y-auto space-y-2">
+                    {ingredients.map(i => (
+                        <div key={i.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <span className="font-bold text-gray-700">{i.name} ({i.unit})</span>
+                            <Button variant="ghost" size="icon" onClick={async () => {
+                                await api.delete(`/ingredients/${i.id}`);
+                                fetchData();
+                            }} className="text-gray-300 hover:text-red-500 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
+                        </div>
+                    ))}
+                 </div>
+              </div>
+          </DialogContent>
+      </Dialog>
+
+      {/* MODAL: QUẢN LÝ NHÀ CUNG CẤP */}
+      <Dialog open={isSupplierOpen} onOpenChange={setIsSupplierOpen}>
+          <DialogContent className="max-w-md rounded-[32px]">
+              <DialogHeader><DialogTitle className="text-2xl font-black">Nhà cung cấp</DialogTitle></DialogHeader>
+              <div className="py-4 space-y-6">
+                 <div className="bg-blue-50 p-4 rounded-2xl space-y-3">
+                    <Input id="new-sup-name" placeholder="Tên nhà cung cấp" className="h-10 bg-white border-none shadow-sm" />
+                    <Input id="new-sup-phone" placeholder="Số điện thoại" className="h-10 bg-white border-none shadow-sm" />
+                    <Button onClick={async () => {
+                        const name = (document.getElementById('new-sup-name') as HTMLInputElement).value;
+                        const phone = (document.getElementById('new-sup-phone') as HTMLInputElement).value;
+                        if (!name) return;
+                        await api.post("/suppliers", { name, phone });
+                        fetchData();
+                        (document.getElementById('new-sup-name') as HTMLInputElement).value = '';
+                        (document.getElementById('new-sup-phone') as HTMLInputElement).value = '';
+                    }} className="w-full bg-gray-900 font-bold h-10">ĐĂNG KÝ NHÀ CUNG CẤP</Button>
+                 </div>
+                 <div className="max-h-64 overflow-y-auto space-y-2">
+                    {suppliers.map(s => (
+                        <div key={s.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center">
+                            <div>
+                                <p className="font-bold text-gray-900">{s.name}</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase">{s.phone || "N/A"}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="text-gray-300 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
+                        </div>
+                    ))}
+                 </div>
+              </div>
+          </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -24,7 +24,7 @@ const navItems = [
   { icon: ShoppingBag, label: "Orders History", path: "/owner/orders" },
   { icon: Store, label: "Branches", path: "/owner/branches" },
   { icon: Users, label: "Employees", path: "/owner/employees" },
-  { icon: Package, label: "Inventory", path: "/owner/inventory" },
+  { icon: Package, label: "Chi tiêu & Nhập hàng", path: "/owner/inventory" },
   { icon: Utensils, label: "Menu", path: "/owner/menu" },
   { icon: Table2, label: "Tables", path: "/owner/tables" },
   { icon: Users, label: "Customers", path: "/owner/customers" },
