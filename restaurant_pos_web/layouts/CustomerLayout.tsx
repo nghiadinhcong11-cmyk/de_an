@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Home, UtensilsCrossed, ShoppingBag, User, LogOut } from "lucide-react";
 import { authApi } from "../services/authApi";
 import { Button } from "../components/ui/button";
+import api from "../services/api";
 
 const navItems = [
   { icon: Home, label: "Khám phá", path: "/customer" },
@@ -14,7 +16,28 @@ export default function CustomerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const [userProfile, setUserProfile] = useState<any>(null);
   const currentTableId = localStorage.getItem("current_table_id");
+
+  useEffect(() => {
+    // Load local profile first
+    const localProfile = localStorage.getItem("user_profile");
+    if (localProfile) {
+      setUserProfile(JSON.parse(localProfile));
+    }
+
+    // Refresh profile from API
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/customers/me");
+        setUserProfile(res.data);
+        localStorage.setItem("user_profile", JSON.stringify(res.data));
+      } catch (err) {
+        console.error("Could not refresh profile in layout");
+      }
+    };
+    fetchProfile();
+  }, [location.pathname]); // Refresh when navigating
 
   const handleLogout = () => {
     if (confirm("Bạn muốn đăng xuất?")) {
@@ -60,8 +83,8 @@ export default function CustomerLayout() {
              <div className="hidden md:flex items-center gap-3 mr-2">
                 {user.fullName && (
                   <div className="text-right">
-                    <p className="text-xs font-black text-gray-900 leading-none">{user.fullName}</p>
-                    <p className="text-[10px] text-orange-600 font-bold uppercase mt-1">{user.points || 0} Điểm</p>
+                    <p className="text-xs font-black text-gray-900 leading-none">{userProfile?.fullName || user.fullName}</p>
+                    <p className="text-[10px] text-orange-600 font-bold uppercase mt-1">{userProfile?.points || 0} Điểm</p>
                   </div>
                 )}
              </div>

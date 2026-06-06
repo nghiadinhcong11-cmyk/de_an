@@ -78,7 +78,9 @@ export function OwnerLoyalty() {
                       <div className="text-xs text-gray-400 font-medium">{c.phoneNumber}</div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className={`${level.color} border-none font-bold uppercase text-[10px]`}>{level.label}</Badge>
+                      <div className={`${level.color} px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block`}>
+                        {level.label}
+                      </div>
                     </TableCell>
                     <TableCell className="text-center font-black text-orange-600">{c.points.toLocaleString("vi-VN")} điểm</TableCell>
                     <TableCell className="text-center font-bold text-gray-600">{(c.totalSpent || 0).toLocaleString("vi-VN")}đ</TableCell>

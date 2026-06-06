@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
+import '../utils/currency_util.dart';
 
 class POSScreen extends StatefulWidget {
   const POSScreen({super.key});
@@ -129,7 +130,7 @@ class _POSScreenState extends State<POSScreen> {
                                   children: [
                                     Text(product.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 4),
-                                    Text('${product.price.toStringAsFixed(0)}đ', style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.w900, fontSize: 16)),
+                                    Text(CurrencyUtil.format(product.price), style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.w900, fontSize: 16)),
                                     const SizedBox(height: 12),
                                     
                                     if (qty == 0) 

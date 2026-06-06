@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { QrCode, ArrowRight, Star, TrendingUp, Gift, Utensils, MapPin, Phone as PhoneIcon, Loader2 } from "lucide-react";
+import { QrCode, ArrowRight, Star, TrendingUp, Gift, Utensils, MapPin, Phone as PhoneIcon, Loader2, Store } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerWelcome() {
@@ -70,7 +70,7 @@ export function CustomerWelcome() {
 
         {loading ? (
           <div className="flex justify-center py-20"><Loader2 className="animate-spin text-orange-600 w-12 h-12" /></div>
-        ) : (
+        ) : branches.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {branches.map(branch => (
               <Card key={branch.id} className="border-none shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[40px] overflow-hidden bg-white group border border-gray-50">
@@ -99,7 +99,7 @@ export function CustomerWelcome() {
                       </div>
                     </div>
                     <Button
-                      onClick={() => navigate(`/customer/menu?restaurantId=${user.restaurantId || branch.restaurantId}&branchName=${encodeURIComponent(branch.name)}`)}
+                      onClick={() => navigate(`/customer/menu?restaurantId=${branch.restaurantId || user.restaurantId}&branchName=${encodeURIComponent(branch.name)}`)}
                       className="w-full mt-6 h-14 rounded-2xl bg-gray-900 hover:bg-orange-600 text-white font-black transition-all shadow-lg"
                     >
                       XEM THỰC ĐƠN TẠI ĐÂY
@@ -108,6 +108,23 @@ export function CustomerWelcome() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center bg-white rounded-[40px] border-2 border-dashed border-gray-100 shadow-inner">
+             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                <Store className="w-10 h-10" />
+             </div>
+             <h3 className="text-xl font-black text-gray-900 mb-2">Chưa có chi nhánh khả dụng</h3>
+             <p className="text-gray-400 font-medium max-w-xs mx-auto">
+                Hiện tại chúng tôi đang cập nhật danh sách cơ sở. Vui lòng quay lại sau ít phút.
+             </p>
+             <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="mt-8 rounded-xl border-gray-200 font-bold"
+             >
+                Tải lại trang
+             </Button>
           </div>
         )}
       </div>

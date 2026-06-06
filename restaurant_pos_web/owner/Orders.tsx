@@ -92,11 +92,11 @@ export function OwnerOrders() {
                         </TableCell>
                         <TableCell className="font-black text-gray-900">{order.totalAmount.toLocaleString("vi-VN")}đ</TableCell>
                         <TableCell>
-                           <Badge variant="outline" className={`font-bold border-none uppercase text-[10px] ${
+                           <div className={`px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block ${
                               order.status === 'Completed' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-600'
                            }`}>
                               {order.status === 'Completed' ? 'Hoàn tất' : 'Đang xử lý'}
-                           </Badge>
+                           </div>
                         </TableCell>
                         <TableCell className="text-right">
                            <Button
@@ -141,12 +141,12 @@ export function OwnerOrders() {
                     <p className="font-black text-gray-900">{selectedOrder?.customerName}</p>
                     <p className="text-xs text-gray-500 font-medium">{selectedOrder?.customerPhone || "Khách vãng lai"}</p>
                  </div>
-                 <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Phương thức</p>
-                    <Badge className="bg-blue-50 text-blue-700 border-none font-bold uppercase text-[10px]">
-                       {selectedOrder?.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chờ thu tiền'}
-                    </Badge>
-                 </div>
+                    <div className="text-right">
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Phương thức</p>
+                       <div className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block">
+                          {selectedOrder?.paymentStatus === 'Paid' ? 'Đã thanh toán' : 'Chờ thu tiền'}
+                       </div>
+                    </div>
               </div>
 
               <div className="space-y-4">

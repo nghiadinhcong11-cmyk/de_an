@@ -18,19 +18,45 @@ public class BranchesController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("public")]
-    public async Task<IActionResult> GetPublicBranches([FromQuery] Guid restaurantId)
+    public async Task<IActionResult> GetPublicBranches([FromQuery] Guid? restaurantId)
     {
-        var branches = await _context.Branches
-            .Where(b => b.RestaurantId == restaurantId && b.IsActive)
+        var query = _context.Branches.Where(b => b.IsActive);
+
+        if (restaurantId.HasValue && restaurantId.Value != Guid.Empty)
+        {
+            query = query.Where(b => b.RestaurantId == restaurantId.Value);
+        }
+
+        var branches = await query
             .Select(b => new BranchDto
             {
                 Id = b.Id,
+                RestaurantId = b.RestaurantId,
                 Name = b.Name,
                 Address = b.Address,
                 Phone = b.Phone,
                 IsActive = b.IsActive
             })
             .ToListAsync();
+
+        // Fallback: Nếu không tìm thấy chi nhánh nào của nhà hàng cụ thể,
+        // trả về các chi nhánh active bất kỳ (để trang chủ không bị trống trong bản Demo)
+        if (branches.Count == 0)
+        {
+            branches = await _context.Branches
+                .Where(b => b.IsActive)
+                .Take(10)
+                .Select(b => new BranchDto
+                {
+                    Id = b.Id,
+                    RestaurantId = b.RestaurantId,
+                    Name = b.Name,
+                    Address = b.Address,
+                    Phone = b.Phone,
+                    IsActive = b.IsActive
+                })
+                .ToListAsync();
+        }
 
         return Ok(branches);
     }
@@ -48,6 +74,7 @@ public class BranchesController : ControllerBase
             .Select(b => new BranchDto
             {
                 Id = b.Id,
+                RestaurantId = b.RestaurantId,
                 Name = b.Name,
                 Address = b.Address,
                 Phone = b.Phone,

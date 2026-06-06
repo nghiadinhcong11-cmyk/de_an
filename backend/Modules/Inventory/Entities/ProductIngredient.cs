@@ -10,6 +10,6 @@ public class ProductIngredient : BaseEntity
     public decimal Quantity { get; set; }
 
     // Navigation Properties
-    public Product Product { get; set; } = null!;
-    public Ingredient Ingredient { get; set; } = null!;
+    public Product? Product { get; set; }
+    public Ingredient? Ingredient { get; set; }
 }

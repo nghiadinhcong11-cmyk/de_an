@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
 import '../models/order.dart';
 import 'order_details_screen.dart';
+import '../utils/currency_util.dart';
 
 class OrdersListScreen extends StatefulWidget {
   const OrdersListScreen({super.key});
@@ -102,7 +103,7 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                '\$${order.totalAmount.toStringAsFixed(2)}',
+                                CurrencyUtil.format(order.totalAmount),
                                 style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black),
                               ),
                               const Text('Tổng cộng', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey)),

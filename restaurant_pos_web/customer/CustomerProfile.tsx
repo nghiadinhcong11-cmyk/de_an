@@ -145,7 +145,9 @@ export function CustomerProfile() {
               <p className="text-[10px] font-black uppercase opacity-70">Điểm hiện có</p>
               <p className="text-3xl font-black tracking-tighter">{profile?.points?.toLocaleString()}</p>
             </div>
-            <Badge className="bg-white text-orange-600 font-bold border-none">Hạng Vàng</Badge>
+            <div className="bg-white text-orange-600 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+              Hạng Vàng
+            </div>
           </CardContent>
         </Card>
       </div>

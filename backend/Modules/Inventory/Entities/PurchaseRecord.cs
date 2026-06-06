@@ -25,6 +25,6 @@ public class PurchaseItem : BaseEntity
     public decimal Amount { get; set; }
 
     // Navigation
-    public PurchaseRecord PurchaseRecord { get; set; } = null!;
-    public Ingredient Ingredient { get; set; } = null!;
+    public PurchaseRecord? PurchaseRecord { get; set; }
+    public Ingredient? Ingredient { get; set; }
 }

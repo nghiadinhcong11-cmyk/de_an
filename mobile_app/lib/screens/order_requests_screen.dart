@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/order_provider.dart';
+import '../utils/currency_util.dart';
 
 class OrderRequestsScreen extends StatefulWidget {
   const OrderRequestsScreen({super.key});
@@ -61,7 +62,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                             style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                           subtitle: Text(
-                            'Tổng: \$${order.totalAmount.toStringAsFixed(2)} • Chờ xác nhận',
+                            'Tổng: ${CurrencyUtil.format(order.totalAmount)} • Chờ xác nhận',
                             style: const TextStyle(fontSize: 12),
                           ),
                           children: [
@@ -76,7 +77,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text('${item.quantity}x ${item.productName}', style: const TextStyle(fontWeight: FontWeight.w500)),
-                                            Text('\$${(item.unitPrice * item.quantity).toStringAsFixed(2)}'),
+                                            Text(CurrencyUtil.format(item.unitPrice * item.quantity)),
                                           ],
                                         ),
                                       )),
@@ -86,7 +87,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
                                     children: [
                                       const Text('Tổng cộng', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
                                       Text(
-                                        '\$${order.totalAmount.toStringAsFixed(2)}',
+                                        CurrencyUtil.format(order.totalAmount),
                                         style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.orange.shade800),
                                       ),
                                     ],

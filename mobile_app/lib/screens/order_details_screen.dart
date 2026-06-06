@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/order.dart';
 import '../providers/order_provider.dart';
+import '../utils/currency_util.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final OrderModel order;
@@ -79,7 +80,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('${item.quantity}x ${item.productName}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text('${(item.unitPrice * item.quantity).toStringAsFixed(0)}đ'),
+                  Text(CurrencyUtil.format(item.unitPrice * item.quantity)),
                 ],
               ),
             )),
@@ -121,7 +122,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('TỔNG CỘNG', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-                Text('${widget.order.totalAmount.toStringAsFixed(0)}đ',
+                Text(CurrencyUtil.format(widget.order.totalAmount),
                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: Colors.orange)),
               ],
             ),
@@ -273,8 +274,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   const Text('Chưa cấu hình tài khoản nhận tiền'),
                 const SizedBox(height: 10),
                 if ((result['discountAmount'] ?? 0) > 0)
-                    Text('Giảm giá: -${result['discountAmount']}đ', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                Text('Tổng thanh toán: ${result['totalAmount']}đ', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    Text('Giảm giá: -${CurrencyUtil.format((result['discountAmount'] ?? 0).toDouble())}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                Text('Tổng thanh toán: ${CurrencyUtil.format((result['totalAmount'] ?? 0).toDouble())}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ],
             ),
           ),
@@ -364,7 +365,7 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                Text('\$${p.price.toStringAsFixed(2)}', style: TextStyle(color: Colors.orange.shade800, fontSize: 12)),
+                                Text(CurrencyUtil.format(p.price), style: TextStyle(color: Colors.orange.shade800, fontSize: 12)),
                               ],
                             ),
                           ),

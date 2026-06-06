@@ -140,14 +140,14 @@ export function OwnerEmployees() {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <Badge variant="outline" className={`font-bold border-none ${
+                                <div className={`px-2 py-0.5 rounded-full font-bold text-[10px] inline-block ${
                                     emp.roleName === 'Owner' ? 'bg-purple-50 text-purple-600' :
                                     emp.roleName === 'Manager' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'
                                 }`}>
                                     {emp.roleName === 'Owner' ? 'Chủ quán' :
                                      emp.roleName === 'Manager' ? 'Quản lý' :
                                      emp.roleName === 'Cashier' ? 'Thu ngân' : 'Phục vụ'}
-                                </Badge>
+                                </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-1.5 text-gray-600 font-bold text-xs">
@@ -155,7 +155,7 @@ export function OwnerEmployees() {
                                     {emp.branchName}
                                 </div>
                             </TableCell>
-                            <TableCell><Badge className="bg-green-50 text-green-700 border-none font-bold uppercase text-[10px]">Đang làm việc</Badge></TableCell>
+                            <TableCell><div className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block">Đang làm việc</div></TableCell>
                             <TableCell className="text-right">
                                <div className="flex justify-end gap-1">
                                   <Button onClick={() => handleEditClick(emp)} variant="ghost" size="icon" className="h-8 w-8 text-gray-300 hover:text-orange-600 transition-colors"><Edit className="w-4 h-4" /></Button>
