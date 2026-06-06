@@ -111,9 +111,9 @@ export function EmployeeOrders() {
                 <CardContent className="p-6">
                   <div className="mb-6">
                     <div className="text-3xl font-black text-gray-900 tracking-tighter">Bàn {req.tableNumber}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Khách vãng lai</p>
+                    <div className="flex flex-col gap-1 mt-2">
+                        <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{req.branchName}</p>
+                        <p className="text-[9px] text-gray-400 truncate">{req.branchAddress}</p>
                     </div>
                   </div>
 

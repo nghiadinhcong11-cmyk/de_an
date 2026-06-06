@@ -88,8 +88,16 @@ export function CustomerOrders() {
                      <div>
                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Mã đơn hàng</div>
                         <div className="font-black text-2xl text-gray-900 leading-none">#{order.orderNumber.split('-')[1]}</div>
-                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-400 font-medium">
-                           <Calendar className="w-3 h-3" /> {new Date(order.createdAtUtc).toLocaleDateString("vi-VN")}
+                        <div className="flex flex-col gap-1 mt-2">
+                           <div className="flex items-center gap-2 text-xs text-gray-400 font-bold uppercase">
+                              <ShoppingBag className="w-3 h-3 text-orange-600" /> {order.branchName}
+                           </div>
+                           <div className="flex items-center gap-2 text-[10px] text-gray-400 font-medium truncate max-w-[200px]">
+                              {order.branchAddress}
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+                              <Calendar className="w-3 h-3" /> {new Date(order.createdAtUtc).toLocaleDateString("vi-VN")}
+                           </div>
                         </div>
                      </div>
                   </div>

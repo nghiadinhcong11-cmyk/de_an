@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Label } from "../components/ui/label";
-import { Search, Edit, Trash2, CheckCircle, XCircle, Loader2, UserPlus, MapPin, ShieldCheck } from "lucide-react";
+import { Search, Edit, Trash2, CheckCircle, XCircle, Loader2, UserPlus, MapPin, ShieldCheck, Lock, Unlock } from "lucide-react";
 import api from "../services/api";
 
 export function OwnerEmployees() {
@@ -22,8 +22,16 @@ export function OwnerEmployees() {
 
   // Edit employee state
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [editForm, setEditForm] = useState({ branchId: "", roleName: "" });
+  const [addForm, setAddForm] = useState({
+      fullName: "",
+      username: "",
+      password: "",
+      roleName: "Waiter",
+      branchId: "all"
+  });
 
   const fetchData = async () => {
     try {
@@ -38,12 +46,33 @@ export function OwnerEmployees() {
       setPendingRequests(reqRes.data);
       setBranches(branchRes.data);
       setRoles(rolesRes.data);
+
+      if (branchRes.data.length > 0 && addForm.branchId === "all") {
+          setAddForm(prev => ({ ...prev, branchId: branchRes.data[0].id }));
+      }
     } catch (err) {
         console.error("Lỗi lấy dữ liệu nhân viên");
     } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const handleAddEmployee = async () => {
+      if (!addForm.fullName || !addForm.username || !addForm.password) {
+          return alert("Vui lòng nhập đầy đủ thông tin bắt buộc");
+      }
+      try {
+          await api.post("/users", {
+              ...addForm,
+              branchId: addForm.branchId === "all" ? null : addForm.branchId
+          });
+          setIsAddOpen(false);
+          setAddForm({ fullName: "", username: "", password: "", roleName: "Waiter", branchId: "all" });
+          fetchData();
+      } catch (err: any) {
+          alert(err.response?.data?.message || "Lỗi khi tạo nhân viên");
+      }
+  };
 
   const handleApprove = async (id: string) => {
     try {
@@ -58,6 +87,25 @@ export function OwnerEmployees() {
           await api.delete(`/users/reject/${id}`);
           fetchData();
         } catch { alert("Lỗi khi từ chối"); }
+    }
+  };
+
+  const handleToggleLock = async (id: string) => {
+    try {
+      await api.post(`/users/toggle-active/${id}`);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Lỗi khi thay đổi trạng thái");
+    }
+  };
+
+  const handleDeleteEmployee = async (id: string) => {
+    if (!confirm("Xác nhận XÓA VĨNH VIỄN nhân viên này khỏi hệ thống? Thao tác này không thể hoàn tác.")) return;
+    try {
+      await api.delete(`/users/delete/${id}`);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Lỗi khi xóa nhân viên");
     }
   };
 
@@ -92,7 +140,56 @@ export function OwnerEmployees() {
           <h1 className="text-2xl font-black">Quản lý đội ngũ</h1>
           <p className="text-gray-500">Phê duyệt và quản lý tài khoản nhân viên</p>
         </div>
-        <Button className="bg-orange-600 font-bold shadow-lg shadow-orange-100 w-full sm:w-auto"><UserPlus className="w-4 h-4 mr-2" /> Thêm nhân viên</Button>
+        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <Button onClick={() => setIsAddOpen(true)} className="bg-orange-600 font-bold shadow-lg shadow-orange-100 w-full sm:w-auto">
+                <UserPlus className="w-4 h-4 mr-2" /> Thêm nhân viên
+            </Button>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-2xl font-black">Thêm nhân viên mới</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-gray-400">Họ và tên</Label>
+                        <Input value={addForm.fullName} onChange={(e: any) => setAddForm({...addForm, fullName: e.target.value})} placeholder="Vd: Nguyễn Văn A" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-gray-400">Tên đăng nhập</Label>
+                            <Input value={addForm.username} onChange={(e: any) => setAddForm({...addForm, username: e.target.value})} placeholder="Vd: nva_waiter" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[10px] font-black uppercase text-gray-400">Mật khẩu</Label>
+                            <Input type="password" value={addForm.password} onChange={(e: any) => setAddForm({...addForm, password: e.target.value})} placeholder="••••••" />
+                        </div>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-gray-400">Vai trò</Label>
+                        <Select value={addForm.roleName} onValueChange={(val) => setAddForm({...addForm, roleName: val})}>
+                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                {roles.filter(r => r.name !== 'Owner').map(r => (
+                                    <SelectItem key={r.id} value={r.name}>{r.name === 'Manager' ? 'Quản lý' : r.name === 'Cashier' ? 'Thu ngân' : 'Phục vụ'}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase text-gray-400">Chi nhánh làm việc</Label>
+                        <Select value={addForm.branchId} onValueChange={(val) => setAddForm({...addForm, branchId: val})}>
+                            <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Toàn hệ thống</SelectItem>
+                                {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button onClick={handleAddEmployee} className="w-full bg-orange-600 h-12 font-black mt-4 rounded-xl shadow-lg shadow-orange-100">
+                        TẠO TÀI KHOẢN
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
       </div>
 
       <Tabs defaultValue="list">
@@ -155,11 +252,27 @@ export function OwnerEmployees() {
                                     {emp.branchName}
                                 </div>
                             </TableCell>
-                            <TableCell><div className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block">Đang làm việc</div></TableCell>
+                            <TableCell>
+                              {emp.isActive ? (
+                                <div className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block">Đang làm việc</div>
+                              ) : (
+                                <div className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase text-[10px] inline-block whitespace-nowrap flex items-center gap-1">
+                                  <Lock className="w-2.5 h-2.5" /> Tài khoản bị khóa
+                                </div>
+                              )}
+                            </TableCell>
                             <TableCell className="text-right">
                                <div className="flex justify-end gap-1">
-                                  <Button onClick={() => handleEditClick(emp)} variant="ghost" size="icon" className="h-8 w-8 text-gray-300 hover:text-orange-600 transition-colors"><Edit className="w-4 h-4" /></Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></Button>
+                                  <Button
+                                    onClick={() => handleToggleLock(emp.id)}
+                                    variant="ghost" size="icon"
+                                    title={emp.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
+                                    className={`h-8 w-8 transition-colors ${emp.isActive ? 'text-gray-300 hover:text-orange-600' : 'text-orange-600 hover:text-green-600'}`}
+                                  >
+                                    {emp.isActive ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                                  </Button>
+                                  <Button onClick={() => handleEditClick(emp)} variant="ghost" size="icon" title="Chỉnh sửa" className="h-8 w-8 text-gray-300 hover:text-blue-600 transition-colors"><Edit className="w-4 h-4" /></Button>
+                                  <Button onClick={() => handleDeleteEmployee(emp.id)} variant="ghost" size="icon" title="Xóa vĩnh viễn" className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></Button>
                                </div>
                             </TableCell>
                          </TableRow>

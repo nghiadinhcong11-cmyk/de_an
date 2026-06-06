@@ -20,7 +20,7 @@ public class UsersController : ControllerBase
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
         var users = await _context.Users
-            .Where(u => u.RestaurantId == restaurantId && u.IsActive == true)
+            .Where(u => u.RestaurantId == restaurantId && u.IsApproved == true)
             .Select(u => new {
                 u.Id,
                 u.Username,
@@ -36,7 +36,43 @@ public class UsersController : ControllerBase
                     .FirstOrDefault() ?? "Nhân viên"
             })
             .ToListAsync();
+
         return Ok(users);
+    }
+
+    [HttpDelete("delete/{userId}")]
+    public async Task<IActionResult> DeleteEmployee(Guid userId)
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && u.RestaurantId == restaurantId);
+        if (user == null) return NotFound();
+
+        // Không cho phép xóa chính mình (Owner)
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (userId == currentUserId) return BadRequest("Không thể xóa tài khoản của chính mình");
+
+        // Xóa các bản ghi liên quan (UserRoles)
+        var userRoles = _context.UserRoles.Where(ur => ur.UserId == userId);
+        _context.UserRoles.RemoveRange(userRoles);
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Đã xóa nhân viên thành công" });
+    }
+
+    [HttpPost("toggle-active/{userId}")]
+    public async Task<IActionResult> ToggleActive(Guid userId)
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && u.RestaurantId == restaurantId);
+        if (user == null) return NotFound();
+
+        var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (userId == currentUserId) return BadRequest("Không thể tự khóa tài khoản của mình");
+
+        user.IsActive = !user.IsActive;
+        await _context.SaveChangesAsync();
+        return Ok(new { message = user.IsActive ? "Đã mở khóa tài khoản" : "Đã khóa tài khoản" });
     }
 
     [HttpGet("pending-requests")]
@@ -44,7 +80,7 @@ public class UsersController : ControllerBase
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
         var pendingUsers = await _context.Users
-            .Where(u => u.RestaurantId == restaurantId && u.IsActive == false)
+            .Where(u => u.RestaurantId == restaurantId && u.IsApproved == false)
             .Select(u => new {
                 u.Id,
                 u.Username,
@@ -122,6 +158,47 @@ public class UsersController : ControllerBase
         public string? AvatarUrl { get; set; }
     }
 
+    [HttpPost]
+    public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeRequest request)
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+
+        if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            return BadRequest(new { message = "Tên đăng nhập đã tồn tại" });
+
+        var user = new User
+        {
+            RestaurantId = restaurantId,
+            BranchId = request.BranchId,
+            Username = request.Username,
+            FullName = request.FullName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            IsActive = true,
+            IsApproved = true
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName);
+        if (role != null)
+        {
+            _context.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
+            await _context.SaveChangesAsync();
+        }
+
+        return Ok(new { message = "Tạo nhân viên thành công" });
+    }
+
+    public class CreateEmployeeRequest
+    {
+        public string FullName { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string RoleName { get; set; } = string.Empty;
+        public Guid? BranchId { get; set; }
+    }
+
     [HttpPut("{userId}")]
     public async Task<IActionResult> UpdateEmployee(Guid userId, [FromBody] UpdateEmployeeRequest request)
     {
@@ -163,6 +240,7 @@ public class UsersController : ControllerBase
         if (user == null) return NotFound();
 
         user.IsActive = true;
+        user.IsApproved = true;
         await _context.SaveChangesAsync();
         return Ok(new { message = "Đã duyệt nhân viên thành công" });
     }

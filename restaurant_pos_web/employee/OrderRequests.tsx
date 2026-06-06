@@ -96,8 +96,13 @@ export function EmployeeOrderRequests() {
              <CardContent className="pt-6 space-y-5">
                 <div className="border-b border-gray-50 pb-4">
                    <div className="text-3xl font-black text-gray-900 tracking-tighter">Bàn {req.tableNumber}</div>
-                   <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold mt-1 uppercase">
-                       <User className="w-3 h-3" /> {req.customerName || "Khách vãng lai"}
+                   <div className="flex flex-col gap-1 mt-1">
+                       <div className="flex items-center gap-1 text-[9px] text-gray-400 font-bold uppercase">
+                           <ShoppingBag className="w-2.5 h-2.5" /> {req.branchName}
+                       </div>
+                       <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase">
+                           <User className="w-3 h-3" /> {req.customerName || "Khách vãng lai"}
+                       </div>
                    </div>
                 </div>
 

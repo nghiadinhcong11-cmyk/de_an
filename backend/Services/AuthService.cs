@@ -118,7 +118,8 @@ public class AuthService : IAuthService
                 FullName = request.FullName,
                 Email = request.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                IsActive = true
+                IsActive = true,
+                IsApproved = true
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -149,7 +150,8 @@ public class AuthService : IAuthService
             Username = request.Username,
             FullName = request.FullName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            IsActive = false
+            IsActive = false,
+            IsApproved = false
         };
 
         _context.Users.Add(user);

@@ -13,5 +13,6 @@ public class User : BaseEntity
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool IsApproved { get; set; } = true; // Thêm trường này
     public DateTime? LastLoginUtc { get; set; }
 }

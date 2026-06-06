@@ -40,6 +40,7 @@ public class OrdersController : ControllerBase
                 .ThenInclude(oi => oi.Product)
             .Include(o => o.Customer)
             .Include(o => o.Table)
+            .Include(o => o.Branch)
             .Where(o => o.RestaurantId == restaurantId);
 
         // Nếu là nhân viên, chỉ xem đơn của chi nhánh mình
@@ -62,6 +63,8 @@ public class OrdersController : ControllerBase
                 o.CreatedAtUtc,
                 o.TableId,
                 TableNumber = o.Table.TableNumber,
+                BranchName = o.Branch.Name,
+                BranchAddress = o.Branch.Address,
                 CustomerName = o.Customer != null ? o.Customer.FullName : "Khách vãng lai",
                 CustomerPhone = o.Customer != null ? o.Customer.PhoneNumber : null,
                 Items = o.OrderItems.Select(oi => new {
@@ -164,8 +167,27 @@ public class OrdersController : ControllerBase
         var orders = await _context.Orders
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
+            .Include(o => o.Branch)
+            .Include(o => o.Table)
             .Where(o => o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAtUtc)
+            .Select(o => new {
+                o.Id,
+                o.OrderNumber,
+                o.Status,
+                o.PaymentStatus,
+                o.TotalAmount,
+                o.CreatedAtUtc,
+                BranchName = o.Branch.Name,
+                BranchAddress = o.Branch.Address,
+                TableNumber = o.Table.TableNumber,
+                OrderItems = o.OrderItems.Select(oi => new {
+                    oi.Id,
+                    oi.Quantity,
+                    oi.TotalPrice,
+                    Product = new { oi.Product.Name }
+                })
+            })
             .ToListAsync();
 
         return Ok(orders);
@@ -222,6 +244,8 @@ public class OrdersController : ControllerBase
                 o.PaymentStatus,
                 o.TotalAmount,
                 TableNumber = o.Table.TableNumber,
+                BranchName = o.Branch.Name,
+                BranchAddress = o.Branch.Address,
                 Items = o.OrderItems.Select(oi => new {
                     ProductName = oi.Product.Name,
                     oi.Quantity,

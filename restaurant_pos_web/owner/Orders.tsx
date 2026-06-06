@@ -66,6 +66,7 @@ export function OwnerOrders() {
              <Table>
                 <TableHeader className="bg-gray-50/50"><TableRow>
                    <TableHead className="font-bold">Mã đơn</TableHead>
+                   <TableHead className="font-bold">Cơ sở</TableHead>
                    <TableHead className="font-bold">Thời gian</TableHead>
                    <TableHead className="font-bold">Bàn</TableHead>
                    <TableHead className="font-bold">Khách hàng</TableHead>
@@ -77,6 +78,10 @@ export function OwnerOrders() {
                    {filteredOrders.map(order => (
                      <TableRow key={order.id} className="hover:bg-gray-50/50 transition-colors">
                         <TableCell className="font-black text-xs">#{order.orderNumber}</TableCell>
+                        <TableCell>
+                           <div className="font-bold text-xs text-gray-900">{order.branchName}</div>
+                           <div className="text-[10px] text-gray-400 truncate max-w-[150px]">{order.branchAddress}</div>
+                        </TableCell>
                         <TableCell className="text-gray-500 text-xs">
                            <div className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(order.createdAtUtc).toLocaleString("vi-VN")}</div>
                         </TableCell>
@@ -130,7 +135,7 @@ export function OwnerOrders() {
                  Chi tiết đơn hàng #{selectedOrder?.orderNumber.split('-').pop()}
               </DialogTitle>
               <DialogDescription className="font-bold text-gray-400">
-                 Bàn {selectedOrder?.tableNumber} • {selectedOrder && new Date(selectedOrder.createdAtUtc).toLocaleString("vi-VN")}
+                 {selectedOrder?.branchName} • {selectedOrder?.branchAddress && <span>{selectedOrder.branchAddress} • </span>} Bàn {selectedOrder?.tableNumber} • {selectedOrder && new Date(selectedOrder.createdAtUtc).toLocaleString("vi-VN")}
               </DialogDescription>
            </DialogHeader>
 
