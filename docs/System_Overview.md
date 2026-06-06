@@ -32,3 +32,18 @@ Hệ thống được thiết kế theo kiến trúc **Modular Monolith**, giúp
 ### Module Payment & Analytics ✅
 - **Payment**: Tích hợp VietQR động cá nhân hóa theo từng chi nhánh. Hỗ trợ áp dụng Voucher và tích điểm CRM ngay khi thanh toán.
 - **Reports**: Báo cáo doanh thu thời gian thực, thống kê nhanh theo ca (Shift Summary) cho nhân viên.
+
+### Module CRM & Feedback ✅
+- **Loyalty**: Hệ thống tích điểm (10.000đ = 1 điểm) và đổi điểm lấy mã giảm giá trực tiếp trên trang cá nhân.
+- **Feedback**: Nhận góp ý từ khách hàng vãng lai/thành viên và quản lý tập trung tại Dashboard chủ quán.
+
+### Module Quản lý Chi phí Nguyên liệu ✅
+- **Mục tiêu**: Tập trung vào quản lý dòng tiền và lợi nhuận thực tế thay vì quản lý tồn kho ảo.
+- **Tính năng**: Quản lý danh mục nguyên liệu hay dùng, danh sách nhà cung cấp, và ghi chép phiếu nhập hàng/chi phí mua hàng thực tế.
+- **Phân tích**: Tự động trừ chi phí nhập hàng vào báo cáo lợi nhuận tổng của nhà hàng.
+
+## 3. Quy trình Triển khai (Render)
+- **Backend**: Tự động build từ thư mục `backend/` thông qua Dockerfile hoặc Native .NET.
+- **Frontend**: Triển khai như ứng dụng Static Site từ thư mục `restaurant_pos_web/`.
+- **Database**: PostgreSQL Hosted trên Render/Neon.
+

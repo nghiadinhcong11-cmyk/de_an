@@ -65,13 +65,30 @@ export function OwnerInventory() {
   };
 
   const handleSavePurchase = async () => {
-      if (newPurchase.items.length === 0) return alert("Vui lòng chọn ít nhất 1 mặt hàng");
-      try {
-          await api.post("/purchases", newPurchase);
-          setIsPurchaseOpen(false);
-          setNewPurchase({ ...newPurchase, items: [], notes: '' });
-          fetchData();
-      } catch { alert("Lỗi khi lưu phiếu mua hàng"); }
+    if (newPurchase.items.length === 0) return alert("Vui lòng chọn ít nhất 1 mặt hàng");
+    if (!newPurchase.branchId) return alert("Vui lòng chọn chi nhánh");
+
+    try {
+        const payload = {
+            ...newPurchase,
+            supplierId: newPurchase.supplierId === "" ? null : newPurchase.supplierId,
+            purchaseDate: new Date(newPurchase.purchaseDate).toISOString()
+        };
+
+        await api.post("/purchases", payload);
+        setIsPurchaseOpen(false);
+        setNewPurchase({
+            purchaseDate: new Date().toISOString().split('T')[0],
+            supplierId: '',
+            branchId: branches[0]?.id || '',
+            notes: '',
+            items: []
+        });
+        fetchData();
+    } catch (err: any) {
+        console.error(err.response?.data);
+        alert("Lỗi khi lưu phiếu mua hàng: " + (err.response?.data?.title || "Vui lòng kiểm tra lại dữ liệu"));
+    }
   };
 
   if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
@@ -247,31 +264,35 @@ export function OwnerInventory() {
           <DialogContent className="max-w-md rounded-[32px]">
               <DialogHeader><DialogTitle className="text-2xl font-black">Danh mục Nguyên liệu</DialogTitle></DialogHeader>
               <div className="py-4 space-y-6">
-                 <div className="bg-orange-50 p-4 rounded-2xl flex gap-2 items-end">
+                 <form onSubmit={async (e) => {
+                     e.preventDefault();
+                     const formData = new FormData(e.currentTarget);
+                     const name = formData.get('name') as string;
+                     const unit = formData.get('unit') as string;
+                     if (!name) return;
+                     await api.post("/ingredients", { name, unit });
+                     fetchData();
+                     e.currentTarget.reset();
+                 }} className="bg-orange-50 p-4 rounded-2xl flex gap-2 items-end">
                     <div className="flex-1 space-y-1">
                         <Label className="text-[10px] font-bold">Tên nguyên liệu</Label>
-                        <Input id="new-ing-name" className="h-10 bg-white" placeholder="Vd: Thịt heo" />
+                        <Input name="name" className="h-10 bg-white" placeholder="Vd: Thịt heo" required />
                     </div>
                     <div className="w-20 space-y-1">
                         <Label className="text-[10px] font-bold">Đơn vị</Label>
-                        <Input id="new-ing-unit" className="h-10 bg-white" placeholder="kg" />
+                        <Input name="unit" className="h-10 bg-white" placeholder="kg" required />
                     </div>
-                    <Button onClick={async () => {
-                        const name = (document.getElementById('new-ing-name') as HTMLInputElement).value;
-                        const unit = (document.getElementById('new-ing-unit') as HTMLInputElement).value;
-                        if (!name) return;
-                        await api.post("/ingredients", { name, unit });
-                        fetchData();
-                        (document.getElementById('new-ing-name') as HTMLInputElement).value = '';
-                    }} className="bg-gray-900 h-10 px-4 font-bold">THÊM</Button>
-                 </div>
+                    <Button type="submit" className="bg-gray-900 h-10 px-4 font-bold">THÊM</Button>
+                 </form>
                  <div className="max-h-64 overflow-y-auto space-y-2">
                     {ingredients.map(i => (
                         <div key={i.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
                             <span className="font-bold text-gray-700">{i.name} ({i.unit})</span>
                             <Button variant="ghost" size="icon" onClick={async () => {
-                                await api.delete(`/ingredients/${i.id}`);
-                                fetchData();
+                                if(confirm("Xóa nguyên liệu này?")) {
+                                    await api.delete(`/ingredients/${i.id}`);
+                                    fetchData();
+                                }
                             }} className="text-gray-300 hover:text-red-500 h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                     ))}
@@ -285,19 +306,20 @@ export function OwnerInventory() {
           <DialogContent className="max-w-md rounded-[32px]">
               <DialogHeader><DialogTitle className="text-2xl font-black">Nhà cung cấp</DialogTitle></DialogHeader>
               <div className="py-4 space-y-6">
-                 <div className="bg-blue-50 p-4 rounded-2xl space-y-3">
-                    <Input id="new-sup-name" placeholder="Tên nhà cung cấp" className="h-10 bg-white border-none shadow-sm" />
-                    <Input id="new-sup-phone" placeholder="Số điện thoại" className="h-10 bg-white border-none shadow-sm" />
-                    <Button onClick={async () => {
-                        const name = (document.getElementById('new-sup-name') as HTMLInputElement).value;
-                        const phone = (document.getElementById('new-sup-phone') as HTMLInputElement).value;
-                        if (!name) return;
-                        await api.post("/suppliers", { name, phone });
-                        fetchData();
-                        (document.getElementById('new-sup-name') as HTMLInputElement).value = '';
-                        (document.getElementById('new-sup-phone') as HTMLInputElement).value = '';
-                    }} className="w-full bg-gray-900 font-bold h-10">ĐĂNG KÝ NHÀ CUNG CẤP</Button>
-                 </div>
+                 <form onSubmit={async (e) => {
+                     e.preventDefault();
+                     const formData = new FormData(e.currentTarget);
+                     const name = formData.get('name') as string;
+                     const phone = formData.get('phone') as string;
+                     if (!name) return;
+                     await api.post("/suppliers", { name, phone });
+                     fetchData();
+                     e.currentTarget.reset();
+                 }} className="bg-blue-50 p-4 rounded-2xl space-y-3">
+                    <Input name="name" placeholder="Tên nhà cung cấp" className="h-10 bg-white border-none shadow-sm" required />
+                    <Input name="phone" placeholder="Số điện thoại" className="h-10 bg-white border-none shadow-sm" />
+                    <Button type="submit" className="w-full bg-gray-900 font-bold h-10">ĐĂNG KÝ NHÀ CUNG CẤP</Button>
+                 </form>
                  <div className="max-h-64 overflow-y-auto space-y-2">
                     {suppliers.map(s => (
                         <div key={s.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex justify-between items-center">

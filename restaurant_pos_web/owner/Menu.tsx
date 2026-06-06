@@ -46,7 +46,7 @@ export function OwnerMenu() {
       const [catRes, prodRes, ingRes] = await Promise.all([
         api.get("/menu/categories"),
         api.get("/menu/products"),
-        api.get("/inventory")
+        api.get("/ingredients")
       ]);
       setCategories(catRes.data);
       setProducts(prodRes.data);

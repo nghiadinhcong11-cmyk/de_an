@@ -38,3 +38,11 @@ Dưới đây là danh sách các thay đổi quan trọng phân theo từng n�
     - Quản lý đội ngũ chuyên sâu: Điều chuyển nhân sự, phê duyệt tài khoản mới.
     - Thiết lập tài khoản ngân hàng nhận tiền riêng cho từng chi nhánh.
     - Báo cáo kinh doanh sử dụng dữ liệu thực tế với biểu đồ tăng trưởng trực quan.
+- **Tái cấu trúc Quản lý Nguyên liệu**:
+    - Chuyển đổi toàn bộ mô hình Kho từ Tồn kho tự động sang **Quản lý Chi phí Nguyên liệu & Lịch sử mua hàng**.
+    - Loại bỏ cơ chế trừ kho phức tạp để tập trung vào kiểm soát dòng tiền và lợi nhuận gộp thực tế.
+    - Cho phép quản lý danh sách Nhà cung cấp và ghi chép phiếu nhập hàng chi tiết.
+- **Hệ thống Góp ý & CRM**:
+    - Tích hợp tính năng Đổi điểm lấy Voucher trực tiếp trên Web khách hàng.
+    - Hộp thư góp ý (Feedbacks) hỗ trợ nhận phản hồi từ khách và quản lý tại Dashboard.
+
