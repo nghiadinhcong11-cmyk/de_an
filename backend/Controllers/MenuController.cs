@@ -43,6 +43,39 @@ public class MenuController : ControllerBase
         return Ok(category);
     }
 
+    [Authorize]
+    [HttpPut("categories/{id}")]
+    public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] Category category)
+    {
+        var existing = await _context.Categories.FindAsync(id);
+        if (existing == null) return NotFound();
+
+        existing.Name = category.Name;
+        existing.DisplayOrder = category.DisplayOrder;
+        existing.Description = category.Description;
+
+        await _context.SaveChangesAsync();
+        return Ok(existing);
+    }
+
+    [Authorize]
+    [HttpDelete("categories/{id}")]
+    public async Task<IActionResult> DeleteCategory(Guid id)
+    {
+        var category = await _context.Categories.FindAsync(id);
+        if (category == null) return NotFound();
+
+        // Kiểm tra xem có sản phẩm nào thuộc danh mục này không
+        if (await _context.Products.AnyAsync(p => p.CategoryId == id))
+        {
+            return BadRequest("Không thể xóa danh mục đang có sản phẩm. Vui lòng chuyển sản phẩm sang danh mục khác trước.");
+        }
+
+        _context.Categories.Remove(category);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
     [AllowAnonymous]
     [HttpGet("products")]
     public async Task<IActionResult> GetProducts([FromQuery] Guid? restaurantId, [FromQuery] Guid? categoryId)

@@ -65,7 +65,7 @@ class _POSScreenState extends State<POSScreen> {
                           child: Text(t.branchName ?? 'CH', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.orange.shade900)),
                         ),
                         const SizedBox(width: 8),
-                        Text('${t.zone ?? 'Chung'} - ${t.tableNumber}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text('${t.zoneName ?? 'Chung'} - ${t.tableNumber}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       ],
                     ),
                   )).toList(),
@@ -129,7 +129,7 @@ class _POSScreenState extends State<POSScreen> {
                                   children: [
                                     Text(product.name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
                                     const SizedBox(height: 4),
-                                    Text('\$${product.price.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.w900, fontSize: 16)),
+                                    Text('${product.price.toStringAsFixed(0)}đ', style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.w900, fontSize: 16)),
                                     const SizedBox(height: 12),
                                     
                                     if (qty == 0) 

@@ -56,9 +56,18 @@ public class AppDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // 1. CORE & AUTH
+        modelBuilder.Entity<Restaurant>(r => {
+            r.HasIndex(x => x.Name).IsUnique();
+        });
+
         modelBuilder.Entity<Branch>(b => {
+            b.HasIndex(x => new { x.Name, x.RestaurantId }).IsUnique();
             b.HasOne(x => x.Restaurant).WithMany(x => x.Branches).HasForeignKey(x => x.RestaurantId);
             b.HasOne(x => x.ManagerUser).WithMany().HasForeignKey(x => x.ManagerUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<User>(u => {
+            u.HasIndex(x => x.Username).IsUnique();
         });
 
         modelBuilder.Entity<UserRole>(ur => {
@@ -69,10 +78,12 @@ public class AppDbContext : DbContext
 
         // 2. MENU
         modelBuilder.Entity<Category>(c => {
+            c.HasIndex(x => new { x.Name, x.RestaurantId }).IsUnique();
             c.HasOne(x => x.Restaurant).WithMany().HasForeignKey(x => x.RestaurantId);
         });
 
         modelBuilder.Entity<Product>(p => {
+            p.HasIndex(x => new { x.Name, x.RestaurantId }).IsUnique();
             p.HasOne(x => x.Restaurant).WithMany().HasForeignKey(x => x.RestaurantId).OnDelete(DeleteBehavior.Restrict);
             p.HasOne(x => x.Category).WithMany().HasForeignKey(x => x.CategoryId);
         });
@@ -83,10 +94,12 @@ public class AppDbContext : DbContext
 
         // 3. TABLES & ORDERING
         modelBuilder.Entity<Zone>(z => {
+            z.HasIndex(x => new { x.Name, x.BranchId }).IsUnique();
             z.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId);
         });
 
         modelBuilder.Entity<DiningTable>(dt => {
+            dt.HasIndex(x => new { x.TableNumber, x.BranchId }).IsUnique();
             dt.HasOne<Branch>().WithMany(x => x.DiningTables).HasForeignKey(x => x.BranchId);
             dt.HasOne(x => x.Zone).WithMany(x => x.Tables).HasForeignKey(x => x.ZoneId).OnDelete(DeleteBehavior.SetNull);
         });
@@ -138,6 +151,7 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Voucher>(v => {
+            v.HasIndex(x => new { x.Code, x.RestaurantId }).IsUnique();
             v.HasOne<Restaurant>().WithMany().HasForeignKey(x => x.RestaurantId);
             v.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId);
         });

@@ -19,6 +19,23 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   bool _isProcessing = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<OrderProvider>(context, listen: false).fetchProducts();
+    });
+  }
+
+  void _showAddItemDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AddItemSheet(orderId: widget.order.id),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -43,9 +60,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         ),
         actions: [
             if (widget.order.status != 'Completed') TextButton.icon(
-                onPressed: () {
-                    // Logic mở POS để thêm món vào đơn này
-                }, 
+                onPressed: _showAddItemDialog,
                 icon: const Icon(Icons.add_circle_outline, size: 18), 
                 label: const Text('THÊM MÓN', style: TextStyle(fontWeight: FontWeight.bold))
             )
@@ -64,7 +79,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('${item.quantity}x ${item.productName}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text('\$${(item.unitPrice * item.quantity).toStringAsFixed(2)}'),
+                  Text('${(item.unitPrice * item.quantity).toStringAsFixed(0)}đ'),
                 ],
               ),
             )),
@@ -106,7 +121,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('TỔNG CỘNG', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-                Text('\$${widget.order.totalAmount.toStringAsFixed(2)}', 
+                Text('${widget.order.totalAmount.toStringAsFixed(0)}đ',
                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: Colors.orange)),
               ],
             ),
@@ -258,8 +273,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   const Text('Chưa cấu hình tài khoản nhận tiền'),
                 const SizedBox(height: 10),
                 if ((result['discountAmount'] ?? 0) > 0)
-                    Text('Giảm giá: -\$${result['discountAmount']}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                Text('Tổng thanh toán: \$${result['totalAmount']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    Text('Giảm giá: -${result['discountAmount']}đ', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                Text('Tổng thanh toán: ${result['totalAmount']}đ', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               ],
             ),
           ),
@@ -281,6 +296,172 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     } else {
       if (mounted) setState(() => _isProcessing = false);
       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi thanh toán')));
+    }
+  }
+}
+
+class _AddItemSheet extends StatefulWidget {
+  final String orderId;
+  const _AddItemSheet({required this.orderId});
+
+  @override
+  State<_AddItemSheet> createState() => _AddItemSheetState();
+}
+
+class _AddItemSheetState extends State<_AddItemSheet> {
+  final Map<String, int> _selectedItems = {};
+  final Map<String, String> _notes = {}; // ProductId -> Note
+  bool _isSaving = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final orderProvider = Provider.of<OrderProvider>(context);
+    final products = orderProvider.products;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text('Thêm món vào đơn', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final p = products[index];
+                final qty = _selectedItems[p.id] ?? 0;
+                final hasNote = _notes[p.id]?.isNotEmpty ?? false;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 50, height: 50,
+                            decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(12)),
+                            child: const Icon(Icons.fastfood, color: Colors.orange),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text('\$${p.price.toStringAsFixed(2)}', style: TextStyle(color: Colors.orange.shade800, fontSize: 12)),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              if (qty > 0) IconButton(
+                                icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                onPressed: () => setState(() {
+                                  _selectedItems[p.id] = qty - 1;
+                                  if (qty - 1 == 0) _notes.remove(p.id);
+                                }),
+                              ),
+                              if (qty > 0) Text(qty.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline, size: 20, color: Colors.orange),
+                                onPressed: () => setState(() => _selectedItems[p.id] = qty + 1),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      if (qty > 0) Padding(
+                        padding: const EdgeInsets.only(top: 8, left: 66),
+                        child: TextField(
+                          onChanged: (val) => _notes[p.id] = val,
+                          style: const TextStyle(fontSize: 12),
+                          decoration: InputDecoration(
+                            hintText: 'Ghi chú (Vd: ít cay, không hành...)',
+                            prefixIcon: Icon(Icons.edit_note, size: 18, color: hasNote ? Colors.orange : Colors.grey),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          if (_selectedItems.values.any((v) => v > 0)) Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 20, offset: const Offset(0, -5))],
+            ),
+            child: SafeArea(
+              top: false,
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isSaving ? null : _handleSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: _isSaving 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text('XÁC NHẬN THÊM', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleSave() async {
+    setState(() => _isSaving = true);
+    final provider = Provider.of<OrderProvider>(context, listen: false);
+    final items = _selectedItems.entries
+        .where((e) => e.value > 0)
+        .map((e) => {
+          'productId': e.key, 
+          'quantity': e.value,
+          'note': _notes[e.key] ?? ''
+        })
+        .toList();
+
+    final success = await provider.addItemsToOrder(widget.orderId, items);
+    if (success && mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã thêm món thành công!'), backgroundColor: Colors.green)
+      );
+    } else {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lỗi khi thêm món'), backgroundColor: Colors.red)
+        );
+      }
     }
   }
 }

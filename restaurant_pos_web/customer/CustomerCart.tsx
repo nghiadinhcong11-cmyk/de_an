@@ -106,7 +106,7 @@ export function CustomerCart() {
                 <div className="w-16 h-16 md:w-20 md:h-20 bg-orange-50 rounded-2xl flex items-center justify-center text-3xl shrink-0">🍽️</div>
                 <div className="flex-1 min-w-0">
                    <h4 className="font-black text-lg md:text-xl text-gray-900 truncate">{item.name}</h4>
-                   <p className="text-orange-600 font-bold text-base md:text-lg">${item.price}</p>
+                   <p className="text-orange-600 font-bold text-base md:text-lg">{item.price?.toLocaleString("vi-VN")}đ</p>
                 </div>
                 <div className="flex items-center gap-2 md:gap-4 bg-gray-50 p-1.5 md:p-2 rounded-2xl">
                    <Button variant="ghost" size="icon" onClick={() => updateQty(item.id, -1)} className="h-8 w-8 md:h-10 md:w-10 bg-white rounded-xl shadow-sm text-gray-400 hover:text-orange-600"><Minus className="w-3 h-3 md:w-4 md:h-4" /></Button>
@@ -126,15 +126,15 @@ export function CustomerCart() {
               <CardContent className="space-y-4">
                  <div className="flex justify-between text-gray-500 font-medium">
                     <span>Tạm tính</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{subtotal.toLocaleString("vi-VN")}đ</span>
                  </div>
                  <div className="flex justify-between text-gray-500 font-medium">
                     <span>Phí phục vụ (5%)</span>
-                    <span>${serviceCharge.toFixed(2)}</span>
+                    <span>{serviceCharge.toLocaleString("vi-VN")}đ</span>
                  </div>
                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                     <span className="font-black text-gray-900">TỔNG CỘNG</span>
-                    <span className="text-3xl font-black text-orange-600">${total.toFixed(2)}</span>
+                    <span className="text-3xl font-black text-orange-600">{total.toLocaleString("vi-VN")}đ</span>
                  </div>
 
                  <div className="pt-6">

@@ -81,7 +81,7 @@ export function OwnerVouchers() {
                                 onChange={(e) => setNewVoucher({...newVoucher, discountType: e.target.value})}
                             >
                                 <option value="percentage">Phần trăm (%)</option>
-                                <option value="fixed">Tiền mặt ($)</option>
+                                <option value="fixed">Tiền mặt (đ)</option>
                             </select>
                         </div>
                     </div>
@@ -106,7 +106,7 @@ export function OwnerVouchers() {
               {vouchers.map((v) => (
                 <TableRow key={v.id} className="hover:bg-gray-50/50 transition-colors">
                   <TableCell><code className="bg-orange-50 text-orange-600 px-3 py-1 rounded-lg font-black text-xs">{v.code}</code></TableCell>
-                  <TableCell className="font-black text-center">{v.discountValue}{v.discountType === 'percentage' ? '%' : '$'}</TableCell>
+                  <TableCell className="font-black text-center">{v.discountValue.toLocaleString("vi-VN")}{v.discountType === 'percentage' ? '%' : 'đ'}</TableCell>
                   <TableCell className="text-gray-500 font-medium">{v.name}</TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(v.id)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></Button>

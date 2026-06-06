@@ -126,7 +126,7 @@ export function EmployeeOrders() {
                     ))}
                     <div className="pt-3 mt-3 border-t border-gray-200 flex justify-between items-center">
                         <span className="text-[10px] font-black text-gray-400 uppercase">Tổng cộng</span>
-                        <span className="text-lg font-black text-orange-600">${req.totalAmount}</span>
+                        <span className="text-lg font-black text-orange-600">{req.totalAmount.toLocaleString("vi-VN")}đ</span>
                     </div>
                   </div>
 
@@ -164,7 +164,7 @@ export function EmployeeOrders() {
                  <CardContent className="p-6">
                     <div className="text-2xl font-black text-gray-900 mb-6">Bàn {order.tableNumber}</div>
                     <div className="flex justify-between items-center">
-                       <div className="text-xl font-black text-gray-900">${order.totalAmount}</div>
+                       <div className="text-xl font-black text-gray-900">{order.totalAmount.toLocaleString("vi-VN")}đ</div>
                        <Button size="sm" variant="outline" className="font-black text-[10px] border-orange-100 text-orange-600 rounded-lg uppercase h-9 px-4">Xem chi tiết</Button>
                     </div>
                  </CardContent>

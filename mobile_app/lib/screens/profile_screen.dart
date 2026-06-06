@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 20),
                       Row(
                         children: [
-                          _SummaryItem(label: 'Doanh thu', value: '\$${summary['totalRevenue']?.toStringAsFixed(2)}', color: Colors.orange.shade800),
+                          _SummaryItem(label: 'Doanh thu', value: '${summary['totalRevenue']?.toStringAsFixed(0)}đ', color: Colors.orange.shade800),
                           const SizedBox(width: 20),
                           _SummaryItem(label: 'Đơn hàng', value: '${summary['totalOrders']}', color: Colors.black),
                         ],
@@ -112,9 +112,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Divider(height: 32),
                       Row(
                         children: [
-                          _SummaryDetail(label: 'Tiền mặt', value: '\$${summary['cashRevenue']?.toStringAsFixed(2)}', icon: Icons.money),
+                          _SummaryDetail(label: 'Tiền mặt', value: '${summary['cashRevenue']?.toStringAsFixed(0)}đ', icon: Icons.money),
                           const VerticalDivider(),
-                          _SummaryDetail(label: 'VietQR', value: '\$${summary['qrRevenue']?.toStringAsFixed(2)}', icon: Icons.qr_code),
+                          _SummaryDetail(label: 'VietQR', value: '${summary['qrRevenue']?.toStringAsFixed(0)}đ', icon: Icons.qr_code),
                         ],
                       ),
                     ],

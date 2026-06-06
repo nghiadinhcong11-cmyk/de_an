@@ -8,6 +8,7 @@ import api from "../services/api";
 export function CustomerMenu() {
   const [searchParams] = useSearchParams();
   const queryRestaurantId = searchParams.get("restaurantId");
+  const branchName = searchParams.get("branchName");
 
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export function CustomerMenu() {
     <div className="space-y-8">
       <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
          <div>
-            <h1 className="text-3xl font-black text-gray-900">Thực đơn nhà hàng</h1>
+            <h1 className="text-3xl font-black text-gray-900">Thực đơn {branchName ? `tại ${branchName}` : "nhà hàng"}</h1>
             <p className="text-gray-500 font-medium">Khám phá các món ăn tinh hoa được chế biến từ đầu bếp hàng đầu</p>
          </div>
          <div className="bg-blue-50 text-blue-700 px-6 py-3 rounded-2xl flex items-center gap-3">
@@ -104,7 +105,7 @@ export function CustomerMenu() {
                     <p className="text-gray-400 text-xs font-medium mb-4 line-clamp-2">{p.description || "Hương vị thơm ngon, đậm đà chuẩn vị truyền thống."}</p>
                     <div className="pt-4 border-t border-gray-50 flex justify-between items-center">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Giá bán</span>
-                        <p className="text-orange-600 font-black text-2xl">${p.price.toFixed(2)}</p>
+                        <p className="text-orange-600 font-black text-2xl">{p.price.toLocaleString("vi-VN")}đ</p>
                     </div>
                  </CardContent>
               </Card>

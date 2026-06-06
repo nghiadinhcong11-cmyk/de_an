@@ -59,35 +59,35 @@
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
              <StatItem
                 label="Tổng doanh thu"
-                val={`$${overview?.totalRevenue?.toLocaleString()}`}
+                val={`${overview?.totalRevenue?.toLocaleString("vi-VN")}đ`}
                 icon={DollarSign}
                 color="text-orange-600"
-                trend="+12%"
-                isUp={true}
+                trend={overview?.revenueTrend || "0%"}
+                isUp={overview?.isRevenueUp}
              />
              <StatItem
                 label="Tổng đơn hàng"
                 val={overview?.totalOrders}
                 icon={ShoppingBag}
                 color="text-blue-600"
-                trend="+5.4%"
-                isUp={true}
+                trend={overview?.orderTrend || "0%"}
+                isUp={overview?.isOrderUp}
              />
              <StatItem
                 label="Lợi nhuận ròng"
-                val={`$${overview?.netProfit?.toLocaleString()}`}
+                val={`${overview?.netProfit?.toLocaleString("vi-VN")}đ`}
                 icon={TrendingUp}
                 color="text-green-600"
-                trend="+8.2%"
-                isUp={true}
+                trend={overview?.profitTrend || "0%"}
+                isUp={overview?.isProfitUp}
              />
              <StatItem
                 label="Khách hàng"
                 val={overview?.totalCustomers}
                 icon={Users}
                 color="text-purple-600"
-                trend="-2%"
-                isUp={false}
+                trend={overview?.customerTrend || "0%"}
+                isUp={overview?.isCustomerUp}
              />
           </div>
 
@@ -159,7 +159,7 @@
                                  <p className="text-[10px] text-gray-400 font-bold uppercase">{p.quantity} lượt bán</p>
                               </div>
                            </div>
-                           <p className="font-black text-orange-600 text-sm">${p.revenue?.toLocaleString()}</p>
+                           <p className="font-black text-orange-600 text-sm">{p.revenue?.toLocaleString("vi-VN")}đ</p>
                         </div>
                      ))}
                      {topProducts.length === 0 && (

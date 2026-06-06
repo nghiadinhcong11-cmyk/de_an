@@ -20,23 +20,64 @@ public class ReportsController : ControllerBase
     public async Task<IActionResult> GetOverview()
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var now = DateTime.UtcNow;
+        var sevenDaysAgo = now.AddDays(-7);
+        var fourteenDaysAgo = now.AddDays(-14);
 
-        var totalRevenue = await _context.Orders
-            .Where(o => o.RestaurantId == restaurantId && o.Status == "Completed")
-            .SumAsync(o => o.TotalAmount);
+        // Lấy dữ liệu kỳ này (7 ngày gần nhất)
+        var currentOrders = await _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.Status == "Completed" && o.CreatedAtUtc >= sevenDaysAgo)
+            .ToListAsync();
 
-        var totalExpenses = await _context.Expenses
-            .Where(e => _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).Contains(e.BranchId))
+        var currentRevenue = currentOrders.Sum(o => o.TotalAmount);
+        var currentExpenses = await _context.Expenses
+            .Where(e => _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).Contains(e.BranchId) && e.CreatedAtUtc >= sevenDaysAgo)
             .SumAsync(e => e.Amount);
+
+        // Lấy dữ liệu kỳ trước (7 ngày trước đó)
+        var previousOrders = await _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.Status == "Completed" && o.CreatedAtUtc >= fourteenDaysAgo && o.CreatedAtUtc < sevenDaysAgo)
+            .ToListAsync();
+
+        var previousRevenue = previousOrders.Sum(o => o.TotalAmount);
+        var previousExpenses = await _context.Expenses
+            .Where(e => _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).Contains(e.BranchId) && e.CreatedAtUtc >= fourteenDaysAgo && e.CreatedAtUtc < sevenDaysAgo)
+            .SumAsync(e => e.Amount);
+
+        // Tính toán tỷ lệ tăng trưởng
+        var revenueTrend = CalculateGrowth(currentRevenue, previousRevenue);
+        var orderTrend = CalculateGrowth(currentOrders.Count, previousOrders.Count);
+        var profitTrend = CalculateGrowth(currentRevenue - currentExpenses, previousRevenue - previousExpenses);
+
+        var totalCustomers = await _context.Customers.CountAsync(c => c.RestaurantId == restaurantId);
+        var prevTotalCustomers = await _context.Customers.CountAsync(c => c.RestaurantId == restaurantId && c.CreatedAtUtc < sevenDaysAgo);
+        var customerTrend = CalculateGrowth(totalCustomers, prevTotalCustomers);
 
         return Ok(new BusinessOverviewDto
         {
-            TotalRevenue = totalRevenue,
-            TotalExpenses = totalExpenses,
-            NetProfit = totalRevenue - totalExpenses,
+            TotalRevenue = await _context.Orders.Where(o => o.RestaurantId == restaurantId && o.Status == "Completed").SumAsync(o => o.TotalAmount),
+            TotalExpenses = await _context.Expenses.Where(e => _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).Contains(e.BranchId)).SumAsync(e => e.Amount),
+            NetProfit = await _context.Orders.Where(o => o.RestaurantId == restaurantId && o.Status == "Completed").SumAsync(o => o.TotalAmount) -
+                        await _context.Expenses.Where(e => _context.Branches.Where(b => b.RestaurantId == restaurantId).Select(b => b.Id).Contains(e.BranchId)).SumAsync(e => e.Amount),
             TotalOrders = await _context.Orders.CountAsync(o => o.RestaurantId == restaurantId),
-            TotalCustomers = await _context.Customers.CountAsync(c => c.RestaurantId == restaurantId)
+            TotalCustomers = totalCustomers,
+
+            RevenueTrend = revenueTrend.trend,
+            IsRevenueUp = revenueTrend.isUp,
+            OrderTrend = orderTrend.trend,
+            IsOrderUp = orderTrend.isUp,
+            ProfitTrend = profitTrend.trend,
+            IsProfitUp = profitTrend.isUp,
+            CustomerTrend = customerTrend.trend,
+            IsCustomerUp = customerTrend.isUp
         });
+    }
+
+    private (string trend, bool isUp) CalculateGrowth(decimal current, decimal previous)
+    {
+        if (previous == 0) return (current > 0 ? "+100%" : "0%", true);
+        var growth = ((current - previous) / previous) * 100;
+        return (Math.Abs(growth).ToString("F1") + "%", growth >= 0);
     }
 
     // 2. Doanh thu 7 ngày gần nhất (Cho biểu đồ AreaChart)

@@ -197,6 +197,9 @@ namespace RestaurantPOS.Migrations
 
                     b.HasIndex("RestaurantId");
 
+                    b.HasIndex("Code", "RestaurantId")
+                        .IsUnique();
+
                     b.ToTable("Vouchers");
                 });
 
@@ -273,6 +276,9 @@ namespace RestaurantPOS.Migrations
 
                     b.HasIndex("RestaurantId");
 
+                    b.HasIndex("Name", "RestaurantId")
+                        .IsUnique();
+
                     b.ToTable("Branches");
                 });
 
@@ -341,6 +347,9 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Restaurants");
                 });
@@ -445,6 +454,9 @@ namespace RestaurantPOS.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -767,6 +779,9 @@ namespace RestaurantPOS.Migrations
 
                     b.HasIndex("RestaurantId");
 
+                    b.HasIndex("Name", "RestaurantId")
+                        .IsUnique();
+
                     b.ToTable("Categories");
                 });
 
@@ -809,6 +824,9 @@ namespace RestaurantPOS.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("RestaurantId");
+
+                    b.HasIndex("Name", "RestaurantId")
+                        .IsUnique();
 
                     b.ToTable("Products");
                 });
@@ -1300,6 +1318,9 @@ namespace RestaurantPOS.Migrations
 
                     b.HasIndex("ZoneId");
 
+                    b.HasIndex("TableNumber", "BranchId")
+                        .IsUnique();
+
                     b.ToTable("DiningTables");
                 });
 
@@ -1328,6 +1349,9 @@ namespace RestaurantPOS.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("Name", "BranchId")
+                        .IsUnique();
 
                     b.ToTable("Zones");
                 });

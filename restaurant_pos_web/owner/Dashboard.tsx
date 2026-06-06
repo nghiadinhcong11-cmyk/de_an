@@ -39,9 +39,9 @@ export function OwnerDashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="TỔNG DOANH THU" val={`$${overview?.totalRevenue?.toLocaleString()}`} icon={DollarSign} color="text-orange-600" />
-        <StatCard label="TỔNG CHI PHÍ" val={`$${overview?.totalExpenses?.toLocaleString()}`} icon={TrendingUp} color="text-red-500" />
-        <StatCard label="LỢI NHUẬN RÒNG" val={`$${overview?.netProfit?.toLocaleString()}`} icon={Award} color="text-green-600" />
+        <StatCard label="TỔNG DOANH THU" val={`${overview?.totalRevenue?.toLocaleString("vi-VN")}đ`} icon={DollarSign} color="text-orange-600" />
+        <StatCard label="TỔNG CHI PHÍ" val={`${overview?.totalExpenses?.toLocaleString("vi-VN")}đ`} icon={TrendingUp} color="text-red-500" />
+        <StatCard label="LỢI NHUẬN RÒNG" val={`${overview?.netProfit?.toLocaleString("vi-VN")}đ`} icon={Award} color="text-green-600" />
         <StatCard label="TỔNG ĐƠN HÀNG" val={overview?.totalOrders} icon={ShoppingBag} color="text-blue-600" />
       </div>
 

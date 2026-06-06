@@ -16,6 +16,26 @@ public class BranchesController : ControllerBase
     private readonly AppDbContext _context;
     public BranchesController(AppDbContext context) => _context = context;
 
+    [AllowAnonymous]
+    [HttpGet("public")]
+    public async Task<IActionResult> GetPublicBranches([FromQuery] Guid restaurantId)
+    {
+        var branches = await _context.Branches
+            .Where(b => b.RestaurantId == restaurantId && b.IsActive)
+            .Select(b => new BranchDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                Address = b.Address,
+                Phone = b.Phone,
+                IsActive = b.IsActive
+            })
+            .ToListAsync();
+
+        return Ok(branches);
+    }
+
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetBranches()
     {

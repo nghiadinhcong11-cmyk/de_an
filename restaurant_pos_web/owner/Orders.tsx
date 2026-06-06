@@ -90,7 +90,7 @@ export function OwnerOrders() {
                               </div>
                            </div>
                         </TableCell>
-                        <TableCell className="font-black text-gray-900">${order.totalAmount.toLocaleString()}</TableCell>
+                        <TableCell className="font-black text-gray-900">{order.totalAmount.toLocaleString("vi-VN")}đ</TableCell>
                         <TableCell>
                            <Badge variant="outline" className={`font-bold border-none uppercase text-[10px] ${
                               order.status === 'Completed' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-600'
@@ -166,8 +166,8 @@ export function OwnerOrders() {
                              <TableRow key={idx}>
                                 <TableCell className="font-bold text-gray-900">{item.name}</TableCell>
                                 <TableCell className="text-center font-black text-gray-500">x{item.quantity}</TableCell>
-                                <TableCell className="text-right font-medium text-gray-500">${item.unitPrice.toLocaleString()}</TableCell>
-                                <TableCell className="text-right font-black text-gray-900">${item.totalPrice.toLocaleString()}</TableCell>
+                                <TableCell className="text-right font-medium text-gray-500">{item.unitPrice.toLocaleString("vi-VN")}đ</TableCell>
+                                <TableCell className="text-right font-black text-gray-900">{item.totalPrice.toLocaleString("vi-VN")}đ</TableCell>
                              </TableRow>
                           ))}
                        </TableBody>
@@ -178,15 +178,15 @@ export function OwnerOrders() {
               <div className="mt-8 space-y-3 px-2">
                  <div className="flex justify-between text-sm text-gray-500 font-medium">
                     <span>Tạm tính</span>
-                    <span>${selectedOrder?.subtotal?.toLocaleString()}</span>
+                    <span>{selectedOrder?.subtotal?.toLocaleString("vi-VN")}đ</span>
                  </div>
                  <div className="flex justify-between text-sm text-red-500 font-bold">
                     <span>Giảm giá (Voucher)</span>
-                    <span>-${selectedOrder?.discountAmount?.toLocaleString()}</span>
+                    <span>-{selectedOrder?.discountAmount?.toLocaleString("vi-VN")}đ</span>
                  </div>
                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                     <span className="font-black text-gray-900">TỔNG CỘNG</span>
-                    <span className="text-3xl font-black text-orange-600">${selectedOrder?.totalAmount?.toLocaleString()}</span>
+                    <span className="text-3xl font-black text-orange-600">{selectedOrder?.totalAmount?.toLocaleString("vi-VN")}đ</span>
                  </div>
               </div>
            </div>

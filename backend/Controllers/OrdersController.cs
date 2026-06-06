@@ -395,9 +395,16 @@ public class OrdersController : ControllerBase
             if (!string.IsNullOrEmpty(request.VoucherCode))
             {
                 var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Code == request.VoucherCode && v.IsActive && v.RestaurantId == order.RestaurantId);
-                if (voucher != null && order.TotalAmount >= voucher.MinOrderAmount)
+                if (voucher != null && order.Subtotal >= voucher.MinOrderAmount)
                 {
-                    order.DiscountAmount = voucher.DiscountValue;
+                    if (voucher.DiscountType?.ToLower() == "percentage")
+                    {
+                        order.DiscountAmount = Math.Round(order.Subtotal * (voucher.DiscountValue / 100));
+                    }
+                    else
+                    {
+                        order.DiscountAmount = voucher.DiscountValue;
+                    }
                     order.TotalAmount = Math.Max(0, order.Subtotal - order.DiscountAmount);
                 }
             }
