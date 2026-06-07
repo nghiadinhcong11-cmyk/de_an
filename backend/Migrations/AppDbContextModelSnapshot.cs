@@ -433,6 +433,9 @@ namespace RestaurantPOS.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("LastLoginUtc")
                         .HasColumnType("timestamp with time zone");
 
