@@ -51,6 +51,59 @@ public class PurchasesController : ControllerBase
         return Ok(record);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] PurchaseRecord record)
+    {
+        var existing = await _context.PurchaseRecords
+            .Include(p => p.Items)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (existing == null) return NotFound();
+
+        existing.PurchaseDate = record.PurchaseDate;
+        existing.SupplierId = record.SupplierId;
+        existing.BranchId = record.BranchId;
+        existing.Notes = record.Notes;
+
+        // Remove old items
+        _context.PurchaseItems.RemoveRange(existing.Items);
+
+        decimal total = 0;
+        foreach (var item in record.Items)
+        {
+            item.PurchaseRecordId = id;
+            item.Amount = item.Quantity * item.UnitPrice;
+            total += item.Amount;
+            _context.PurchaseItems.Add(item);
+        }
+        existing.TotalAmount = total;
+
+        await _context.SaveChangesAsync();
+        return Ok(existing);
+    }
+
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats([FromQuery] int months = 6)
+    {
+        var resId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var startDate = DateTime.UtcNow.AddMonths(-months);
+
+        var purchases = await _context.PurchaseRecords
+            .Where(p => p.RestaurantId == resId && p.PurchaseDate >= startDate)
+            .ToListAsync();
+
+        var stats = Enumerable.Range(0, months + 1)
+            .Select(i => startDate.AddMonths(i))
+            .Where(d => d <= DateTime.UtcNow)
+            .Select(d => new
+            {
+                Month = d.ToString("MM/yyyy"),
+                Total = purchases.Where(p => p.PurchaseDate.Month == d.Month && p.PurchaseDate.Year == d.Year).Sum(p => p.TotalAmount)
+            }).ToList();
+
+        return Ok(stats);
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {

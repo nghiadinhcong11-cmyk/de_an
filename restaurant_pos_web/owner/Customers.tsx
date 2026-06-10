@@ -18,6 +18,7 @@ export function OwnerCustomers() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [rankFilter, setRankFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("none");
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -33,15 +34,20 @@ export function OwnerCustomers() {
     fetchCustomers();
   }, []);
 
-  const filteredCustomers = customers.filter((c) => {
-    const matchesSearch = c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || c.phoneNumber.includes(searchTerm);
-    const rank = getRank(c.points).label;
-    const matchesRank = rankFilter === "all" ||
-                       (rankFilter === "gold" && c.points >= 2000) ||
-                       (rankFilter === "silver" && c.points >= 500 && c.points < 2000) ||
-                       (rankFilter === "bronze" && c.points < 500);
-    return matchesSearch && matchesRank;
-  });
+  const filteredAndSortedCustomers = customers
+    .filter((c) => {
+      const matchesSearch = c.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || c.phoneNumber.includes(searchTerm);
+      const matchesRank = rankFilter === "all" ||
+                         (rankFilter === "gold" && c.points >= 2000) ||
+                         (rankFilter === "silver" && c.points >= 500 && c.points < 2000) ||
+                         (rankFilter === "bronze" && c.points < 500);
+      return matchesSearch && matchesRank;
+    })
+    .sort((a, b) => {
+      if (sortBy === "spentDesc") return (b.totalSpent || 0) - (a.totalSpent || 0);
+      if (sortBy === "spentAsc") return (a.totalSpent || 0) - (b.totalSpent || 0);
+      return 0;
+    });
 
   // Thống kê nhanh
   const stats = {
@@ -83,14 +89,25 @@ export function OwnerCustomers() {
                   <Filter className="w-3 h-3" /> Lọc theo
               </div>
               <Select value={rankFilter} onValueChange={setRankFilter}>
-                  <SelectTrigger className="w-48 h-12 rounded-xl bg-gray-50 border-none font-bold">
-                      <SelectValue placeholder="Tất cả hạng" />
+                  <SelectTrigger className="w-40 h-12 rounded-xl bg-gray-50 border-none font-bold">
+                      <SelectValue placeholder="Hạng khách" />
                   </SelectTrigger>
                   <SelectContent>
                       <SelectItem value="all">Tất cả hạng</SelectItem>
                       <SelectItem value="gold" className="text-yellow-600 font-bold">Hạng Vàng (VIP)</SelectItem>
                       <SelectItem value="silver" className="text-gray-600 font-bold">Hạng Bạc</SelectItem>
                       <SelectItem value="bronze" className="text-orange-600 font-bold">Hạng Đồng</SelectItem>
+                  </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-48 h-12 rounded-xl bg-gray-50 border-none font-bold">
+                      <SelectValue placeholder="Sắp xếp" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="none">Mặc định</SelectItem>
+                      <SelectItem value="spentDesc">Chi tiêu: Cao đến Thấp</SelectItem>
+                      <SelectItem value="spentAsc">Chi tiêu: Thấp đến Cao</SelectItem>
                   </SelectContent>
               </Select>
           </div>
@@ -111,7 +128,7 @@ export function OwnerCustomers() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCustomers.map((customer) => {
+                {filteredAndSortedCustomers.map((customer) => {
                   const rank = getRank(customer.points);
                   return (
                     <TableRow key={customer.id} className="hover:bg-gray-50/50 transition-colors">

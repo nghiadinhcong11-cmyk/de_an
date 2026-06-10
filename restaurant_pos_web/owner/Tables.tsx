@@ -79,17 +79,26 @@ export function OwnerTables() {
   };
 
   const handleAddTable = async () => {
-    if (!newTable.tableNumber || !newTable.branchId || !newTable.zoneId) {
-        alert("Vui lòng nhập đầy đủ số bàn, chọn chi nhánh và khu vực");
+    if (!newTable.tableNumber || !newTable.branchId) {
+        alert("Vui lòng nhập số bàn và chọn chi nhánh");
         return;
     }
     try {
-      await api.post("/tables", newTable);
+      // Làm sạch dữ liệu trước khi gửi: nếu zoneId rỗng thì gửi null
+      const payload = {
+          ...newTable,
+          zoneId: newTable.zoneId === "" ? null : newTable.zoneId,
+          posX: 0,
+          posY: 0
+      };
+
+      await api.post("/tables", payload);
       setIsAddOpen(false);
       setNewTable({ tableNumber: "", capacity: 4, branchId: "", zoneId: "" });
       fetchData();
-    } catch (err) {
-      alert("Lỗi khi tạo bàn");
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Lỗi khi tạo bàn";
+      alert(msg);
     }
   };
 
