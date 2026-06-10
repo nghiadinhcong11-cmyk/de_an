@@ -28,9 +28,17 @@ public class ZonesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Zone zone)
     {
-        _context.Zones.Add(zone);
-        await _context.SaveChangesAsync();
-        return Ok(zone);
+        try
+        {
+            zone.CreatedAtUtc = DateTime.UtcNow;
+            _context.Zones.Add(zone);
+            await _context.SaveChangesAsync();
+            return Ok(zone);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi tạo khu vực", details = ex.Message, inner = ex.InnerException?.Message });
+        }
     }
 
     [HttpPut("{id}")]

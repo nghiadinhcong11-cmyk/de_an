@@ -179,7 +179,9 @@ export function OwnerTables() {
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
                     <Label className="font-bold uppercase text-[10px] text-gray-400">Chi nhánh</Label>
-                    <Select onValueChange={(val: any) => {
+                    <Select
+                      value={newTable.branchId}
+                      onValueChange={(val: any) => {
                         setNewTable({...newTable, branchId: val, zoneId: ""});
                     }}>
                       <SelectTrigger><SelectValue placeholder="Chọn chi nhánh" /></SelectTrigger>
@@ -238,7 +240,10 @@ export function OwnerTables() {
                       </div>
                       <div className="w-40 space-y-1">
                           <Label className="text-[10px] font-bold uppercase text-gray-400">Chi nhánh</Label>
-                          <Select onValueChange={(v) => setNewZone({...newZone, branchId: v})}>
+                          <Select
+                            value={newZone.branchId}
+                            onValueChange={(v) => setNewZone({...newZone, branchId: v})}
+                          >
                               <SelectTrigger><SelectValue placeholder="Chọn..." /></SelectTrigger>
                               <SelectContent>
                                   {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
@@ -455,7 +460,7 @@ function TableCard({ table, onDelete, onShowQR, onUpdateStatus }: { table: any, 
         <button onClick={onDelete} className="absolute top-2 right-2 p-1 text-gray-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
           <Trash2 className="w-4 h-4" />
         </button>
-        <div className="text-3xl mb-2 cursor-pointer" onClick={() => onUpdateStatus(table.id, table.status)}>{table.status === 'Occupied' ? '🔥' : '🪑'}</div>
+        <div className="text-3xl mb-2 cursor-pointer" onClick={() => onUpdateStatus && onUpdateStatus(table.id, table.status)}>{table.status === 'Occupied' ? '🔥' : '🪑'}</div>
         <div className="font-black text-xl text-gray-900">{table.tableNumber}</div>
         <div className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-1 mb-4 font-bold uppercase tracking-tighter">
           <Users className="w-3 h-3" /> {table.capacity} chỗ

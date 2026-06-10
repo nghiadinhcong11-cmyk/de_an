@@ -18,33 +18,42 @@ public class TablesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var restaurantIdStr = User.FindFirstValue("RestaurantId");
-        var branchIdStr = User.FindFirstValue("BranchId"); // Nếu là nhân viên sẽ có ID chi nhánh
-
-        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
-        var restaurantId = Guid.Parse(restaurantIdStr);
-
-        var query = _context.DiningTables.AsQueryable();
-
-        // 1. Nếu là nhân viên (có BranchId), chỉ lấy bàn của chi nhánh đó
-        if (!string.IsNullOrEmpty(branchIdStr))
+        try
         {
-            var branchId = Guid.Parse(branchIdStr);
-            query = query.Where(t => t.BranchId == branchId);
-        }
-        else
-        {
-            // 2. Nếu là Owner (không có BranchId), lấy tất cả chi nhánh của RestaurantId đó
-            var branchIds = await _context.Branches
-                .Where(b => b.RestaurantId == restaurantId)
-                .Select(b => b.Id)
+            var restaurantIdStr = User.FindFirstValue("RestaurantId");
+            var branchIdStr = User.FindFirstValue("BranchId");
+
+            if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+            var restaurantId = Guid.Parse(restaurantIdStr);
+
+            var query = _context.DiningTables
+                .Include(t => t.Zone)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(branchIdStr))
+            {
+                var branchId = Guid.Parse(branchIdStr);
+                query = query.Where(t => t.BranchId == branchId);
+            }
+            else
+            {
+                var branchIds = await _context.Branches
+                    .Where(b => b.RestaurantId == restaurantId)
+                    .Select(b => b.Id)
+                    .ToListAsync();
+                query = query.Where(t => branchIds.Contains(t.BranchId));
+            }
+
+            var tables = await query
+                .OrderBy(t => t.TableNumber)
                 .ToListAsync();
-            query = query.Where(t => branchIds.Contains(t.BranchId));
-        }
 
-        var tables = await query
-            .OrderBy(t => t.TableNumber)
-            .Select(t => new {
+            // Lấy danh sách tên chi nhánh để map vào kết quả
+            var allBranchNames = await _context.Branches
+                .Where(b => b.RestaurantId == restaurantId)
+                .ToDictionaryAsync(b => b.Id, b => b.Name);
+
+            var result = tables.Select(t => new {
                 t.Id,
                 t.BranchId,
                 t.ZoneId,
@@ -53,23 +62,51 @@ public class TablesController : ControllerBase
                 t.Status,
                 t.PosX,
                 t.PosY,
-                ZoneName = t.Zone != null ? t.Zone.Name : "Chung",
-                BranchName = _context.Branches.Where(b => b.Id == t.BranchId).Select(b => b.Name).FirstOrDefault()
-            })
-            .ToListAsync();
+                ZoneName = t.Zone?.Name ?? "Chung",
+                BranchName = allBranchNames.GetValueOrDefault(t.BranchId, "Không xác định")
+            });
 
-        return Ok(tables);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi máy chủ", details = ex.Message });
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] DiningTable table)
     {
-        if (table.BranchId == Guid.Empty) return BadRequest("Phải chọn chi nhánh");
+        try
+        {
+            if (table.BranchId == Guid.Empty) return BadRequest(new { message = "Phải chọn chi nhánh" });
+            if (string.IsNullOrEmpty(table.TableNumber)) return BadRequest(new { message = "Phải nhập số bàn" });
 
-        table.Status = "Available";
-        _context.DiningTables.Add(table);
-        await _context.SaveChangesAsync();
-        return Ok(table);
+            // 1. Kiểm tra xem bàn đã tồn tại chưa
+            var exists = await _context.DiningTables.AnyAsync(t => t.BranchId == table.BranchId && t.TableNumber == table.TableNumber);
+            if (exists) return BadRequest(new { message = $"Bàn số {table.TableNumber} đã tồn tại ở chi nhánh này" });
+
+            // 2. Thiết lập các giá trị mặc định
+            table.Id = Guid.NewGuid();
+            table.Status = "Available";
+            table.CreatedAtUtc = DateTime.UtcNow;
+            table.Zone = null;
+
+            if (table.ZoneId == Guid.Empty) table.ZoneId = null;
+
+            _context.DiningTables.Add(table);
+            await _context.SaveChangesAsync();
+
+            return Ok(table);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new {
+                message = "Lỗi khi tạo bàn",
+                details = ex.Message,
+                inner = ex.InnerException?.Message
+            });
+        }
     }
 
     [HttpPut("{id}/position")]
