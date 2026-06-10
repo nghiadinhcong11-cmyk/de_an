@@ -57,6 +57,36 @@ public class VouchersController : ControllerBase
         return Ok();
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] Voucher voucher)
+    {
+        var existing = await _context.Vouchers.FindAsync(id);
+        if (existing == null) return NotFound();
+
+        existing.Name = voucher.Name;
+        existing.Code = voucher.Code;
+        existing.DiscountValue = voucher.DiscountValue;
+        existing.DiscountType = voucher.DiscountType;
+        existing.MinOrderAmount = voucher.MinOrderAmount;
+        existing.StartDate = voucher.StartDate;
+        existing.EndDate = voucher.EndDate;
+        existing.IsActive = voucher.IsActive;
+
+        await _context.SaveChangesAsync();
+        return Ok(existing);
+    }
+
+    [HttpPost("{id}/toggle")]
+    public async Task<IActionResult> Toggle(Guid id)
+    {
+        var voucher = await _context.Vouchers.FindAsync(id);
+        if (voucher == null) return NotFound();
+
+        voucher.IsActive = !voucher.IsActive;
+        await _context.SaveChangesAsync();
+        return Ok(new { isActive = voucher.IsActive });
+    }
+
     [HttpPost("{id}/redeem")]
     public async Task<IActionResult> Redeem(Guid id)
     {

@@ -18,15 +18,54 @@ public class FeedbacksController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SubmitFeedback([FromBody] Feedback feedback)
     {
-        // Gán RestaurantId mặc định cho đơn demo hoặc lấy từ logic khác
-        var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
-        if (firstRestaurant == null) return BadRequest("Hệ thống chưa có nhà hàng nào");
+        // 1. Lấy thông tin nhà hàng
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        Guid restaurantId;
 
-        feedback.RestaurantId = firstRestaurant.Id;
+        if (!string.IsNullOrEmpty(resIdStr))
+        {
+            restaurantId = Guid.Parse(resIdStr);
+        }
+        else
+        {
+            var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
+            if (firstRestaurant == null) return BadRequest("Hệ thống chưa có nhà hàng nào");
+            restaurantId = firstRestaurant.Id;
+        }
+
+        feedback.RestaurantId = restaurantId;
         feedback.CreatedAtUtc = DateTime.UtcNow;
+
+        // 2. Nếu khách hàng đã đăng nhập, gán CustomerId và tặng điểm thưởng
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(userIdStr))
+        {
+            var customerId = Guid.Parse(userIdStr);
+            var customer = await _context.Customers.FindAsync(customerId);
+            if (customer != null)
+            {
+                feedback.CustomerId = customer.Id;
+                feedback.Name = customer.FullName;
+                feedback.Email = customer.Email ?? "";
+
+                // Tặng 5 điểm cho mỗi lần đánh giá (giới hạn logic sau nếu cần)
+                int rewardPoints = 5;
+                customer.Points += rewardPoints;
+
+                _context.CustomerPointHistories.Add(new CustomerPointHistory
+                {
+                    CustomerId = customer.Id,
+                    Points = rewardPoints,
+                    Type = "Earn",
+                    Description = "Thưởng điểm cho góp ý & đánh giá chất lượng"
+                });
+            }
+        }
+
         _context.Feedbacks.Add(feedback);
         await _context.SaveChangesAsync();
-        return Ok(new { message = "Gửi góp ý thành công" });
+
+        return Ok(new { message = "Gửi góp ý thành công! Bạn đã được tặng 5 điểm thưởng." });
     }
 
     [Authorize(Roles = "Owner,Manager")]

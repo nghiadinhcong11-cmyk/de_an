@@ -20,75 +20,102 @@ export default function CustomerLayout() {
   const currentTableId = localStorage.getItem("current_table_id");
 
   useEffect(() => {
-    // Load local profile first
     const localProfile = localStorage.getItem("user_profile");
-    if (localProfile) {
-      setUserProfile(JSON.parse(localProfile));
-    }
+    if (localProfile) setUserProfile(JSON.parse(localProfile));
 
-    // Refresh profile from API
     const fetchProfile = async () => {
       try {
         const res = await api.get("/customers/me");
         setUserProfile(res.data);
         localStorage.setItem("user_profile", JSON.stringify(res.data));
-      } catch (err) {
-        console.error("Could not refresh profile in layout");
-      }
+      } catch (err) { console.error("Layout profile error"); }
     };
     fetchProfile();
-  }, [location.pathname]); // Refresh when navigating
+  }, [location.pathname]);
 
   const handleLogout = () => {
-    if (confirm("Bạn muốn đăng xuất?")) {
-      authApi.logout();
-    }
+    if (confirm("Bạn muốn đăng xuất?")) authApi.logout();
   };
 
-  // Chỉ hiển thị "Đơn hàng" nếu khách hàng đang ngồi tại một bàn cụ thể (có Table ID)
   const filteredNavItems = navItems.filter(item => {
     if (item.path === "/customer/orders" && !currentTableId) return false;
     return true;
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Navbar chuyên nghiệp */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/customer" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center text-white text-xl">🥗</div>
-            <span className="font-black text-2xl tracking-tighter text-gray-900 hidden md:block uppercase">Restaurant<span className="text-orange-600">Pos</span></span>
+    <div className="min-h-screen bg-[#FCFBF8] flex flex-col font-sans selection:bg-orange-100 selection:text-orange-600">
+      {/* Premium Navbar */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
+        <div className="container mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+          <Link to="/customer" className="flex items-center gap-2 group">
+            <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white text-2xl transition-transform group-hover:rotate-12 duration-300 shadow-lg shadow-gray-200">🥗</div>
+            <div className="flex flex-col">
+                <span className="font-black text-xl tracking-tight text-gray-900 leading-none uppercase">RESTO<span className="text-orange-600">POS</span></span>
+                <span className="text-[8px] font-bold text-gray-400 tracking-[0.3em] uppercase">Premium Dining</span>
+            </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-10">
             {filteredNavItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${
-                    isActive ? "text-orange-600 border-b-2 border-orange-600 pb-1" : "text-gray-400 hover:text-gray-900"
+                  className={`relative flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                    isActive ? "text-orange-600" : "text-gray-400 hover:text-gray-900"
                   }`}
                 >
-                  <item.icon className="w-4 h-4" />
                   {item.label}
+                  {isActive && <span className="absolute -bottom-1 left-0 w-full h-1 bg-orange-600 rounded-full"></span>}
                 </Link>
               );
             })}
           </nav>
 
           <div className="flex items-center gap-4">
-             <div className="hidden md:flex items-center gap-3 mr-2">
-                {user.fullName && (
-                  <div className="text-right">
-                    <p className="text-xs font-black text-gray-900 leading-none">{userProfile?.fullName || user.fullName}</p>
-                    <p className="text-[10px] text-orange-600 font-bold uppercase mt-1">{userProfile?.points || 0} Điểm</p>
+             {user.fullName && (
+               <Link to="/customer/profile" className="hidden md:flex items-center gap-3 bg-gray-50 hover:bg-gray-100 p-1.5 pr-4 rounded-2xl transition-all border border-gray-100">
+                  <div className="w-9 h-9 bg-orange-600 rounded-xl flex items-center justify-center text-white font-black shadow-md shadow-orange-200">
+                    {userProfile?.fullName?.charAt(0) || user.fullName.charAt(0)}
                   </div>
-                )}
-             </div>
+                  <div className="text-left">
+                    <p className="text-xs font-black text-gray-900 leading-none">{userProfile?.fullName || user.fullName}</p>
+                    <p className="text-[9px] text-orange-600 font-bold uppercase mt-0.5 tracking-tighter">{userProfile?.points || 0} Điểm tích lũy</p>
+                  </div>
+               </Link>
+             )}
 
+             <Button
+                onClick={handleLogout}
+                variant="ghost"
+                className="h-11 w-11 rounded-2xl text-red-400 hover:text-red-600 hover:bg-red-50 p-0"
+             >
+                <LogOut className="w-5 h-5" />
+             </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 container mx-auto px-4 py-6 md:py-10 pb-32">
+        <Outlet />
+      </main>
+
+      {/* Modern Bottom Nav for Mobile */}
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-18 bg-gray-900/95 backdrop-blur-lg rounded-[28px] flex items-center justify-around px-4 z-50 shadow-2xl shadow-gray-400 border border-white/10">
+        {filteredNavItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link key={item.path} to={item.path} className={`p-4 transition-all duration-300 ${isActive ? "text-orange-500 scale-125" : "text-gray-500"}`}>
+              <item.icon className="w-6 h-6" strokeWidth={isActive ? 3 : 2} />
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
              <div className="h-8 w-px bg-gray-100 mx-2 hidden md:block"></div>
 
              <Button
