@@ -1210,6 +1210,12 @@ namespace RestaurantPOS.Migrations
                     b.Property<string>("QrCode")
                         .HasColumnType("text");
 
+                    b.Property<double>("PosX")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PosY")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");

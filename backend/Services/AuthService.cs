@@ -75,7 +75,7 @@ public class AuthService : IAuthService
     public async Task<LoginResponse?> LoginAsync(LoginRequest request)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive);
+            .FirstOrDefaultAsync(u => u.Username == request.Username && u.IsActive && u.IsApproved);
 
         if (user != null && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {

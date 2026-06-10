@@ -150,4 +150,65 @@ public class ReportsController : ControllerBase
             QrRevenue = paymentsToday.Where(p => p.Method == "QR").Sum(p => p.Amount)
         });
     }
+
+    // 5. Doanh thu theo chi nhánh
+    [HttpGet("revenue-by-branch")]
+    public async Task<IActionResult> GetRevenueByBranch()
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+
+        var report = await _context.Orders
+            .Include(o => o.Branch)
+            .Where(o => o.RestaurantId == restaurantId && o.Status == "Completed")
+            .GroupBy(o => o.Branch.Name)
+            .Select(g => new
+            {
+                Name = g.Key,
+                Revenue = g.Sum(o => o.TotalAmount)
+            })
+            .OrderByDescending(x => x.Revenue)
+            .ToListAsync();
+
+        return Ok(report);
+    }
+
+    // 6. Doanh thu theo tháng (Trong năm nay)
+    [HttpGet("monthly-revenue")]
+    public async Task<IActionResult> GetMonthlyRevenue()
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var year = DateTime.UtcNow.Year;
+
+        var orders = await _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.Status == "Completed" && o.CreatedAtUtc.Year == year)
+            .ToListAsync();
+
+        var report = Enumerable.Range(1, 12).Select(month => new
+        {
+            Month = $"Tháng {month}",
+            Revenue = orders.Where(o => o.CreatedAtUtc.Month == month).Sum(o => o.TotalAmount)
+        }).ToList();
+
+        return Ok(report);
+    }
+
+    // 7. Doanh thu theo năm (5 năm gần nhất)
+    [HttpGet("yearly-revenue")]
+    public async Task<IActionResult> GetYearlyRevenue()
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var currentYear = DateTime.UtcNow.Year;
+
+        var orders = await _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.Status == "Completed" && o.CreatedAtUtc.Year > currentYear - 5)
+            .ToListAsync();
+
+        var report = Enumerable.Range(currentYear - 4, 5).Select(year => new
+        {
+            Year = year.ToString(),
+            Revenue = orders.Where(o => o.CreatedAtUtc.Year == year).Sum(o => o.TotalAmount)
+        }).ToList();
+
+        return Ok(report);
+    }
 }

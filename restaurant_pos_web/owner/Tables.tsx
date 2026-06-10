@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Plus, Users, QrCode, Printer, Loader2, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Plus, Users, QrCode, Printer, Loader2, Trash2, Map, List as ListIcon, Save, Move } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import api from "../services/api";
 
@@ -18,6 +19,7 @@ export function OwnerTables() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isZoneOpen, setIsZoneOpen] = useState(false);
   const [activeQRTable, setActiveQRTable] = useState<any>(null);
+  const [viewMode, setViewMode] = useState("list");
 
   const [newTable, setNewTable] = useState({
     tableNumber: "",
@@ -42,7 +44,6 @@ export function OwnerTables() {
       setTables(tableRes.data);
       setBranches(branchRes.data);
 
-      // Lấy toàn bộ zone của tất cả branch
       const zonePromises = branchRes.data.map((b: any) => api.get(`/zones?branchId=${b.id}`));
       const zoneResponses = await Promise.all(zonePromises);
       const combinedZones = zoneResponses.flatMap(r => r.data);
@@ -56,6 +57,26 @@ export function OwnerTables() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const handleUpdatePosition = async (id: string, posX: number, posY: number) => {
+    try {
+      await api.put(`/tables/${id}/position`, { posX, posY });
+      // Update local state to avoid re-fetching everything
+      setTables(prev => prev.map(t => t.id === id ? { ...t, posX, posY } : t));
+    } catch {
+      console.error("Lỗi cập nhật vị trí");
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, currentStatus: string) => {
+      const newStatus = currentStatus === 'Available' ? 'Occupied' : 'Available';
+      try {
+          await api.put(`/tables/${id}/status`, `"${newStatus}"`, { headers: { 'Content-Type': 'application/json' } });
+          setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+      } catch {
+          console.error("Lỗi cập nhật trạng thái");
+      }
+  };
 
   const handleAddTable = async () => {
     if (!newTable.tableNumber || !newTable.branchId || !newTable.zoneId) {
@@ -99,12 +120,9 @@ export function OwnerTables() {
     } catch { alert("Lỗi khi xóa bàn"); }
   };
 
-  // Nhóm bàn theo chi nhánh và khu vực (Zone) từ dữ liệu API
   const groupedTables = branches.map(branch => {
     const branchTables = tables.filter(t => t.branchId === branch.id);
     const branchZones = allZones.filter(z => z.branchId === branch.id);
-
-    // Đảm bảo các bàn không có zone vẫn hiện ở mục "Chung"
     const tablesWithNoZone = branchTables.filter(t => !t.zoneId);
 
     return {
@@ -121,15 +139,30 @@ export function OwnerTables() {
   });
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen text-gray-900">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 bg-gray-50 min-h-screen text-gray-900">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-black">Quản lý bàn ăn</h1>
           <p className="text-gray-500 mt-1">Phân chia theo chi nhánh và khu vực (tầng, phòng...)</p>
         </div>
 
-        <div className="flex gap-3">
-            <Button onClick={() => setIsZoneOpen(true)} variant="outline" className="font-bold border-orange-200 text-orange-600">
+        <div className="flex flex-wrap gap-3">
+            <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 flex items-center mr-2">
+                <button
+                    onClick={() => setViewMode("list")}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'list' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+                >
+                    <ListIcon className="w-4 h-4" /> DANH SÁCH
+                </button>
+                <button
+                    onClick={() => setViewMode("map")}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'map' ? 'bg-orange-600 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+                >
+                    <Map className="w-4 h-4" /> SƠ ĐỒ BÀN
+                </button>
+            </div>
+
+            <Button onClick={() => setIsZoneOpen(true)} variant="outline" className="font-bold border-orange-200 text-orange-600 bg-white">
                Thiết lập khu vực
             </Button>
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -246,23 +279,49 @@ export function OwnerTables() {
                 <div className="h-[2px] flex-1 bg-gradient-to-r from-orange-100 to-transparent"></div>
               </div>
 
-              {branch.zones.map(zone => (
-                <div key={zone.name} className="space-y-4 ml-4">
-                   <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                      <Plus className="w-3 h-3 text-orange-600" /> {zone.name}
-                   </h3>
-                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                      {zone.tables.map((table) => (
-                        <TableCard
-                            key={table.id}
-                            table={table}
-                            onDelete={() => handleDelete(table.id)}
-                            onShowQR={() => setActiveQRTable(table)}
-                        />
-                      ))}
-                   </div>
+              {viewMode === "list" ? (
+                  branch.zones.map(zone => (
+                    <div key={zone.name} className="space-y-4 ml-4">
+                       <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                          <Plus className="w-3 h-3 text-orange-600" /> {zone.name}
+                       </h3>
+                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                          {zone.tables.map((table) => (
+                            <TableCard
+                                key={table.id}
+                                table={table}
+                                onDelete={() => handleDelete(table.id)}
+                                onShowQR={() => setActiveQRTable(table)}
+                            />
+                          ))}
+                       </div>
+                    </div>
+                  ))
+              ) : (
+                <div className="space-y-8">
+                    {branch.zones.map(zone => (
+                        <div key={zone.id} className="bg-white rounded-[40px] p-8 shadow-sm border border-gray-100 relative overflow-hidden">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="text-lg font-black text-gray-900">{zone.name}</h3>
+                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Sơ đồ bố trí mặt bằng</p>
+                                </div>
+                                <div className="flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">
+                                    <Move className="w-3 h-3" /> Kéo thả bàn để thay đổi vị trí
+                                </div>
+                            </div>
+
+                            <TableMap
+                                tables={zone.tables}
+                                onUpdatePosition={handleUpdatePosition}
+                                onUpdateStatus={handleUpdateStatus}
+                                onShowQR={(table) => setActiveQRTable(table)}
+                                onDelete={(id) => handleDelete(id)}
+                            />
+                        </div>
+                    ))}
                 </div>
-              ))}
+              )}
 
               {branch.zones.length === 0 && (
                 <div className="text-center py-10 bg-white/50 rounded-3xl border-2 border-dashed border-gray-100 ml-4">
@@ -301,15 +360,101 @@ export function OwnerTables() {
   );
 }
 
-function TableCard({ table, onDelete, onShowQR }: { table: any, onDelete: () => void, onShowQR: () => void }) {
+function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete }: any) {
+    const mapRef = useRef<HTMLDivElement>(null);
+    const [draggingTable, setDraggingTable] = useState<any>(null);
+
+    const onMouseDown = (e: React.MouseEvent, table: any) => {
+        if ((e.target as HTMLElement).closest('button')) return; // Không drag khi bấm nút xóa/qr
+        setDraggingTable({ ...table, startX: e.clientX, startY: e.clientY, initialPosX: table.posX, initialPosY: table.posY });
+    };
+
+    const onMouseMove = (e: React.MouseEvent) => {
+        if (!draggingTable || !mapRef.current) return;
+
+        const rect = mapRef.current.getBoundingClientRect();
+        const deltaX = ((e.clientX - draggingTable.startX) / rect.width) * 100;
+        const deltaY = ((e.clientY - draggingTable.startY) / rect.height) * 100;
+
+        let newX = draggingTable.initialPosX + deltaX;
+        let newY = draggingTable.initialPosY + deltaY;
+
+        // Giới hạn trong map
+        newX = Math.max(0, Math.min(95, newX));
+        newY = Math.max(0, Math.min(90, newY));
+
+        setDraggingTable({ ...draggingTable, currentX: newX, currentY: newY });
+    };
+
+    const onMouseUp = (e: React.MouseEvent) => {
+        if (draggingTable) {
+            if (draggingTable.currentX !== undefined) {
+                onUpdatePosition(draggingTable.id, draggingTable.currentX, draggingTable.currentY);
+            } else {
+                // Nếu không drag mà chỉ click -> đổi trạng thái
+                onUpdateStatus(draggingTable.id, draggingTable.status);
+            }
+        }
+        setDraggingTable(null);
+    };
+
+    return (
+        <div
+            ref={mapRef}
+            className="relative w-full h-[600px] bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200 overflow-hidden cursor-crosshair"
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={(e: any) => onMouseUp(e)}
+        >
+            {/* Grid Pattern Background */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+
+            {tables.map((t: any) => {
+                const isThisDragging = draggingTable?.id === t.id;
+                const x = isThisDragging ? (draggingTable.currentX ?? t.posX) : t.posX;
+                const y = isThisDragging ? (draggingTable.currentY ?? t.posY) : t.posY;
+
+                return (
+                    <div
+                        key={t.id}
+                        onMouseDown={(e) => onMouseDown(e, t)}
+                        style={{ left: `${x}%`, top: `${y}%`, position: 'absolute' }}
+                        className={`transition-shadow duration-200 ${isThisDragging ? 'z-50 cursor-grabbing' : 'z-10 cursor-grab hover:scale-105'}`}
+                    >
+                        <Card className={`w-32 border-none shadow-lg overflow-hidden ${t.status === 'Occupied' ? 'bg-orange-600 text-white' : 'bg-white'}`}>
+                            <div className={`h-1 w-full ${t.status === 'Occupied' ? 'bg-white/20' : 'bg-green-500'}`}></div>
+                            <CardContent className="p-3 text-center">
+                                <div className="text-2xl mb-1">{t.status === 'Occupied' ? '🔥' : '🪑'}</div>
+                                <div className="font-black text-sm">{t.tableNumber}</div>
+                                <div className={`text-[8px] font-bold uppercase mt-1 ${t.status === 'Occupied' ? 'text-white/70' : 'text-gray-400'}`}>
+                                    {t.capacity} CHỖ • {t.status === 'Occupied' ? 'CÓ KHÁCH' : 'TRỐNG'}
+                                </div>
+                                <div className="flex justify-center gap-1 mt-3">
+                                    <button onClick={() => onShowQR(t)} className={`p-1.5 rounded-lg ${t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-50 hover:bg-gray-100'}`}>
+                                        <QrCode className="w-3 h-3" />
+                                    </button>
+                                    <button onClick={() => onDelete(t.id)} className={`p-1.5 rounded-lg ${t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-50 hover:bg-red-100 text-red-500'}`}>
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function TableCard({ table, onDelete, onShowQR, onUpdateStatus }: { table: any, onDelete: () => void, onShowQR: () => void, onUpdateStatus: (id: string, s: string) => void }) {
   return (
     <Card className="group hover:shadow-xl transition-all border-none bg-white shadow-sm overflow-hidden relative">
-      <div className="h-1.5 bg-green-500 w-full"></div>
+      <div className={`h-1.5 w-full ${table.status === 'Occupied' ? 'bg-orange-600' : 'bg-green-500'}`}></div>
       <CardContent className="p-5 text-center">
         <button onClick={onDelete} className="absolute top-2 right-2 p-1 text-gray-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
           <Trash2 className="w-4 h-4" />
         </button>
-        <div className="text-3xl mb-2">🪑</div>
+        <div className="text-3xl mb-2 cursor-pointer" onClick={() => onUpdateStatus(table.id, table.status)}>{table.status === 'Occupied' ? '🔥' : '🪑'}</div>
         <div className="font-black text-xl text-gray-900">{table.tableNumber}</div>
         <div className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-1 mb-4 font-bold uppercase tracking-tighter">
           <Users className="w-3 h-3" /> {table.capacity} chỗ

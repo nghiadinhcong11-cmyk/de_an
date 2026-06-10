@@ -51,6 +51,8 @@ public class TablesController : ControllerBase
                 t.TableNumber,
                 t.Capacity,
                 t.Status,
+                t.PosX,
+                t.PosY,
                 ZoneName = t.Zone != null ? t.Zone.Name : "Chung",
                 BranchName = _context.Branches.Where(b => b.Id == t.BranchId).Select(b => b.Name).FirstOrDefault()
             })
@@ -68,6 +70,36 @@ public class TablesController : ControllerBase
         _context.DiningTables.Add(table);
         await _context.SaveChangesAsync();
         return Ok(table);
+    }
+
+    [HttpPut("{id}/position")]
+    public async Task<IActionResult> UpdatePosition(Guid id, [FromBody] PositionDto pos)
+    {
+        var table = await _context.DiningTables.FindAsync(id);
+        if (table == null) return NotFound();
+
+        table.PosX = pos.PosX;
+        table.PosY = pos.PosY;
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
+    {
+        var table = await _context.DiningTables.FindAsync(id);
+        if (table == null) return NotFound();
+
+        table.Status = status;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    public class PositionDto
+    {
+        public double PosX { get; set; }
+        public double PosY { get; set; }
     }
 
     [HttpDelete("{id}")]
