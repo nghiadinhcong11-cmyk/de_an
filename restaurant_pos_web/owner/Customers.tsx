@@ -179,7 +179,7 @@ export function OwnerCustomers() {
               </TableBody>
             </Table>
           )}
-          {!loading && filteredCustomers.length === 0 && (
+          {!loading && filteredAndSortedCustomers.length === 0 && (
               <div className="text-center py-20 text-gray-300">
                   <Users className="w-16 h-16 mx-auto mb-4 opacity-20" />
                   <p className="font-black uppercase tracking-widest text-xs">Không tìm thấy khách hàng nào</p>
