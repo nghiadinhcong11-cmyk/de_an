@@ -292,6 +292,7 @@ export function OwnerTables() {
                                 table={table}
                                 onDelete={() => handleDelete(table.id)}
                                 onShowQR={() => setActiveQRTable(table)}
+                                onUpdateStatus={handleUpdateStatus}
                             />
                           ))}
                        </div>

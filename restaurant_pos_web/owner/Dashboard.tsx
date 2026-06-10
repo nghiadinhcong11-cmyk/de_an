@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { DollarSign, ShoppingBag, Users, TrendingUp, Loader2, Award } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import api from "../services/api";
-
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
-import { DollarSign, ShoppingBag, Users, Zap, Loader2, ArrowRight, Clock, MapPin } from "lucide-react";
+import { DollarSign, ShoppingBag, Zap, Loader2, ArrowRight, Clock } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Link } from "react-router-dom";
 import api from "../services/api";
@@ -121,21 +115,6 @@ function StatCard({ label, val, icon: Icon, color, bg }: any) {
         <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center ${color}`}><Icon className="w-6 h-6" /></div>
         <div>
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">{label}</p>
-          <p className="text-2xl font-black">{val}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-
-function StatCard({ label, val, icon: Icon, color }: any) {
-  return (
-    <Card className="border-none shadow-sm bg-white">
-      <CardContent className="pt-6 flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center ${color}`}><Icon className="w-6 h-6" /></div>
-        <div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</p>
           <p className="text-2xl font-black">{val}</p>
         </div>
       </CardContent>
