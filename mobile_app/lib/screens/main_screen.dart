@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/order_provider.dart';
 import 'order_requests_screen.dart';
 import 'tables_screen.dart';
 import 'orders_list_screen.dart';
@@ -24,6 +25,20 @@ class _MainScreenState extends State<MainScreen> {
     const OrderRequestsScreen(),
     const ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      
+      if (auth.token != null) {
+        final branchId = auth.user?['branchId'] ?? '';
+        orderProvider.initSignalR(auth.token!, branchId);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

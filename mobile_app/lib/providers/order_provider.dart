@@ -140,21 +140,32 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void initSignalR(String token) {
+  void initSignalR(String token, String branchId) {
     if (_signalRService != null) return; // Đã khởi tạo dịch vụ
 
-    _signalRService = SignalRService(onNewOrder: (data) {
-      // Hiển thị thông báo ngay lập tức
-      NotificationService.showLocalNotification(
-        title: '🔔 Yêu cầu mới!',
-        body: 'Bàn ${data['tableNumber']} vừa gửi yêu cầu gọi món.',
-      );
+    _signalRService = SignalRService(
+      onNewOrder: (data) {
+        // Hiển thị thông báo ngay lập tức
+        NotificationService.showLocalNotification(
+          title: '🔔 Yêu cầu mới!',
+          body: 'Bàn ${data['tableNumber']} vừa gửi yêu cầu gọi món.',
+        );
 
-      fetchRequests();
-      fetchTables();
-      fetchAllOrders();
+        fetchRequests();
+        fetchTables();
+        fetchAllOrders();
+      },
+      onNewBooking: (data) {
+        NotificationService.showLocalNotification(
+          title: '📅 Lịch đặt bàn mới!',
+          body: 'Khách ${data['customerName']} đặt bàn lúc ${data['bookingDate']}.',
+        );
+      },
+    );
+    
+    _signalRService?.init(token).then((_) {
+      _signalRService?.joinBranchGroup(branchId);
     });
-    _signalRService?.init(token);
   }
 
   Future<bool> approveRequest(String requestId) async {

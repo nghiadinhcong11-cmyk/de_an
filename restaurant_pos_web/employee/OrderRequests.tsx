@@ -25,13 +25,25 @@ export function EmployeeOrderRequests() {
   useEffect(() => {
     fetchData();
 
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const branchId = user.branchId;
+
     const connection = new signalR.HubConnectionBuilder()
       .withUrl("https://restaurant-pos-api-uvcz.onrender.com/notificationHub")
       .withAutomaticReconnect()
       .build();
 
     connection.start().then(() => {
+        if (branchId) {
+            connection.invoke("JoinBranchGroup", branchId);
+        }
+
         connection.on("ReceiveNewOrderRequest", () => fetchData());
+
+        connection.on("NewBookingReceived", (data: any) => {
+            alert(`📅 Có lịch đặt bàn mới từ ${data.customerName}!`);
+            fetchData();
+        });
     });
 
     return () => { connection.stop(); };

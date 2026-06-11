@@ -36,11 +36,10 @@ public class VouchersController : ControllerBase
 
         voucher.RestaurantId = Guid.Parse(restaurantIdStr);
 
-        // Tự động gán các giá trị mặc định để tránh lỗi database
+        // Đảm bảo các giá trị thời gian được xử lý chính xác (Kind UTC)
+        voucher.StartDate = DateTime.SpecifyKind(voucher.StartDate, DateTimeKind.Utc);
+        voucher.EndDate = DateTime.SpecifyKind(voucher.EndDate, DateTimeKind.Utc);
         voucher.CreatedAtUtc = DateTime.UtcNow;
-        voucher.StartDate = DateTime.UtcNow;
-        voucher.EndDate = DateTime.UtcNow.AddMonths(1);
-        voucher.IsActive = true;
 
         _context.Vouchers.Add(voucher);
         await _context.SaveChangesAsync();
@@ -60,20 +59,38 @@ public class VouchersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] Voucher voucher)
     {
+        var restaurantIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
+        var restaurantId = Guid.Parse(restaurantIdStr);
+
         var existing = await _context.Vouchers.FindAsync(id);
         if (existing == null) return NotFound();
 
+        // Bảo vệ: Chỉ cho phép cập nhật voucher thuộc về nhà hàng của mình
+        if (existing.RestaurantId != restaurantId && existing.RestaurantId != Guid.Empty)
+            return Forbid();
+
+        existing.RestaurantId = restaurantId; // Gán lại để chắc chắn không bị null/empty
         existing.Name = voucher.Name;
         existing.Code = voucher.Code;
         existing.DiscountValue = voucher.DiscountValue;
         existing.DiscountType = voucher.DiscountType;
         existing.MinOrderAmount = voucher.MinOrderAmount;
-        existing.StartDate = voucher.StartDate;
-        existing.EndDate = voucher.EndDate;
+        existing.UsageLimit = voucher.UsageLimit;
+        existing.StartDate = DateTime.SpecifyKind(voucher.StartDate, DateTimeKind.Utc);
+        existing.EndDate = DateTime.SpecifyKind(voucher.EndDate, DateTimeKind.Utc);
         existing.IsActive = voucher.IsActive;
+        existing.UpdatedAtUtc = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
-        return Ok(existing);
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Ok(existing);
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new { error = "Database error", detail = ex.InnerException?.Message ?? ex.Message });
+        }
     }
 
     [HttpPost("{id}/toggle")]

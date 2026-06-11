@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductVariant> ProductVariants { get; set; }
     public DbSet<DiningTable> DiningTables { get; set; }
     public DbSet<Zone> Zones { get; set; }
+    public DbSet<Booking> Bookings { get; set; }
     public DbSet<CustomerSession> CustomerSessions { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }

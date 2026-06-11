@@ -7,7 +7,7 @@ import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Plus, Users, QrCode, Printer, Loader2, Trash2, Map, List as ListIcon, Save, Move } from "lucide-react";
+import { Plus, Users, QrCode, Printer, Loader2, Trash2, Map, List as ListIcon, Save, Move, ChevronDown, ChevronUp, Layers } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import api from "../services/api";
 
@@ -20,19 +20,14 @@ export function OwnerTables() {
   const [isZoneOpen, setIsZoneOpen] = useState(false);
   const [activeQRTable, setActiveQRTable] = useState<any>(null);
   const [viewMode, setViewMode] = useState("list");
+  const [expandedZones, setExpandedZones] = useState<Record<string, boolean>>({});
 
-  const [newTable, setNewTable] = useState({
-    tableNumber: "",
-    capacity: 4,
-    branchId: "",
-    zoneId: ""
-  });
-
-  const [newZone, setNewZone] = useState({
-    name: "",
-    branchId: "",
-    displayOrder: 0
-  });
+  const toggleZone = (zoneId: string) => {
+    setExpandedZones(prev => ({
+      ...prev,
+      [zoneId]: !prev[zoneId]
+    }));
+  };
 
   const fetchData = async () => {
     try {
@@ -48,6 +43,12 @@ export function OwnerTables() {
       const zoneResponses = await Promise.all(zonePromises);
       const combinedZones = zoneResponses.flatMap(r => r.data);
       setAllZones(combinedZones);
+
+      // Mặc định mở rộng tất cả các khu vực lần đầu tải
+      const initialExpanded: Record<string, boolean> = {};
+      combinedZones.forEach(z => { initialExpanded[z.id] = true; });
+      initialExpanded['none'] = true;
+      setExpandedZones(initialExpanded);
 
     } catch (err) {
       console.error("Lỗi lấy dữ liệu bàn");
@@ -295,21 +296,38 @@ export function OwnerTables() {
 
               {viewMode === "list" ? (
                   branch.zones.map(zone => (
-                    <div key={zone.name} className="space-y-4 ml-4">
-                       <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                          <Plus className="w-3 h-3 text-orange-600" /> {zone.name}
-                       </h3>
-                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                          {zone.tables.map((table) => (
-                            <TableCard
-                                key={table.id}
-                                table={table}
-                                onDelete={() => handleDelete(table.id)}
-                                onShowQR={() => setActiveQRTable(table)}
-                                onUpdateStatus={handleUpdateStatus}
-                            />
-                          ))}
-                       </div>
+                    <div key={zone.id} className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden mb-6">
+                       <button
+                          onClick={() => toggleZone(zone.id)}
+                          className="w-full px-8 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                       >
+                          <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600">
+                                <Layers className="w-5 h-5" />
+                             </div>
+                             <div className="text-left">
+                                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">{zone.name}</h3>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{zone.tables.length} bàn trong khu vực</p>
+                             </div>
+                          </div>
+                          {expandedZones[zone.id] ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                       </button>
+
+                       {expandedZones[zone.id] && (
+                          <div className="p-8 pt-0 border-t border-gray-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 mt-6">
+                                {zone.tables.map((table: any) => (
+                                  <TableCard
+                                      key={table.id}
+                                      table={table}
+                                      onDelete={() => handleDelete(table.id)}
+                                      onShowQR={() => setActiveQRTable(table)}
+                                      onUpdateStatus={handleUpdateStatus}
+                                  />
+                                ))}
+                             </div>
+                          </div>
+                       )}
                     </div>
                   ))
               ) : (

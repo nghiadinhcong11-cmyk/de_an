@@ -26,6 +26,7 @@ export function OwnerVouchers() {
       discountValue: 0,
       discountType: 'percentage',
       minOrderAmount: 0,
+      usageLimit: 100,
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       isActive: true
@@ -52,6 +53,7 @@ export function OwnerVouchers() {
             discountValue: voucher.discountValue,
             discountType: voucher.discountType,
             minOrderAmount: voucher.minOrderAmount || 0,
+            usageLimit: voucher.usageLimit || 0,
             startDate: new Date(voucher.startDate).toISOString().split('T')[0],
             endDate: new Date(voucher.endDate).toISOString().split('T')[0],
             isActive: voucher.isActive
@@ -64,6 +66,7 @@ export function OwnerVouchers() {
             discountValue: 0,
             discountType: 'percentage',
             minOrderAmount: 0,
+            usageLimit: 100,
             startDate: new Date().toISOString().split('T')[0],
             endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             isActive: true
@@ -238,6 +241,11 @@ export function OwnerVouchers() {
                   <div className="space-y-1.5">
                       <Label className="text-[10px] font-black uppercase text-gray-400">Giá trị đơn tối thiểu</Label>
                       <Input type="number" value={form.minOrderAmount} onChange={(e: any) => setForm({...form, minOrderAmount: parseFloat(e.target.value)})} className="h-12 rounded-xl" />
+                  </div>
+
+                  <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase text-gray-400">Số lượng mã phát hành (0 = Không giới hạn)</Label>
+                      <Input type="number" value={form.usageLimit} onChange={(e: any) => setForm({...form, usageLimit: parseInt(e.target.value)})} className="h-12 rounded-xl font-bold" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

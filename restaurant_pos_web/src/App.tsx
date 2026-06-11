@@ -45,6 +45,7 @@ import { CustomerCart } from '../customer/CustomerCart';
 import { CustomerOrders } from '../customer/CustomerOrders';
 import { CustomerProfile } from '../customer/CustomerProfile';
 import { CustomerContact } from '../customer/CustomerContact';
+import { CustomerBooking } from '../customer/CustomerBooking';
 
 function App() {
   return (
@@ -66,6 +67,7 @@ function App() {
           <Route path="menu" element={<CustomerMenu />} />
           <Route path="cart" element={<CustomerCart />} />
           <Route path="contact" element={<CustomerContact />} />
+          <Route path="booking" element={<CustomerBooking />} />
 
           {/* Private Customer Routes */}
           <Route element={<ProtectedRoute allowedRoles={['Customer']} />}>

@@ -5,8 +5,9 @@ import '../utils/constants.dart';
 class SignalRService {
   HubConnection? _hubConnection;
   final Function(dynamic) onNewOrder;
+  final Function(dynamic)? onNewBooking;
 
-  SignalRService({required this.onNewOrder});
+  SignalRService({required this.onNewOrder, this.onNewBooking});
 
   Future<void> init(String token) async {
     _hubConnection = HubConnectionBuilder()
@@ -25,11 +26,28 @@ class SignalRService {
       }
     });
 
+    _hubConnection?.on('NewBookingReceived', (arguments) {
+      if (arguments != null && arguments.isNotEmpty && onNewBooking != null) {
+        onNewBooking!(arguments[0]);
+      }
+    });
+
     try {
       await _hubConnection?.start();
       debugPrint('SignalR Connected');
     } catch (e) {
       debugPrint('SignalR Connection Error: $e');
+    }
+  }
+
+  Future<void> joinBranchGroup(String branchId) async {
+    if (_hubConnection?.state == HubConnectionState.Connected) {
+      try {
+        await _hubConnection?.invoke('JoinBranchGroup', args: [branchId]);
+        debugPrint('Joined branch group: $branchId');
+      } catch (e) {
+        debugPrint('Error joining branch group: $e');
+      }
     }
   }
 

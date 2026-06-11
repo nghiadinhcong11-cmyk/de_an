@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, UtensilsCrossed, ShoppingBag, User, LogOut, Facebook, Youtube } from "lucide-react";
+import { Home, UtensilsCrossed, ShoppingBag, User, LogOut, Facebook, Youtube, CalendarCheck } from "lucide-react";
 import { authApi } from "../services/authApi";
 import { Button } from "../components/ui/button";
 import api from "../services/api";
@@ -8,6 +8,7 @@ import api from "../services/api";
 const navItems = [
   { icon: Home, label: "Khám phá", path: "/customer" },
   { icon: UtensilsCrossed, label: "Thực đơn", path: "/customer/menu" },
+  { icon: CalendarCheck, label: "Đặt bàn", path: "/customer/booking" },
   { icon: ShoppingBag, label: "Đơn hàng", path: "/customer/orders" },
   { icon: User, label: "Cá nhân", path: "/customer/profile" },
 ];

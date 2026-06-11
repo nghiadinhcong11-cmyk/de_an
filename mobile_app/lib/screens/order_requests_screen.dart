@@ -16,12 +16,7 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-      orderProvider.fetchRequests();
-      if (auth.token != null) {
-        orderProvider.initSignalR(auth.token!);
-      }
+      Provider.of<OrderProvider>(context, listen: false).fetchRequests();
     });
   }
 
