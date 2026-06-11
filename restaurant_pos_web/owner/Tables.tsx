@@ -346,24 +346,41 @@ export function OwnerTables() {
               ) : (
                 <div className="space-y-8">
                     {branch.zones.map(zone => (
-                        <div key={zone.id} className="bg-white rounded-[40px] p-8 shadow-sm border border-gray-100 relative overflow-hidden">
-                            <div className="flex items-center justify-between mb-8">
-                                <div>
-                                    <h3 className="text-lg font-black text-gray-900">{zone.name}</h3>
-                                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Sơ đồ bố trí mặt bằng</p>
+                        <div key={zone.id} className="bg-white rounded-[40px] shadow-sm border border-gray-100 relative overflow-hidden transition-all duration-500">
+                            <button
+                                onClick={() => toggleZone(zone.id)}
+                                className="w-full p-8 flex items-center justify-between hover:bg-gray-50/50 transition-colors group"
+                            >
+                                <div className="flex items-center gap-6">
+                                    <div className="w-14 h-14 bg-gray-900 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-gray-200 group-hover:rotate-6 transition-transform">
+                                        <Map className="w-6 h-6 text-orange-500" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="text-xl font-black text-gray-900">{zone.name}</h3>
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Sơ đồ bố trí • {zone.tables.length} bàn</p>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">
-                                    <Move className="w-3 h-3" /> Kéo thả bàn để thay đổi vị trí
+                                <div className="flex items-center gap-4">
+                                    <div className="hidden lg:flex items-center gap-2 bg-orange-50 text-orange-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">
+                                        <Move className="w-3 h-3" /> Kéo thả bàn
+                                    </div>
+                                    <div className={`p-2 rounded-full bg-gray-50 text-gray-400 group-hover:text-orange-600 transition-colors ${expandedZones[zone.id] ? 'rotate-180' : ''}`}>
+                                        <ChevronDown className="w-6 h-6 transition-transform duration-300" />
+                                    </div>
                                 </div>
-                            </div>
+                            </button>
 
-                            <TableMap
-                                tables={zone.tables}
-                                onUpdatePosition={handleUpdatePosition}
-                                onUpdateStatus={handleUpdateStatus}
-                                onShowQR={(table) => setActiveQRTable(table)}
-                                onDelete={(id) => handleDelete(id)}
-                            />
+                            {expandedZones[zone.id] && (
+                                <div className="p-8 pt-0 animate-in fade-in slide-in-from-top-4 duration-500">
+                                    <TableMap
+                                        tables={zone.tables}
+                                        onUpdatePosition={handleUpdatePosition}
+                                        onUpdateStatus={handleUpdateStatus}
+                                        onShowQR={(table: any) => setActiveQRTable(table)}
+                                        onDelete={(id: string) => handleDelete(id)}
+                                    />
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -447,7 +464,7 @@ function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete
     return (
         <div
             ref={mapRef}
-            className="relative w-full h-[600px] bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200 overflow-hidden cursor-crosshair"
+            className="relative w-full h-[400px] md:h-[600px] bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200 overflow-hidden cursor-crosshair"
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={(e: any) => onMouseUp(e)}

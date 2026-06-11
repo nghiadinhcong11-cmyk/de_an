@@ -97,7 +97,7 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<DiningTable>(dt => {
-            dt.HasIndex(x => new { x.TableNumber, x.BranchId }).IsUnique();
+            dt.HasIndex(x => new { x.TableNumber, x.BranchId, x.ZoneId }).IsUnique();
             dt.HasOne<Branch>().WithMany(x => x.DiningTables).HasForeignKey(x => x.BranchId);
             dt.HasOne(x => x.Zone).WithMany(x => x.Tables).HasForeignKey(x => x.ZoneId).OnDelete(DeleteBehavior.SetNull);
         });
