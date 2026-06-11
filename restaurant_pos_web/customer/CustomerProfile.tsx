@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Link } from "react-router-dom";
-import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save, KeyRound, Star, MessageSquare, Utensils, DollarSign, Home, Users } from "lucide-react";
+import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save, KeyRound, Star, MessageSquare, Utensils, DollarSign, Home, Users, CheckCircle } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerProfile() {
