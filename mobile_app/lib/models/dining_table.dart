@@ -5,6 +5,8 @@ class DiningTable {
   final String? branchName;
   final int capacity;
   final String status; // Available, Occupied
+  final double posX;
+  final double posY;
 
   DiningTable({
     required this.id,
@@ -13,6 +15,8 @@ class DiningTable {
     this.branchName,
     required this.capacity,
     required this.status,
+    this.posX = 0,
+    this.posY = 0,
   });
 
   factory DiningTable.fromJson(Map<String, dynamic> json) {
@@ -23,6 +27,8 @@ class DiningTable {
       branchName: json['branchName'],
       capacity: json['capacity'] ?? 4,
       status: json['status'] ?? 'Available',
+      posX: (json['posX'] ?? 0).toDouble(),
+      posY: (json['posY'] ?? 0).toDouble(),
     );
   }
 }
