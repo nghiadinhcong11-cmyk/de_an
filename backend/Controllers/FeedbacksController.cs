@@ -65,6 +65,17 @@ public class FeedbacksController : ControllerBase
             }
 
             _context.Feedbacks.Add(feedback);
+
+            // 3. Nếu đánh giá cho đơn hàng cụ thể, đánh dấu đơn hàng đã được đánh giá
+            if (feedback.OrderId.HasValue)
+            {
+                var order = await _context.Orders.FindAsync(feedback.OrderId.Value);
+                if (order != null)
+                {
+                    order.IsReviewed = true;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Gửi góp ý thành công! Bạn đã được tặng 5 điểm thưởng." });

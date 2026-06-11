@@ -169,6 +169,7 @@ public class OrdersController : ControllerBase
                 .ThenInclude(oi => oi.Product)
             .Include(o => o.Branch)
             .Include(o => o.Table)
+            .Include(o => o.CreatedByUser)
             .Where(o => o.CustomerId == userId)
             .OrderByDescending(o => o.CreatedAtUtc)
             .Select(o => new {
@@ -178,9 +179,11 @@ public class OrdersController : ControllerBase
                 o.PaymentStatus,
                 o.TotalAmount,
                 o.CreatedAtUtc,
+                o.IsReviewed,
                 BranchName = o.Branch.Name,
                 BranchAddress = o.Branch.Address,
                 TableNumber = o.Table.TableNumber,
+                CreatedByUserName = o.CreatedByUser != null ? o.CreatedByUser.FullName : "Hệ thống",
                 OrderItems = o.OrderItems.Select(oi => new {
                     oi.Id,
                     oi.Quantity,

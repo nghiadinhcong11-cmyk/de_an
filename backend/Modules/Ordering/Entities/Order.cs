@@ -19,6 +19,7 @@ public class Order : BaseEntity
     public decimal Subtotal { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TotalAmount { get; set; }
+    public bool IsReviewed { get; set; } = false;
 
     // Navigation Properties
     public Restaurant Restaurant { get; set; } = null!;

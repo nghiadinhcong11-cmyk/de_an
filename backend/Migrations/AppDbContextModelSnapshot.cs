@@ -117,6 +117,9 @@ namespace RestaurantPOS.Migrations
                     b.Property<Guid?>("CustomerId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
@@ -840,6 +843,9 @@ namespace RestaurantPOS.Migrations
                     b.Property<string>("OrderNumber")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsReviewed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PaymentStatus")
                         .IsRequired()

@@ -12,7 +12,7 @@ export function OwnerOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("active"); // Mặc định xem đơn đang dùng
+  const [activeTab, setActiveTab] = useState("active");
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -102,7 +102,6 @@ export function OwnerOrders() {
           {loading ? (
             <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>
           ) : activeTab === "active" ? (
-            /* Card View cho các đơn đang ngồi tại quán */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredOrders.map(order => (
                     <Card key={order.id} className="border-none shadow-sm hover:shadow-md transition-all rounded-[32px] overflow-hidden bg-white group ring-1 ring-black/5">
@@ -146,7 +145,6 @@ export function OwnerOrders() {
                 ))}
             </div>
           ) : (
-            /* Table View cho Lịch sử và Tất cả */
             <Card className="border-none shadow-sm overflow-hidden bg-white rounded-2xl">
                 <Table>
                     <TableHeader className="bg-gray-50/50">
@@ -200,7 +198,6 @@ export function OwnerOrders() {
         </TabsContent>
       </Tabs>
 
-      {/* DIALOG CHI TIẾT ĐƠN HÀNG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl rounded-[32px]">
            <DialogHeader>
