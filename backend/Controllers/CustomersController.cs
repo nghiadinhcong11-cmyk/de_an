@@ -65,8 +65,33 @@ public class CustomersController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var history = await _context.CustomerPointHistories
+            .Include(h => h.Order)
+                .ThenInclude(o => o!.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+            .Include(h => h.Order)
+                .ThenInclude(o => o!.CreatedByUser)
             .Where(h => h.CustomerId == userId)
             .OrderByDescending(h => h.CreatedAtUtc)
+            .Select(h => new {
+                h.Id,
+                h.Points,
+                h.Type,
+                h.Description,
+                h.CreatedAtUtc,
+                Order = h.Order != null ? new {
+                    h.Order.Id,
+                    h.Order.OrderNumber,
+                    h.Order.TotalAmount,
+                    h.Order.Status,
+                    h.Order.IsReviewed,
+                    CreatedByUserName = h.Order.CreatedByUser != null ? h.Order.CreatedByUser.FullName : "Hệ thống",
+                    Items = h.Order.OrderItems.Select(oi => new {
+                        ProductName = oi.Product.Name,
+                        oi.Quantity,
+                        oi.TotalPrice
+                    })
+                } : null
+            })
             .ToListAsync();
         return Ok(history);
     }

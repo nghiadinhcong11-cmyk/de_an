@@ -26,45 +26,64 @@ public class BookingsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Booking booking)
     {
-        var restaurantIdStr = User.FindFirstValue("RestaurantId");
-        if (string.IsNullOrEmpty(restaurantIdStr))
+        try
         {
-             var firstRes = await _context.Restaurants.FirstOrDefaultAsync();
-             booking.RestaurantId = firstRes!.Id;
-        }
-        else
-        {
-            booking.RestaurantId = Guid.Parse(restaurantIdStr);
-        }
-
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!string.IsNullOrEmpty(userIdStr))
-        {
-            booking.CustomerId = Guid.Parse(userIdStr);
-            var customer = await _context.Customers.FindAsync(booking.CustomerId);
-            if (customer != null)
+            var restaurantIdStr = User.FindFirstValue("RestaurantId");
+            if (string.IsNullOrEmpty(restaurantIdStr))
             {
-                booking.CustomerName = customer.FullName;
-                booking.CustomerPhone = customer.PhoneNumber;
+                // Nếu là khách hàng đặt bàn, lấy restaurantId từ chi nhánh
+                var branch = await _context.Branches.FindAsync(booking.BranchId);
+                if (branch == null) return BadRequest(new { message = "Chi nhánh không tồn tại" });
+                booking.RestaurantId = branch.RestaurantId;
             }
+            else
+            {
+                booking.RestaurantId = Guid.Parse(restaurantIdStr);
+            }
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userIdStr))
+            {
+                booking.CustomerId = Guid.Parse(userIdStr);
+                var customer = await _context.Customers.FindAsync(booking.CustomerId);
+                if (customer != null)
+                {
+                    if (string.IsNullOrEmpty(booking.CustomerName)) booking.CustomerName = customer.FullName;
+                    if (string.IsNullOrEmpty(booking.CustomerPhone)) booking.CustomerPhone = customer.PhoneNumber;
+                }
+            }
+
+            booking.Status = "Pending";
+            booking.CreatedAtUtc = DateTime.UtcNow;
+
+            // Đảm bảo BookingDate là UTC để Postgres không lỗi
+            booking.BookingDate = DateTime.SpecifyKind(booking.BookingDate, DateTimeKind.Utc);
+
+            _context.Bookings.Add(booking);
+            await _context.SaveChangesAsync();
+
+            // Notify Owner/Manager via SignalR (Branch specific group)
+            await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("NewBookingReceived", new {
+                bookingId = booking.Id,
+                customerName = booking.CustomerName,
+                bookingDate = booking.BookingDate,
+                numberOfGuests = booking.NumberOfGuests,
+                branchId = booking.BranchId
+            });
+
+            return Ok(booking);
         }
-
-        booking.Status = "Pending";
-        booking.CreatedAtUtc = DateTime.UtcNow;
-
-        _context.Bookings.Add(booking);
-        await _context.SaveChangesAsync();
-
-        // Notify Owner/Manager via SignalR (Branch specific group)
-        await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("NewBookingReceived", new {
-            bookingId = booking.Id,
-            customerName = booking.CustomerName,
-            bookingDate = booking.BookingDate,
-            numberOfGuests = booking.NumberOfGuests,
-            branchId = booking.BranchId
-        });
-
-        return Ok(booking);
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new {
+                error = "Database error",
+                message = ex.InnerException?.Message ?? ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Internal server error", message = ex.Message });
+        }
     }
 
     [HttpGet("my-bookings")]

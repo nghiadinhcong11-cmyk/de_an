@@ -175,6 +175,7 @@ export function CustomerOrders() {
                                     <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Thông tin đơn hàng</h4>
                                     <div className="space-y-4">
                                         <div className="flex justify-between text-sm"><span className="text-gray-400">Trạng thái:</span><span className="font-bold text-orange-600">{order.status}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Phục vụ bởi:</span><span className="font-bold text-gray-700">{order.createdByUserName || "Hệ thống"}</span></div>
                                         <div className="flex justify-between text-sm"><span className="text-gray-400">Ngày đặt:</span><span className="font-bold text-gray-700">{new Date(order.createdAtUtc).toLocaleString("vi-VN")}</span></div>
                                         <div className="flex justify-between text-sm"><span className="text-gray-400">Thanh toán:</span><span className="font-bold text-green-600">{order.paymentStatus}</span></div>
                                     </div>

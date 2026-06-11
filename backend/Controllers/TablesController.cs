@@ -82,9 +82,22 @@ public class TablesController : ControllerBase
             if (table.BranchId == Guid.Empty) return BadRequest(new { message = "Phải chọn chi nhánh" });
             if (string.IsNullOrEmpty(table.TableNumber)) return BadRequest(new { message = "Phải nhập số bàn" });
 
-            // 1. Kiểm tra xem bàn đã tồn tại chưa
-            var exists = await _context.DiningTables.AnyAsync(t => t.BranchId == table.BranchId && t.TableNumber == table.TableNumber);
-            if (exists) return BadRequest(new { message = $"Bàn số {table.TableNumber} đã tồn tại ở chi nhánh này" });
+            if (table.ZoneId == Guid.Empty) table.ZoneId = null;
+
+            // 1. Kiểm tra xem bàn đã tồn tại chưa (Ràng buộc theo Zone để cho phép trùng số bàn ở các khu vực khác nhau)
+            var exists = await _context.DiningTables.AnyAsync(t =>
+                t.BranchId == table.BranchId &&
+                t.TableNumber == table.TableNumber &&
+                t.ZoneId == table.ZoneId);
+
+            if (exists) {
+                var zoneName = "Chung";
+                if (table.ZoneId != null) {
+                    var zone = await _context.Zones.FindAsync(table.ZoneId);
+                    zoneName = zone?.Name ?? "Khu vực";
+                }
+                return BadRequest(new { message = $"Bàn số {table.TableNumber} đã tồn tại ở khu vực {zoneName}" });
+            }
 
             // 2. Thiết lập các giá trị mặc định
             table.Id = Guid.NewGuid();

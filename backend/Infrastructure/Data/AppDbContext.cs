@@ -146,6 +146,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<CustomerPointHistory>(cph => {
             cph.HasOne<Customer>().WithMany(x => x.PointHistories).HasForeignKey(x => x.CustomerId);
+            cph.HasOne(x => x.Order).WithMany().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Voucher>(v => {

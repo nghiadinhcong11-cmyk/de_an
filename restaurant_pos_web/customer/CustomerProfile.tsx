@@ -23,6 +23,10 @@ export function CustomerProfile() {
   const [editAvatar, setEditAvatar] = useState("");
   const [updating, setUpdating] = useState(false);
 
+  // Feedback Dialog state
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [expandedOrderForFeedback, setExpandedOrderForFeedback] = useState<any>(null);
+
   // Feedback state
   const [feedbackForm, setFeedbackForm] = useState({
     serviceRating: 5,
@@ -91,12 +95,16 @@ export function CustomerProfile() {
       if (!feedbackForm.message) return alert("Vui lòng nhập nội dung góp ý");
       setSubmittingFeedback(true);
       try {
-          const res = await api.post("/feedbacks", feedbackForm);
-          alert(res.data.message || "Cảm ơn bạn đã góp ý!");
+          const res = await api.post("/feedbacks", {
+              ...feedbackForm,
+              orderId: expandedOrderForFeedback?.id
+          });
+          alert(res.data.message || "Cảm ơn bạn đã đánh giá!");
           setFeedbackForm({ serviceRating: 5, foodRating: 5, priceRating: 5, atmosphereRating: 5, message: "" });
+          setIsFeedbackDialogOpen(false);
           await fetchData(); // Tải lại để cập nhật điểm thưởng
       } catch {
-          alert("Lỗi khi gửi góp ý");
+          alert("Lỗi khi gửi đánh giá");
       } finally {
           setSubmittingFeedback(false);
       }
@@ -185,38 +193,74 @@ export function CustomerProfile() {
             <TabsTrigger value="feedback" className="flex-1 font-bold rounded-xl py-2.5">Đánh giá</TabsTrigger>
           </TabsList>
 
-          {/* TAB 1: LỊCH SỬ TÍCH ĐIỂM */}
+          {/* TAB 1: LỊCH SỬ TÍCH ĐIỂM & ĐƠN HÀNG */}
           <TabsContent value="history">
-            <div className="space-y-4">
+            <div className="space-y-6">
               {history.length === 0 ? (
                 <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
                   <Clock className="mx-auto w-10 h-10 text-gray-200 mb-2" />
-                  <p className="text-gray-400 font-bold">Chưa có lịch sử tích điểm</p>
+                  <p className="text-gray-400 font-bold">Chưa có lịch sử hoạt động</p>
                 </div>
               ) : (
                 history.map((item) => (
-                  <Card key={item.id} className="border-none shadow-sm overflow-hidden bg-white">
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {item.points > 0 ? (
-                          <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center text-green-600">
-                            <PlusCircle className="w-5 h-5" />
+                  <Card key={item.id} className="border-none shadow-xl ring-1 ring-black/5 rounded-[32px] overflow-hidden bg-white">
+                    <CardContent className="p-0">
+                      <div className="p-6 flex items-center justify-between border-b border-gray-50">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${
+                            item.points > 0 ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'
+                          }`}>
+                            {item.points > 0 ? <PlusCircle className="w-6 h-6" /> : <MinusCircle className="w-6 h-6" />}
                           </div>
-                        ) : (
-                          <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-600">
-                            <MinusCircle className="w-5 h-5" />
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-bold text-gray-900 text-sm">{item.description}</div>
-                          <div className="text-[10px] text-gray-400 font-bold uppercase">
-                            {new Date(item.createdAtUtc).toLocaleDateString("vi-VN")}
+                          <div>
+                            <div className="font-black text-gray-900 leading-tight">
+                                {item.order ? `Đơn hàng #${item.order.orderNumber.split('-')[1]}` : item.description}
+                            </div>
+                            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">
+                                {new Date(item.createdAtUtc).toLocaleString("vi-VN")}
+                            </div>
                           </div>
                         </div>
+                        <div className={`text-xl font-black ${item.points > 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                          {item.points > 0 ? '+' : ''}{item.points}
+                        </div>
                       </div>
-                      <div className={`font-black text-lg ${item.points > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {item.points > 0 ? '+' : ''}{item.points}
-                      </div>
+
+                      {item.order && (
+                        <div className="px-6 py-5 space-y-4 bg-gray-50/30">
+                           <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-400 font-bold uppercase tracking-tighter">Phục vụ: <span className="text-gray-900">{item.order.createdByUserName}</span></span>
+                              <span className="font-black text-gray-900">{item.order.totalAmount.toLocaleString("vi-VN")}đ</span>
+                           </div>
+
+                           <div className="space-y-1">
+                              {item.order.items?.map((food: any, idx: number) => (
+                                <div key={idx} className="flex justify-between text-[11px] text-gray-500 font-medium">
+                                   <span>{food.quantity}x {food.productName}</span>
+                                   <span>{food.totalPrice.toLocaleString("vi-VN")}đ</span>
+                                </div>
+                              ))}
+                           </div>
+
+                           {item.order.status === 'Completed' && !item.order.isReviewed && (
+                             <Button
+                                onClick={() => {
+                                    setExpandedOrderForFeedback(item.order);
+                                    setIsFeedbackDialogOpen(true);
+                                }}
+                                className="w-full h-10 bg-orange-600 hover:bg-orange-700 font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-orange-100"
+                             >
+                                <Star className="w-3 h-3 mr-2 fill-current" /> Đánh giá món ăn
+                             </Button>
+                           )}
+
+                           {item.order.isReviewed && (
+                             <div className="flex items-center justify-center gap-1.5 py-2 text-[10px] font-black text-green-600 uppercase">
+                                <CheckCircle className="w-3 h-3" /> Đã đánh giá
+                             </div>
+                           )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))
@@ -316,8 +360,80 @@ export function CustomerProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* FEEDBACK DIALOG */}
+      <Dialog open={isFeedbackDialogOpen} onOpenChange={setIsFeedbackDialogOpen}>
+          <DialogContent className="max-w-md rounded-[40px] border-none shadow-2xl p-0 overflow-hidden">
+              <div className="bg-orange-600 p-8 text-white relative overflow-hidden">
+                  <Star className="absolute -right-4 -bottom-4 w-32 h-32 opacity-10 rotate-12" />
+                  <DialogTitle className="text-2xl font-black">Đánh giá đơn hàng</DialogTitle>
+                  <p className="text-white/70 text-sm font-medium mt-1">Đóng góp của bạn giúp chúng tôi hoàn thiện hơn.</p>
+              </div>
+              <div className="p-8 space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                        <RatingInputSmall
+                            label="Phục vụ"
+                            value={feedbackForm.serviceRating}
+                            onChange={(v) => setFeedbackForm({...feedbackForm, serviceRating: v})}
+                        />
+                        <RatingInputSmall
+                            label="Món ăn"
+                            value={feedbackForm.foodRating}
+                            onChange={(v) => setFeedbackForm({...feedbackForm, foodRating: v})}
+                        />
+                        <RatingInputSmall
+                            label="Giá cả"
+                            value={feedbackForm.priceRating}
+                            onChange={(v) => setFeedbackForm({...feedbackForm, priceRating: v})}
+                        />
+                        <RatingInputSmall
+                            label="Không gian"
+                            value={feedbackForm.atmosphereRating}
+                            onChange={(v) => setFeedbackForm({...feedbackForm, atmosphereRating: v})}
+                        />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Lời nhắn của bạn</Label>
+                    <textarea
+                        className="w-full h-24 p-4 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+                        placeholder="Món ăn có vừa miệng bạn không?..."
+                        value={feedbackForm.message}
+                        onChange={(e) => setFeedbackForm({...feedbackForm, message: e.target.value})}
+                    ></textarea>
+                  </div>
+                  <Button
+                    onClick={handleSubmitFeedback}
+                    disabled={submittingFeedback}
+                    className="w-full h-14 bg-orange-600 hover:bg-orange-700 font-black text-lg rounded-2xl shadow-xl shadow-orange-100 uppercase"
+                  >
+                    {submittingFeedback ? <Loader2 className="animate-spin" /> : "GỬI ĐÁNH GIÁ NGAY"}
+                  </Button>
+              </div>
+          </DialogContent>
+      </Dialog>
     </div>
   );
+}
+
+function RatingInputSmall({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
+    return (
+        <div className="space-y-1.5">
+            <div className="text-[9px] font-black uppercase text-gray-400 tracking-widest ml-1">{label}</div>
+            <div className="flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                        key={star}
+                        onClick={() => onChange(star)}
+                        className={`transition-all ${
+                            star <= value ? 'text-orange-500 scale-110' : 'text-gray-200'
+                        }`}
+                    >
+                        <Star className={`w-5 h-5 ${star <= value ? 'fill-current' : ''}`} />
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 }
 
 function RatingInput({ label, icon, value, onChange }: { label: string, icon: any, value: number, onChange: (v: number) => void }) {
