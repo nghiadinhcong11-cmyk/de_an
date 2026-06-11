@@ -57,6 +57,19 @@ export function OwnerTables() {
     }
   };
 
+  const [newTable, setNewTable] = useState({
+    tableNumber: "",
+    capacity: 4,
+    branchId: "",
+    zoneId: ""
+  });
+
+  const [newZone, setNewZone] = useState({
+    name: "",
+    branchId: "",
+    displayOrder: 0
+  });
+
   useEffect(() => { fetchData(); }, []);
 
   const handleUpdatePosition = async (id: string, posX: number, posY: number) => {
