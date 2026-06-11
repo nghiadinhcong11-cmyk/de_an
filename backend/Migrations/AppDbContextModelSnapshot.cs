@@ -1253,7 +1253,7 @@ namespace RestaurantPOS.Migrations
 
                     b.HasIndex("ZoneId");
 
-                    b.HasIndex("TableNumber", "BranchId")
+                    b.HasIndex("TableNumber", "BranchId", "ZoneId")
                         .IsUnique();
 
                     b.ToTable("DiningTables");

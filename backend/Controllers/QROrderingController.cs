@@ -54,7 +54,7 @@ public class QROrderingController : ControllerBase
     [HttpPost("submit-request")]
     public async Task<IActionResult> SubmitOrderRequest([FromBody] CreateOrderRequestDto dto)
     {
-        var table = await _context.DiningTables.FindAsync(dto.TableId);
+        var table = await _context.DiningTables.Include(t => t.Zone).FirstOrDefaultAsync(t => t.Id == dto.TableId);
         if (table == null) return BadRequest("Bàn không hợp lệ");
 
         var branch = await _context.Branches.FindAsync(table.BranchId);
@@ -113,6 +113,7 @@ public class QROrderingController : ControllerBase
             await _hubContext.Clients.All.SendAsync("ReceiveNewOrderRequest", new {
                 orderId = order.Id,
                 tableNumber = table.TableNumber,
+                zoneName = table.Zone?.Name ?? "Chung",
                 totalAmount = order.TotalAmount
             });
 

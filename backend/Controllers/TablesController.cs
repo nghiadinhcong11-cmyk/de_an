@@ -112,6 +112,15 @@ public class TablesController : ControllerBase
 
             return Ok(table);
         }
+        catch (DbUpdateException ex)
+        {
+            var message = ex.InnerException?.Message ?? ex.Message;
+            if (message.Contains("IX_DiningTables_TableNumber"))
+            {
+                return BadRequest(new { message = $"Bàn số {table.TableNumber} đã tồn tại trong khu vực này." });
+            }
+            return StatusCode(500, new { message = "Lỗi cơ sở dữ liệu", details = message });
+        }
         catch (Exception ex)
         {
             return StatusCode(500, new {

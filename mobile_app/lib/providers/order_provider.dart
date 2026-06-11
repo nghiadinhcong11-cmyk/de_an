@@ -146,9 +146,10 @@ class OrderProvider with ChangeNotifier {
     _signalRService = SignalRService(
       onNewOrder: (data) {
         // Hiển thị thông báo ngay lập tức
+        final zoneInfo = data['zoneName'] != null ? ' (${data['zoneName']})' : '';
         NotificationService.showLocalNotification(
           title: '🔔 Yêu cầu mới!',
-          body: 'Bàn ${data['tableNumber']} vừa gửi yêu cầu gọi món.',
+          body: 'Bàn ${data['tableNumber']}$zoneInfo vừa gửi yêu cầu gọi món.',
         );
 
         fetchRequests();
