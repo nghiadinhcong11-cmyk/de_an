@@ -37,6 +37,7 @@ public class FeedbacksController : ControllerBase
 
             feedback.RestaurantId = restaurantId;
             feedback.CreatedAtUtc = DateTime.UtcNow;
+            feedback.Status = string.IsNullOrWhiteSpace(feedback.Status) ? "New" : feedback.Status;
 
             // 2. Nếu khách hàng đã đăng nhập, gán CustomerId và tặng điểm thưởng
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -61,6 +62,27 @@ public class FeedbacksController : ControllerBase
                         Type = "Earn",
                         Description = "Thưởng điểm cho góp ý & đánh giá chất lượng"
                     });
+                }
+            }
+
+            // 2b. Nếu feedback gắn với đơn hàng, tự lấy bối cảnh vận hành
+            if (feedback.OrderId.HasValue)
+            {
+                var order = await _context.Orders
+                    .Include(o => o.Table)
+                    .Include(o => o.Branch)
+                    .FirstOrDefaultAsync(o => o.Id == feedback.OrderId.Value);
+
+                if (order != null)
+                {
+                    feedback.BranchId = order.BranchId;
+                    feedback.OrderNumber = order.OrderNumber;
+                    feedback.InvoiceId = order.OrderNumber;
+                    feedback.TableNumber = order.Table?.TableNumber;
+                    if (feedback.CustomerId == null)
+                    {
+                        feedback.CustomerId = order.CustomerId;
+                    }
                 }
             }
 
@@ -100,7 +122,64 @@ public class FeedbacksController : ControllerBase
                 .Where(f => f.RestaurantId == restaurantId)
                 .OrderByDescending(f => f.CreatedAtUtc)
                 .ToListAsync();
-            return Ok(feedbacks);
+
+            var orderIds = feedbacks.Where(f => f.OrderId.HasValue).Select(f => f.OrderId!.Value).ToList();
+            var customerIds = feedbacks.Where(f => f.CustomerId.HasValue).Select(f => f.CustomerId!.Value).ToList();
+            var branchIds = feedbacks.Where(f => f.BranchId.HasValue).Select(f => f.BranchId!.Value).ToList();
+
+            var orders = await _context.Orders
+                .Where(o => orderIds.Contains(o.Id))
+                .Include(o => o.Table)
+                .Include(o => o.Branch)
+                .Include(o => o.Customer)
+                .ToListAsync();
+
+            var customers = await _context.Customers
+                .Where(c => customerIds.Contains(c.Id))
+                .ToListAsync();
+
+            var branches = await _context.Branches
+                .Where(b => branchIds.Contains(b.Id))
+                .ToListAsync();
+
+            var result = feedbacks.Select(f =>
+            {
+                var order = orders.FirstOrDefault(o => o.Id == f.OrderId);
+                var customer = customers.FirstOrDefault(c => c.Id == f.CustomerId) ?? order?.Customer;
+                var branch = branches.FirstOrDefault(b => b.Id == f.BranchId) ?? order?.Branch;
+
+                return new
+                {
+                    f.Id,
+                    f.RestaurantId,
+                    f.CustomerId,
+                    f.OrderId,
+                    f.BranchId,
+                    f.Name,
+                    f.Email,
+                    CustomerPhone = customer?.PhoneNumber ?? "",
+                    CustomerTier = GetLoyaltyTier(customer?.Points ?? 0),
+                    CustomerPoints = customer?.Points ?? 0,
+                    OrderNumber = f.OrderNumber ?? order?.OrderNumber,
+                    InvoiceId = f.InvoiceId ?? order?.OrderNumber,
+                    TableNumber = f.TableNumber ?? order?.Table?.TableNumber,
+                    BranchName = branch?.Name ?? order?.Branch?.Name ?? "Chưa xác định",
+                    BranchAddress = branch?.Address ?? order?.Branch?.Address ?? "",
+                    BranchPhone = branch?.Phone ?? order?.Branch?.Phone ?? "",
+                    f.ServiceRating,
+                    f.FoodRating,
+                    f.PriceRating,
+                    f.AtmosphereRating,
+                    f.Message,
+                    f.IsRead,
+                    f.Status,
+                    f.InternalNotes,
+                    f.AttachmentUrl,
+                    f.CreatedAtUtc
+                };
+            });
+
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -130,5 +209,38 @@ public class FeedbacksController : ControllerBase
         _context.Feedbacks.Remove(feedback);
         await _context.SaveChangesAsync();
         return Ok();
+    }
+
+    [Authorize(Roles = "Owner,Manager")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateFeedback(Guid id, [FromBody] FeedbackUpdateDto dto)
+    {
+        var feedback = await _context.Feedbacks.FindAsync(id);
+        if (feedback == null) return NotFound();
+
+        if (!string.IsNullOrWhiteSpace(dto.Status))
+        {
+            feedback.Status = dto.Status;
+        }
+
+        feedback.InternalNotes = dto.InternalNotes;
+        feedback.AttachmentUrl = dto.AttachmentUrl;
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Đã cập nhật góp ý" });
+    }
+
+    private static string GetLoyaltyTier(int points)
+    {
+        if (points >= 2000) return "Gold";
+        if (points >= 1000) return "Silver";
+        if (points >= 500) return "Bronze";
+        return "Member";
+    }
+
+    public class FeedbackUpdateDto
+    {
+        public string? Status { get; set; }
+        public string? InternalNotes { get; set; }
+        public string? AttachmentUrl { get; set; }
     }
 }
