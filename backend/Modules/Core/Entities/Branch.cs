@@ -9,9 +9,13 @@ public class Branch : BaseEntity
 
     public string Address { get; set; } = string.Empty;
 
+    public string? Phone { get; set; }
+
     public Guid RestaurantId { get; set; }
 
     public Guid? ManagerUserId { get; set; }
+
+    public bool IsActive { get; set; } = true;
 
     public Restaurant Restaurant { get; set; } = null!;
 
