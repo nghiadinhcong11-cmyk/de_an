@@ -233,13 +233,6 @@ namespace RestaurantPOS.Migrations
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsDeleted",
-                table: "Bookings",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<bool>(
-                name: "IsDeleted",
                 table: "AuditLogs",
                 type: "boolean",
                 nullable: false,
