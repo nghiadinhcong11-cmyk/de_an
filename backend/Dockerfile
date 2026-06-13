@@ -1,14 +1,25 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Copy project file and restore from repo root context
-COPY backend/RestaurantPOS.csproj backend/
-RUN dotnet restore backend/RestaurantPOS.csproj
+# Copy source into the image. This Dockerfile can be built from either
+# the repository root or the backend directory as the build context.
+COPY . .
 
-# Copy the rest of the backend source and publish
-COPY backend/. backend/
-WORKDIR /src/backend
-RUN dotnet publish RestaurantPOS.csproj -c Release -o /app/out --no-restore
+RUN if [ -f ./backend/RestaurantPOS.csproj ]; then \
+      dotnet restore ./backend/RestaurantPOS.csproj; \
+    elif [ -f ./RestaurantPOS.csproj ]; then \
+      dotnet restore ./RestaurantPOS.csproj; \
+    else \
+      echo "RestaurantPOS.csproj not found"; exit 1; \
+    fi
+
+RUN if [ -f ./backend/RestaurantPOS.csproj ]; then \
+      dotnet publish ./backend/RestaurantPOS.csproj -c Release -o /app/out --no-restore; \
+    elif [ -f ./RestaurantPOS.csproj ]; then \
+      dotnet publish ./RestaurantPOS.csproj -c Release -o /app/out --no-restore; \
+    else \
+      echo "RestaurantPOS.csproj not found"; exit 1; \
+    fi
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0

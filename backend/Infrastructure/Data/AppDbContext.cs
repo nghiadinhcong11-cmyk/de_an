@@ -70,8 +70,8 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<UserRole>(ur => {
             ur.HasKey(x => new { x.UserId, x.RoleId });
-            ur.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
-            ur.HasOne(x => x.Role).WithMany().HasForeignKey(x => x.RoleId);
+            ur.HasOne(x => x.User).WithMany(x => x.UserRoles).HasForeignKey(x => x.UserId);
+            ur.HasOne(x => x.Role).WithMany(x => x.UserRoles).HasForeignKey(x => x.RoleId);
         });
 
         // 2. MENU
