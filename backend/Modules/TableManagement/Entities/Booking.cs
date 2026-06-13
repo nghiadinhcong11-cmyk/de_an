@@ -6,6 +6,7 @@ public class Booking : BaseEntity
 {
     public Guid RestaurantId { get; set; }
     public Guid BranchId { get; set; }
+    public Guid? TableId { get; set; }
     public Guid? CustomerId { get; set; }
 
     public string CustomerName { get; set; } = string.Empty;

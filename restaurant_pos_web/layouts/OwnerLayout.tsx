@@ -14,6 +14,7 @@ import {
   Package,
   KeyRound,
   ShoppingBag,
+  Bell,
   UserCircle,
   MessageSquare,
   Menu,
@@ -25,6 +26,7 @@ import { Avatar, AvatarFallback } from "../components/ui/avatar";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/owner" },
   { icon: ShoppingBag, label: "Orders History", path: "/owner/orders" },
+  { icon: Bell, label: "Bookings", path: "/owner/bookings" },
   { icon: Store, label: "Branches", path: "/owner/branches" },
   { icon: Users, label: "Employees", path: "/owner/employees" },
   { icon: Package, label: "Chi tiêu & Nhập hàng", path: "/owner/inventory" },

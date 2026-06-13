@@ -32,8 +32,17 @@ class _TablesScreenState extends State<TablesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => setState(() => _isMapView = !_isMapView),
         backgroundColor: const Color(0xFFEA580C),
-        icon: Icon(_isMapView ? Icons.list_alt_rounded : Icons.map_outlined, color: Colors.white),
-        label: Text(_isMapView ? 'DANH SÁCH' : 'SƠ ĐỒ BÀN', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        icon: Icon(
+          _isMapView ? Icons.list_alt_rounded : Icons.map_outlined,
+          color: Colors.white,
+        ),
+        label: Text(
+          _isMapView ? 'DANH SÁCH' : 'SƠ ĐỒ BÀN',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: orderProvider.fetchTables,
@@ -44,12 +53,15 @@ class _TablesScreenState extends State<TablesScreen> {
                 itemCount: groupedBranches.length,
                 itemBuilder: (context, index) {
                   final branchGroup = groupedBranches[index];
-                  
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 24,
+                          horizontal: 8,
+                        ),
                         child: Row(
                           children: [
                             Container(
@@ -63,36 +75,53 @@ class _TablesScreenState extends State<TablesScreen> {
                             const SizedBox(width: 12),
                             Text(
                               branchGroup.branchName.toUpperCase(),
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.black87),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                                color: Colors.black87,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      ...branchGroup.zones.map((zone) => Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          initiallyExpanded: true,
-                          leading: Icon(_isMapView ? Icons.map : Icons.layers_outlined, size: 20, color: const Color(0xFFEA580C)),
-                          title: Text(
-                            zone.zoneName,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black87,
+                      ...branchGroup.zones.map(
+                        (zone) => Theme(
+                          data: Theme.of(
+                            context,
+                          ).copyWith(dividerColor: Colors.transparent),
+                          child: ExpansionTile(
+                            initiallyExpanded: true,
+                            leading: Icon(
+                              _isMapView ? Icons.map : Icons.layers_outlined,
+                              size: 20,
+                              color: const Color(0xFFEA580C),
                             ),
+                            title: Text(
+                              zone.zoneName,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${zone.tables.length} bàn',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade400,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            children: [
+                              _isMapView
+                                  ? _buildZoneMap(zone, orderProvider)
+                                  : _buildZoneList(zone, orderProvider),
+                              const SizedBox(height: 16),
+                            ],
                           ),
-                          subtitle: Text(
-                            '${zone.tables.length} bàn',
-                            style: TextStyle(fontSize: 11, color: Colors.grey.shade400, fontWeight: FontWeight.bold),
-                          ),
-                          children: [
-                            _isMapView 
-                              ? _buildZoneMap(zone, orderProvider)
-                              : _buildZoneList(zone, orderProvider),
-                            const SizedBox(height: 16),
-                          ],
                         ),
-                      )),
+                      ),
                     ],
                   );
                 },
@@ -163,15 +192,29 @@ class _TablesScreenState extends State<TablesScreen> {
           color: isOccupied ? const Color(0xFFEA580C) : Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            if (!isOccupied) BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4)),
-            if (isOccupied) BoxShadow(color: const Color(0xFFEA580C).withAlpha(40), blurRadius: 12, offset: const Offset(0, 6)),
+            if (!isOccupied)
+              BoxShadow(
+                color: Colors.black.withAlpha(5),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            if (isOccupied)
+              BoxShadow(
+                color: const Color(0xFFEA580C).withAlpha(40),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
           ],
           border: isOccupied ? null : Border.all(color: Colors.grey.shade100),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chair_rounded, size: 24, color: isOccupied ? Colors.white24 : Colors.grey.shade200),
+            Icon(
+              Icons.chair_rounded,
+              size: 24,
+              color: isOccupied ? Colors.white24 : Colors.grey.shade200,
+            ),
             const SizedBox(height: 4),
             Text(
               table.tableNumber,
@@ -185,7 +228,9 @@ class _TablesScreenState extends State<TablesScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: isOccupied ? Colors.white.withAlpha(40) : Colors.green.shade50,
+                color: isOccupied
+                    ? Colors.white.withAlpha(40)
+                    : Colors.green.shade50,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -194,7 +239,7 @@ class _TablesScreenState extends State<TablesScreen> {
                   fontSize: 8,
                   fontWeight: FontWeight.w900,
                   color: isOccupied ? Colors.white : Colors.green.shade700,
-                  letterSpacing: 0.5
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
@@ -216,7 +261,9 @@ class _TablesScreenState extends State<TablesScreen> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: isOccupied ? const Color(0xFFEA580C).withAlpha(60) : Colors.black.withAlpha(10),
+              color: isOccupied
+                  ? const Color(0xFFEA580C).withAlpha(60)
+                  : Colors.black.withAlpha(10),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -230,14 +277,16 @@ class _TablesScreenState extends State<TablesScreen> {
               table.tableNumber,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.black,
+                fontWeight: FontWeight.w900,
                 color: isOccupied ? Colors.white : Colors.black,
               ),
             ),
             Icon(
               isOccupied ? Icons.fireplace_rounded : Icons.chair_rounded,
               size: 20,
-              color: isOccupied ? Colors.white.withAlpha(80) : Colors.grey.shade100,
+              color: isOccupied
+                  ? Colors.white.withAlpha(80)
+                  : Colors.grey.shade100,
             ),
           ],
         ),
@@ -251,7 +300,9 @@ class _TablesScreenState extends State<TablesScreen> {
       if (order != null && mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => OrderDetailsScreen(order: order)),
+          MaterialPageRoute(
+            builder: (context) => OrderDetailsScreen(order: order),
+          ),
         );
       }
     }
@@ -260,15 +311,15 @@ class _TablesScreenState extends State<TablesScreen> {
   List<_BranchGroup> _getGroupedBranches(List<DiningTable> tables) {
     // Logic nhóm bàn theo branch và zone
     final groups = <String, _BranchGroup>{};
-    
+
     for (var table in tables) {
       final branchName = table.branchName ?? "Chi nhánh";
       final zoneName = table.zoneName ?? "Chung";
-      
+
       if (!groups.containsKey(branchName)) {
         groups[branchName] = _BranchGroup(branchName: branchName, zones: []);
       }
-      
+
       var zone = groups[branchName]!.zones.firstWhere(
         (z) => z.zoneName == zoneName,
         orElse: () {
@@ -277,10 +328,10 @@ class _TablesScreenState extends State<TablesScreen> {
           return newZone;
         },
       );
-      
+
       zone.tables.add(table);
     }
-    
+
     return groups.values.toList();
   }
 }
@@ -305,11 +356,19 @@ class GridPainter extends CustomPainter {
       ..strokeWidth = 1;
 
     for (var i = 0; i <= size.width; i += 20) {
-      canvas.drawLine(Offset(i.toDouble(), 0), Offset(i.toDouble(), size.height), paint);
+      canvas.drawLine(
+        Offset(i.toDouble(), 0),
+        Offset(i.toDouble(), size.height),
+        paint,
+      );
     }
 
     for (var i = 0; i <= size.height; i += 20) {
-      canvas.drawLine(Offset(0, i.toDouble()), Offset(size.width, i.toDouble()), paint);
+      canvas.drawLine(
+        Offset(0, i.toDouble()),
+        Offset(size.width, i.toDouble()),
+        paint,
+      );
     }
   }
 

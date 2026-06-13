@@ -120,6 +120,12 @@ public class AppDbContext : DbContext
             or.HasOne<DiningTable>().WithMany().HasForeignKey(x => x.TableId);
         });
 
+        modelBuilder.Entity<Booking>(b => {
+            b.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId);
+            b.HasOne<DiningTable>().WithMany().HasForeignKey(x => x.TableId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.SetNull);
+        });
+
         modelBuilder.Entity<OrderRequestItem>(ori => {
             ori.HasOne(x => x.OrderRequest).WithMany(x => x.OrderRequestItems).HasForeignKey(x => x.OrderRequestId);
             ori.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);

@@ -85,7 +85,15 @@ public class AuthService : IAuthService
                 .FirstOrDefaultAsync() ?? "Waiter";
 
             var token = GenerateJwtToken(user.Id, user.Username, userRole, user.RestaurantId, user.BranchId);
-            return new LoginResponse { Token = token, Username = user.Username, FullName = user.FullName, Role = userRole };
+            return new LoginResponse
+            {
+                Token = token,
+                Username = user.Username,
+                FullName = user.FullName,
+                Role = userRole,
+                RestaurantId = user.RestaurantId,
+                BranchId = user.BranchId
+            };
         }
 
         var customer = await _context.Customers
@@ -94,7 +102,15 @@ public class AuthService : IAuthService
         if (customer != null)
         {
              var token = GenerateJwtToken(customer.Id, customer.PhoneNumber, "Customer", customer.RestaurantId, null);
-             return new LoginResponse { Token = token, Username = customer.PhoneNumber, FullName = customer.FullName, Role = "Customer" };
+             return new LoginResponse
+             {
+                 Token = token,
+                 Username = customer.PhoneNumber,
+                 FullName = customer.FullName,
+                 Role = "Customer",
+                 RestaurantId = customer.RestaurantId,
+                 BranchId = null
+             };
         }
 
         return null;

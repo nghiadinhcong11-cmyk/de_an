@@ -31,6 +31,16 @@ export function OwnerOrders() {
 
   useEffect(() => { fetchData(); }, []);
 
+  const normalizeTableNumber = (tableNumber?: string | number) => {
+    const value = String(tableNumber ?? "").trim();
+    return value.replace(/^Bàn\s*/i, "").trim();
+  };
+
+  const formatTableLabel = (tableNumber?: string | number) => {
+    const normalized = normalizeTableNumber(tableNumber);
+    return normalized ? `Bàn ${normalized}` : "Bàn";
+  };
+
   const filteredOrders = orders.filter(o => {
     const matchesSearch = o.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -47,7 +57,7 @@ export function OwnerOrders() {
     switch (status) {
         case 'Completed': return 'bg-green-500 text-white';
         case 'Cancelled': return 'bg-red-500 text-white';
-        case 'Preparing': return 'bg-blue-500 text-white animate-pulse';
+        case 'Preparing': return 'bg-orange-500 text-white animate-pulse';
         case 'Confirmed': return 'bg-orange-500 text-white';
         default: return 'bg-gray-400 text-white';
     }
@@ -57,7 +67,7 @@ export function OwnerOrders() {
     switch (status) {
         case 'Completed': return 'Hoàn tất';
         case 'Cancelled': return 'Đã hủy';
-        case 'Preparing': return 'Đang chế biến';
+        case 'Preparing': return 'Đang phục vụ';
         case 'Confirmed': return 'Đang dùng';
         case 'PendingConfirmation': return 'Chờ duyệt';
         default: return status;
@@ -117,7 +127,7 @@ export function OwnerOrders() {
                         <CardContent className="p-6">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <div className="text-4xl font-black text-gray-900 tracking-tighter">Bàn {order.tableNumber}</div>
+                                    <div className="text-4xl font-black text-gray-900 tracking-tighter">{formatTableLabel(order.tableNumber)}</div>
                                     <div className="flex items-center gap-1.5 mt-2 text-gray-400">
                                         <MapPin className="w-3 h-3" />
                                         <p className="text-[10px] font-bold uppercase">{order.branchName}</p>
@@ -162,7 +172,7 @@ export function OwnerOrders() {
                         {filteredOrders.map(order => (
                             <TableRow key={order.id} className="hover:bg-gray-50/50 transition-colors">
                                 <TableCell className="font-black text-xs">#{order.orderNumber.split('-').pop()}</TableCell>
-                                <TableCell className="font-black text-orange-600">Bàn {order.tableNumber}</TableCell>
+                                <TableCell className="font-black text-orange-600">{formatTableLabel(order.tableNumber)}</TableCell>
                                 <TableCell>
                                     <div className="font-bold text-xs">{order.branchName}</div>
                                     <div className="text-[9px] text-gray-400 truncate max-w-[120px]">{order.branchAddress}</div>
@@ -205,7 +215,7 @@ export function OwnerOrders() {
                  <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 shadow-inner">
                     <ShoppingBasket className="w-6 h-6" />
                  </div>
-                 Bàn {selectedOrder?.tableNumber}
+                 {formatTableLabel(selectedOrder?.tableNumber)}
               </DialogTitle>
               <DialogDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest">
                  {selectedOrder?.branchName} • {selectedOrder?.orderNumber}

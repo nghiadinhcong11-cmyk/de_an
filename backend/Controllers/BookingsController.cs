@@ -62,14 +62,33 @@ public class BookingsController : ControllerBase
             _context.Bookings.Add(booking);
             await _context.SaveChangesAsync();
 
-            // Notify Owner/Manager via SignalR (Branch specific group)
-            await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("NewBookingReceived", new {
+            var branchEntity = await _context.Branches.FindAsync(booking.BranchId);
+            var branchName = branchEntity?.Name ?? "Chi nhánh";
+            var restaurantGroup = $"restaurant:{booking.RestaurantId}";
+            var branchGroup = booking.BranchId.ToString();
+
+            // Load table info if selected
+            string tableInfo = "Chưa chọn bàn";
+            if (booking.TableId.HasValue)
+            {
+                var table = await _context.DiningTables.FindAsync(booking.TableId.Value);
+                if (table != null) tableInfo = $"Bàn {table.TableNumber}";
+            }
+
+            var payload = new {
                 bookingId = booking.Id,
                 customerName = booking.CustomerName,
                 bookingDate = booking.BookingDate,
                 numberOfGuests = booking.NumberOfGuests,
-                branchId = booking.BranchId
-            });
+                tableInfo = tableInfo,
+                branchId = booking.BranchId,
+                branchName = branchName,
+                status = booking.Status
+            };
+
+            // Notify owner/manager across the restaurant and staff in the matching branch
+            await _hubContext.Clients.Group(restaurantGroup).SendAsync("NewBookingReceived", payload);
+            await _hubContext.Clients.Group(branchGroup).SendAsync("NewBookingReceived", payload);
 
             return Ok(booking);
         }
@@ -124,11 +143,15 @@ public class BookingsController : ControllerBase
         booking.Status = "Confirmed";
         await _context.SaveChangesAsync();
 
-        // Notify Customer & Staff
-        await _hubContext.Clients.All.SendAsync("BookingStatusUpdated", new {
+        var payload = new {
             bookingId = booking.Id,
-            status = "Confirmed"
-        });
+            status = "Confirmed",
+            branchId = booking.BranchId,
+            branchName = (await _context.Branches.FindAsync(booking.BranchId))?.Name ?? "Chi nhánh"
+        };
+
+        await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("BookingStatusUpdated", payload);
+        await _hubContext.Clients.Group($"restaurant:{booking.RestaurantId}").SendAsync("BookingStatusUpdated", payload);
 
         return Ok();
     }
@@ -143,10 +166,15 @@ public class BookingsController : ControllerBase
         booking.Status = "Rejected";
         await _context.SaveChangesAsync();
 
-        await _hubContext.Clients.All.SendAsync("BookingStatusUpdated", new {
+        var payload = new {
             bookingId = booking.Id,
-            status = "Rejected"
-        });
+            status = "Rejected",
+            branchId = booking.BranchId,
+            branchName = (await _context.Branches.FindAsync(booking.BranchId))?.Name ?? "Chi nhánh"
+        };
+
+        await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("BookingStatusUpdated", payload);
+        await _hubContext.Clients.Group($"restaurant:{booking.RestaurantId}").SendAsync("BookingStatusUpdated", payload);
 
         return Ok();
     }

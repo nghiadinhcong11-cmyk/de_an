@@ -12,6 +12,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 // Owner Pages
 import { OwnerDashboard } from '../owner/Dashboard';
 import { OwnerOrders } from '../owner/Orders';
+import { OwnerBookings } from '../owner/Bookings';
 import { OwnerProfile } from '../owner/OwnerProfile';
 import { OwnerFeedbacks } from '../owner/Feedbacks';
 import { OwnerBranches } from '../owner/Branches';
@@ -82,6 +83,7 @@ function App() {
           <Route path="/owner" element={<OwnerLayout />}>
             <Route index element={<OwnerDashboard />} />
             <Route path="orders" element={<OwnerOrders />} />
+            <Route path="bookings" element={<OwnerBookings />} />
             <Route path="feedbacks" element={<OwnerFeedbacks />} />
             <Route path="profile" element={<OwnerProfile />} />
             <Route path="branches" element={<OwnerBranches />} />

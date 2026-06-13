@@ -16,24 +16,40 @@ public class TablesController : ControllerBase
     public TablesController(AppDbContext context) => _context = context;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] Guid? branchId)
     {
         try
         {
             var restaurantIdStr = User.FindFirstValue("RestaurantId");
-            var branchIdStr = User.FindFirstValue("BranchId");
+            var branchIdFromToken = User.FindFirstValue("BranchId");
 
-            if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
-            var restaurantId = Guid.Parse(restaurantIdStr);
+            Guid restaurantId;
+            if (string.IsNullOrEmpty(restaurantIdStr))
+            {
+                // Nếu không có RestaurantId trong token (khách hàng vãng lai/vừa login),
+                // thì yêu cầu phải có branchId để truy vấn
+                if (!branchId.HasValue) return BadRequest("Phải cung cấp branchId hoặc đăng nhập quyền quản lý");
+
+                var branch = await _context.Branches.FindAsync(branchId.Value);
+                if (branch == null) return NotFound("Chi nhánh không tồn tại");
+                restaurantId = branch.RestaurantId;
+            }
+            else
+            {
+                restaurantId = Guid.Parse(restaurantIdStr);
+            }
 
             var query = _context.DiningTables
                 .Include(t => t.Zone)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(branchIdStr))
+            if (branchId.HasValue)
             {
-                var branchId = Guid.Parse(branchIdStr);
-                query = query.Where(t => t.BranchId == branchId);
+                query = query.Where(t => t.BranchId == branchId.Value);
+            }
+            else if (!string.IsNullOrEmpty(branchIdFromToken))
+            {
+                query = query.Where(t => t.BranchId == Guid.Parse(branchIdFromToken));
             }
             else
             {

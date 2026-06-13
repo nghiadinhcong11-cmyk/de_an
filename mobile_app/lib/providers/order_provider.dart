@@ -9,7 +9,7 @@ import '../models/product.dart';
 
 class OrderProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
-  List<OrderRequest> _requests = [];
+  final List<OrderRequest> _requests = [];
   List<DiningTable> _tables = [];
   List<OrderModel> _orders = [];
   List<Product> _products = [];
@@ -26,14 +26,18 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> fetchShiftSummary() async {
     try {
-      final response = await _apiService.dio.get('/reports/today-shift-summary');
+      final response = await _apiService.dio.get(
+        '/reports/today-shift-summary',
+      );
       if (response.statusCode == 200) {
         _shiftSummary = response.data;
       } else {
         _shiftSummary = _getDefaultSummary();
       }
     } catch (e) {
-      debugPrint('Error fetching shift summary (likely 404 or not deployed): $e');
+      debugPrint(
+        'Error fetching shift summary (likely 404 or not deployed): $e',
+      );
       _shiftSummary = _getDefaultSummary();
     }
     notifyListeners();
@@ -44,7 +48,7 @@ class OrderProvider with ChangeNotifier {
       'totalRevenue': 0.0,
       'totalOrders': 0,
       'cashRevenue': 0.0,
-      'qrRevenue': 0.0
+      'qrRevenue': 0.0,
     };
   }
 
@@ -54,7 +58,9 @@ class OrderProvider with ChangeNotifier {
     try {
       final response = await _apiService.dio.get('/menu/products');
       if (response.statusCode == 200) {
-        _products = (response.data as List).map((e) => Product.fromJson(e)).toList();
+        _products = (response.data as List)
+            .map((e) => Product.fromJson(e))
+            .toList();
       }
     } catch (e) {
       debugPrint('Error fetching products: $e');
@@ -63,12 +69,15 @@ class OrderProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> createManualOrder(String tableId, List<Map<String, dynamic>> items) async {
+  Future<bool> createManualOrder(
+    String tableId,
+    List<Map<String, dynamic>> items,
+  ) async {
     try {
-      final response = await _apiService.dio.post('/orders', data: {
-        'tableId': tableId,
-        'items': items,
-      });
+      final response = await _apiService.dio.post(
+        '/orders',
+        data: {'tableId': tableId, 'items': items},
+      );
       if (response.statusCode == 200) {
         fetchTables();
         fetchAllOrders();
@@ -84,9 +93,13 @@ class OrderProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiService.dio.get('/orders/pending-confirmation');
+      final response = await _apiService.dio.get(
+        '/orders/pending-confirmation',
+      );
       if (response.statusCode == 200) {
-        _orders = (response.data as List).map((e) => OrderModel.fromJson(e)).toList();
+        _orders = (response.data as List)
+            .map((e) => OrderModel.fromJson(e))
+            .toList();
       }
     } catch (e) {
       debugPrint('Error fetching requests: $e');
@@ -116,7 +129,9 @@ class OrderProvider with ChangeNotifier {
     try {
       final response = await _apiService.dio.get('/orders');
       if (response.statusCode == 200) {
-        _orders = (response.data as List).map((e) => OrderModel.fromJson(e)).toList();
+        _orders = (response.data as List)
+            .map((e) => OrderModel.fromJson(e))
+            .toList();
       }
     } catch (e) {
       debugPrint('Error fetching all orders: $e');
@@ -131,7 +146,9 @@ class OrderProvider with ChangeNotifier {
     try {
       final response = await _apiService.dio.get('/tables');
       if (response.statusCode == 200) {
-        _tables = (response.data as List).map((e) => DiningTable.fromJson(e)).toList();
+        _tables = (response.data as List)
+            .map((e) => DiningTable.fromJson(e))
+            .toList();
       }
     } catch (e) {
       debugPrint('Error fetching tables: $e');
@@ -146,7 +163,9 @@ class OrderProvider with ChangeNotifier {
     _signalRService = SignalRService(
       onNewOrder: (data) {
         // Hiển thị thông báo ngay lập tức
-        final zoneInfo = data['zoneName'] != null ? ' (${data['zoneName']})' : '';
+        final zoneInfo = data['zoneName'] != null
+            ? ' (${data['zoneName']})'
+            : '';
         NotificationService.showLocalNotification(
           title: '🔔 Yêu cầu mới!',
           body: 'Bàn ${data['tableNumber']}$zoneInfo vừa gửi yêu cầu gọi món.',
@@ -157,13 +176,17 @@ class OrderProvider with ChangeNotifier {
         fetchAllOrders();
       },
       onNewBooking: (data) {
+        final tableInfo = data['tableInfo'] != null
+            ? ' - ${data['tableInfo']}'
+            : '';
         NotificationService.showLocalNotification(
           title: '📅 Lịch đặt bàn mới!',
-          body: 'Khách ${data['customerName']} đặt bàn lúc ${data['bookingDate']}.',
+          body:
+              'Khách ${data['customerName']}$tableInfo đặt lúc ${data['bookingDate']}.',
         );
       },
     );
-    
+
     _signalRService?.init(token).then((_) {
       _signalRService?.joinBranchGroup(branchId);
     });
@@ -171,7 +194,9 @@ class OrderProvider with ChangeNotifier {
 
   Future<bool> approveRequest(String requestId) async {
     try {
-      final response = await _apiService.dio.post('/orders/approve-request/$requestId');
+      final response = await _apiService.dio.post(
+        '/orders/approve-request/$requestId',
+      );
       if (response.statusCode == 200) {
         _requests.removeWhere((r) => r.id == requestId);
         fetchTables();
@@ -186,7 +211,9 @@ class OrderProvider with ChangeNotifier {
 
   Future<bool> rejectRequest(String requestId) async {
     try {
-      final response = await _apiService.dio.post('/orders/reject-request/$requestId');
+      final response = await _apiService.dio.post(
+        '/orders/reject-request/$requestId',
+      );
       if (response.statusCode == 200) {
         _requests.removeWhere((r) => r.id == requestId);
         notifyListeners();
@@ -202,10 +229,14 @@ class OrderProvider with ChangeNotifier {
     try {
       final response = await _apiService.dio.get('/orders');
       if (response.statusCode == 200) {
-        final orders = (response.data as List).map((e) => OrderModel.fromJson(e)).toList();
+        final orders = (response.data as List)
+            .map((e) => OrderModel.fromJson(e))
+            .toList();
         // Tìm đơn hàng đang hoạt động (không phải Completed/Cancelled) tại bàn này
         return orders.firstWhere(
-          (o) => o.status != 'Completed' && o.status != 'Cancelled', // Cần lọc theo tableId nếu API hỗ trợ
+          (o) =>
+              o.status != 'Completed' &&
+              o.status != 'Cancelled', // Cần lọc theo tableId nếu API hỗ trợ
           orElse: () => throw Exception('Không tìm thấy đơn hàng'),
         );
       }
@@ -217,11 +248,11 @@ class OrderProvider with ChangeNotifier {
 
   // Phương thức lấy đơn hàng thực sự theo tableId (giả sử backend có endpoint hoặc ta lọc)
   Future<OrderModel?> getOrderByTableId(String tableId) async {
-     try {
+    try {
       final response = await _apiService.dio.get('/orders');
       if (response.statusCode == 200) {
         final orders = (response.data as List);
-        for(var o in orders) {
+        for (var o in orders) {
           if (o['tableId'] == tableId && o['status'] != 'Completed') {
             return OrderModel.fromJson(o);
           }
@@ -233,14 +264,23 @@ class OrderProvider with ChangeNotifier {
     return null;
   }
 
-  Future<Map<String, dynamic>?> processPayment(String orderId, String? phoneNumber, String? customerName, String method, String? voucherCode) async {
+  Future<Map<String, dynamic>?> processPayment(
+    String orderId,
+    String? phoneNumber,
+    String? customerName,
+    String method,
+    String? voucherCode,
+  ) async {
     try {
-      final response = await _apiService.dio.post('/orders/$orderId/payment', data: {
-        'phoneNumber': phoneNumber,
-        'customerName': customerName,
-        'method': method,
-        'voucherCode': voucherCode,
-      });
+      final response = await _apiService.dio.post(
+        '/orders/$orderId/payment',
+        data: {
+          'phoneNumber': phoneNumber,
+          'customerName': customerName,
+          'method': method,
+          'voucherCode': voucherCode,
+        },
+      );
       if (response.statusCode == 200) {
         fetchTables();
         fetchAllOrders();
@@ -253,9 +293,15 @@ class OrderProvider with ChangeNotifier {
     return null;
   }
 
-  Future<bool> addItemsToOrder(String orderId, List<Map<String, dynamic>> items) async {
+  Future<bool> addItemsToOrder(
+    String orderId,
+    List<Map<String, dynamic>> items,
+  ) async {
     try {
-      final response = await _apiService.dio.post('/orders/$orderId/items', data: items);
+      final response = await _apiService.dio.post(
+        '/orders/$orderId/items',
+        data: items,
+      );
       if (response.statusCode == 200) {
         fetchAllOrders();
         return true;

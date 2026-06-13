@@ -9,4 +9,10 @@ public class NotificationHub : Hub
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, branchId);
     }
+
+    // Chủ nhà hàng tham gia nhóm toàn restaurant để nhận booking từ mọi chi nhánh
+    public async Task JoinRestaurantGroup(string restaurantId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"restaurant:{restaurantId}");
+    }
 }

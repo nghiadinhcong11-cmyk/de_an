@@ -43,8 +43,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         title: Row(
           children: [
             Hero(
-              tag: 'table-icon-${widget.order.tableNumber}', 
-              child: Icon(Icons.chair_rounded, size: 20, color: Colors.orange.shade800),
+              tag: 'table-icon-${widget.order.tableNumber}',
+              child: Icon(
+                Icons.chair_rounded,
+                size: 20,
+                color: Colors.orange.shade800,
+              ),
             ),
             const SizedBox(width: 10),
             Hero(
@@ -52,19 +56,26 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               child: Material(
                 color: Colors.transparent,
                 child: Text(
-                  'Bàn ${widget.order.tableNumber}', 
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)
+                  'Bàn ${widget.order.tableNumber}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                  ),
                 ),
               ),
             ),
           ],
         ),
         actions: [
-            if (widget.order.status != 'Completed') TextButton.icon(
-                onPressed: _showAddItemDialog,
-                icon: const Icon(Icons.add_circle_outline, size: 18), 
-                label: const Text('THÊM MÓN', style: TextStyle(fontWeight: FontWeight.bold))
-            )
+          if (widget.order.status != 'Completed')
+            TextButton.icon(
+              onPressed: _showAddItemDialog,
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: const Text(
+                'THÊM MÓN',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -72,23 +83,42 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('DANH SÁCH MÓN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-            const SizedBox(height: 10),
-            ...widget.order.items.map((item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('${item.quantity}x ${item.productName}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text(CurrencyUtil.format(item.unitPrice * item.quantity)),
-                ],
+            const Text(
+              'DANH SÁCH MÓN',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Colors.grey,
               ),
-            )),
+            ),
+            const SizedBox(height: 10),
+            ...widget.order.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${item.quantity}x ${item.productName}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    Text(CurrencyUtil.format(item.unitPrice * item.quantity)),
+                  ],
+                ),
+              ),
+            ),
             const Divider(height: 32),
-            
+
             if (widget.order.status != 'Completed') ...[
               // Voucher Section
-              const Text('MÃ GIẢM GIÁ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+              const Text(
+                'MÃ GIẢM GIÁ',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -99,8 +129,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         hintText: 'Nhập mã voucher...',
                         filled: true,
                         fillColor: Colors.grey.shade100,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ),
@@ -108,11 +144,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ElevatedButton(
                     onPressed: () {
                       // Trong thực tế sẽ gọi API check voucher trước
-                      setState(() {}); 
+                      setState(() {});
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                    child: const Text('ÁP DỤNG', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                  )
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'ÁP DỤNG',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 32),
@@ -121,15 +168,31 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('TỔNG CỘNG', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
-                Text(CurrencyUtil.format(widget.order.totalAmount),
-                     style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: Colors.orange)),
+                const Text(
+                  'TỔNG CỘNG',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                ),
+                Text(
+                  CurrencyUtil.format(widget.order.totalAmount),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 24,
+                    color: Colors.orange,
+                  ),
+                ),
               ],
             ),
 
             if (widget.order.status != 'Completed') ...[
               const SizedBox(height: 32),
-              const Text('HÌNH THỨC THANH TOÁN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+              const Text(
+                'HÌNH THỨC THANH TOÁN',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -139,15 +202,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _paymentMethod == 'Cash' ? Colors.orange.shade50 : Colors.white,
+                          color: _paymentMethod == 'Cash'
+                              ? Colors.orange.shade50
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _paymentMethod == 'Cash' ? Colors.orange : Colors.grey.shade200, width: 2),
+                          border: Border.all(
+                            color: _paymentMethod == 'Cash'
+                                ? Colors.orange
+                                : Colors.grey.shade200,
+                            width: 2,
+                          ),
                         ),
                         child: Column(
                           children: [
-                            Icon(Icons.money, color: _paymentMethod == 'Cash' ? Colors.orange : Colors.grey),
+                            Icon(
+                              Icons.money,
+                              color: _paymentMethod == 'Cash'
+                                  ? Colors.orange
+                                  : Colors.grey,
+                            ),
                             const SizedBox(height: 8),
-                            Text('TIỀN MẶT', style: TextStyle(fontWeight: FontWeight.bold, color: _paymentMethod == 'Cash' ? Colors.orange.shade900 : Colors.grey)),
+                            Text(
+                              'TIỀN MẶT',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _paymentMethod == 'Cash'
+                                    ? Colors.orange.shade900
+                                    : Colors.grey,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -160,15 +243,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _paymentMethod == 'QR' ? Colors.blue.shade50 : Colors.white,
+                          color: _paymentMethod == 'QR'
+                              ? Colors.blue.shade50
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _paymentMethod == 'QR' ? Colors.blue : Colors.grey.shade200, width: 2),
+                          border: Border.all(
+                            color: _paymentMethod == 'QR'
+                                ? Colors.blue
+                                : Colors.grey.shade200,
+                            width: 2,
+                          ),
                         ),
                         child: Column(
                           children: [
-                            Icon(Icons.qr_code, color: _paymentMethod == 'QR' ? Colors.blue : Colors.grey),
+                            Icon(
+                              Icons.qr_code,
+                              color: _paymentMethod == 'QR'
+                                  ? Colors.blue
+                                  : Colors.grey,
+                            ),
                             const SizedBox(height: 8),
-                            Text('VIETQR', style: TextStyle(fontWeight: FontWeight.bold, color: _paymentMethod == 'QR' ? Colors.blue.shade900 : Colors.grey)),
+                            Text(
+                              'VIETQR',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _paymentMethod == 'QR'
+                                    ? Colors.blue.shade900
+                                    : Colors.grey,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -177,8 +280,15 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              
-              const Text('TÍCH ĐIỂM KHÁCH HÀNG (TÙY CHỌN)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+
+              const Text(
+                'TÍCH ĐIỂM KHÁCH HÀNG (TÙY CHỌN)',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+              ),
               const SizedBox(height: 10),
               TextField(
                 controller: _phoneController,
@@ -187,7 +297,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   hintText: 'Số điện thoại',
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               const SizedBox(height: 10),
@@ -197,10 +310,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   hintText: 'Tên khách hàng (nếu là khách mới)',
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
@@ -208,13 +324,25 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 child: ElevatedButton(
                   onPressed: _isProcessing ? null : _handlePayment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _paymentMethod == 'QR' ? Colors.blue.shade700 : Colors.orange.shade600,
+                    backgroundColor: _paymentMethod == 'QR'
+                        ? Colors.blue.shade700
+                        : Colors.orange.shade600,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                  child: _isProcessing 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(_paymentMethod == 'QR' ? 'LẤY MÃ VIETQR' : 'XÁC NHẬN TIỀN MẶT', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: _isProcessing
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          _paymentMethod == 'QR'
+                              ? 'LẤY MÃ VIETQR'
+                              : 'XÁC NHẬN TIỀN MẶT',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                 ),
               ),
             ] else ...[
@@ -231,8 +359,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   children: [
                     Icon(Icons.check_circle, color: Colors.green, size: 40),
                     SizedBox(height: 12),
-                    Text('ĐƠN HÀNG ĐÃ HOÀN TẤT', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.green)),
-                    Text('Thông tin đơn hàng đã được lưu vào lịch sử hệ thống', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.green)),
+                    Text(
+                      'ĐƠN HÀNG ĐÃ HOÀN TẤT',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: Colors.green,
+                      ),
+                    ),
+                    Text(
+                      'Thông tin đơn hàng đã được lưu vào lịch sử hệ thống',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: Colors.green),
+                    ),
                   ],
                 ),
               ),
@@ -246,57 +384,81 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void _handlePayment() async {
     setState(() => _isProcessing = true);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    
+
     final result = await orderProvider.processPayment(
-      widget.order.id, 
+      widget.order.id,
       _phoneController.text.isNotEmpty ? _phoneController.text : null,
       _nameController.text.isNotEmpty ? _nameController.text : null,
       _paymentMethod,
-      _voucherController.text.isNotEmpty ? _voucherController.text : null
+      _voucherController.text.isNotEmpty ? _voucherController.text : null,
     );
 
-    if (result != null && mounted) {
-      if (!context.mounted) return;
-      
+    if (!mounted) return;
+
+    if (result != null) {
       if (_paymentMethod == 'QR') {
-        showDialog(
+        await showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Thanh toán VietQR', style: TextStyle(fontWeight: FontWeight.w900)),
-            content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (result['qrUrl'] != null) 
-                  Image.network(result['qrUrl'])
-                else
-                  const Text('Chưa cấu hình tài khoản nhận tiền'),
-                const SizedBox(height: 10),
-                if ((result['discountAmount'] ?? 0) > 0)
-                    Text('Giảm giá: -${CurrencyUtil.format((result['discountAmount'] ?? 0).toDouble())}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                Text('Tổng thanh toán: ${CurrencyUtil.format((result['totalAmount'] ?? 0).toDouble())}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-              ],
-            ),
-          ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  if (context.mounted) Navigator.pop(context); // Trở về màn hình bàn
-                }, 
-                child: const Text('HOÀN TẤT')
+          builder: (ctx) {
+            return AlertDialog(
+              title: const Text(
+                'Thanh toán VietQR',
+                style: TextStyle(fontWeight: FontWeight.w900),
               ),
-            ],
-          ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (result['qrUrl'] != null)
+                      Image.network(result['qrUrl'])
+                    else
+                      const Text('Chưa cấu hình tài khoản nhận tiền'),
+                    const SizedBox(height: 10),
+                    if ((result['discountAmount'] ?? 0) > 0)
+                      Text(
+                        'Giảm giá: -${CurrencyUtil.format((result['discountAmount'] ?? 0).toDouble())}',
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    Text(
+                      'Tổng thanh toán: ${CurrencyUtil.format((result['totalAmount'] ?? 0).toDouble())}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    if (mounted) Navigator.pop(context);
+                  },
+                  child: const Text('HOÀN TẤT'),
+                ),
+              ],
+            );
+          },
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thanh toán tiền mặt thành công!'), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thanh toán tiền mặt thành công!'),
+            backgroundColor: Colors.green,
+          ),
+        );
         Navigator.pop(context);
       }
     } else {
-      if (mounted) setState(() => _isProcessing = false);
-      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lỗi thanh toán')));
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Lỗi thanh toán')));
     }
   }
 }
@@ -323,19 +485,35 @@ class _AddItemSheetState extends State<_AddItemSheet> {
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
       ),
       child: Column(
         children: [
           const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(24),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Thêm món vào đơn', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                const Text(
+                  'Thêm món vào đơn',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
               ],
             ),
           ),
@@ -355,84 +533,141 @@ class _AddItemSheetState extends State<_AddItemSheet> {
                       Row(
                         children: [
                           Container(
-                            width: 50, height: 50,
-                            decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(12)),
-                            child: const Icon(Icons.fastfood, color: Colors.orange),
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.fastfood,
+                              color: Colors.orange,
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                Text(CurrencyUtil.format(p.price), style: TextStyle(color: Colors.orange.shade800, fontSize: 12)),
+                                Text(
+                                  p.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  CurrencyUtil.format(p.price),
+                                  style: TextStyle(
+                                    color: Colors.orange.shade800,
+                                    fontSize: 12,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           Row(
                             children: [
-                              if (qty > 0) IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, size: 20),
-                                onPressed: () => setState(() {
-                                  _selectedItems[p.id] = qty - 1;
-                                  if (qty - 1 == 0) _notes.remove(p.id);
-                                }),
-                              ),
-                              if (qty > 0) Text(qty.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              if (qty > 0)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.remove_circle_outline,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => setState(() {
+                                    _selectedItems[p.id] = qty - 1;
+                                    if (qty - 1 == 0) _notes.remove(p.id);
+                                  }),
+                                ),
+                              if (qty > 0)
+                                Text(
+                                  qty.toString(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               IconButton(
-                                icon: const Icon(Icons.add_circle_outline, size: 20, color: Colors.orange),
-                                onPressed: () => setState(() => _selectedItems[p.id] = qty + 1),
+                                icon: const Icon(
+                                  Icons.add_circle_outline,
+                                  size: 20,
+                                  color: Colors.orange,
+                                ),
+                                onPressed: () => setState(
+                                  () => _selectedItems[p.id] = qty + 1,
+                                ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      if (qty > 0) Padding(
-                        padding: const EdgeInsets.only(top: 8, left: 66),
-                        child: TextField(
-                          onChanged: (val) => _notes[p.id] = val,
-                          style: const TextStyle(fontSize: 12),
-                          decoration: InputDecoration(
-                            hintText: 'Ghi chú (Vd: ít cay, không hành...)',
-                            prefixIcon: Icon(Icons.edit_note, size: 18, color: hasNote ? Colors.orange : Colors.grey),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      if (qty > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, left: 66),
+                          child: TextField(
+                            onChanged: (val) => _notes[p.id] = val,
+                            style: const TextStyle(fontSize: 12),
+                            decoration: InputDecoration(
+                              hintText: 'Ghi chú (Vd: ít cay, không hành...)',
+                              prefixIcon: Icon(
+                                Icons.edit_note,
+                                size: 18,
+                                color: hasNote ? Colors.orange : Colors.grey,
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 );
               },
             ),
           ),
-          if (_selectedItems.values.any((v) => v > 0)) Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 20, offset: const Offset(0, -5))],
-            ),
-            child: SafeArea(
-              top: false,
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _handleSave,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          if (_selectedItems.values.any((v) => v > 0))
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(20),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
                   ),
-                  child: _isSaving 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('XÁC NHẬN THÊM', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _handleSave,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'XÁC NHẬN THÊM',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -443,24 +678,32 @@ class _AddItemSheetState extends State<_AddItemSheet> {
     final provider = Provider.of<OrderProvider>(context, listen: false);
     final items = _selectedItems.entries
         .where((e) => e.value > 0)
-        .map((e) => {
-          'productId': e.key, 
-          'quantity': e.value,
-          'note': _notes[e.key] ?? ''
-        })
+        .map(
+          (e) => {
+            'productId': e.key,
+            'quantity': e.value,
+            'note': _notes[e.key] ?? '',
+          },
+        )
         .toList();
 
     final success = await provider.addItemsToOrder(widget.orderId, items);
     if (success && mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã thêm món thành công!'), backgroundColor: Colors.green)
+        const SnackBar(
+          content: Text('Đã thêm món thành công!'),
+          backgroundColor: Colors.green,
+        ),
       );
     } else {
       if (mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lỗi khi thêm món'), backgroundColor: Colors.red)
+          const SnackBar(
+            content: Text('Lỗi khi thêm món'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
