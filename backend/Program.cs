@@ -57,6 +57,13 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
+// Tự động áp dụng migration khi khởi động để tránh lỗi 500 do schema chưa cập nhật trên môi trường deploy
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 // THỨ TỰ LÀ SỐ 1 ĐỂ KHÔNG BỊ LỖI CORS
 app.UseCors("AllowAll");
 

@@ -484,60 +484,60 @@ function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete
                         style={{ left: `${x}%`, top: `${y}%`, position: 'absolute' }}
                         className={`transition-shadow duration-200 ${isThisDragging ? 'z-50 cursor-grabbing' : 'z-10 cursor-grab hover:scale-105'}`}
                     >
-                        jsx
-<Card className={`w-32 border-none shadow-lg overflow-hidden ${
-    t.status === 'Occupied' ? 'bg-orange-600 text-white' : 
-    t.status === 'Stopped' ? 'bg-gray-200 text-gray-600' : 'bg-white'
-}`}>
-    {/* Thanh trạng thái phía trên */}
-    <div className={`h-1 w-full ${
-        t.status === 'Occupied' ? 'bg-white/20' : 
-        t.status === 'Stopped' ? 'bg-gray-400' : 'bg-green-500'
-    }`}></div>
 
-    <CardContent className="p-3 text-center">
-        {/* Icon: Thay đổi icon khi dừng */}
-        <div className="text-2xl mb-1">
-            {t.status === 'Occupied' ? '🔥' : t.status === 'Stopped' ? '🚫' : '🪑'}
-        </div>
+            <Card className={`w-32 border-none shadow-lg overflow-hidden ${
+                t.status === 'Occupied' ? 'bg-orange-600 text-white' : 
+                t.status === 'Stopped' ? 'bg-gray-200 text-gray-600' : 'bg-white'
+            }`}>
+                {/* Thanh trạng thái phía trên */}
+                <div className={`h-1 w-full ${
+                    t.status === 'Occupied' ? 'bg-white/20' : 
+                    t.status === 'Stopped' ? 'bg-gray-400' : 'bg-green-500'
+                }`}></div>
 
-        {/* Tên bàn: Luôn hiển thị rõ */}
-        <div className={`font-black text-sm ${t.status === 'Stopped' ? 'text-gray-800' : ''}`}>
-            {t.tableNumber}
-        </div>
+                <CardContent className="p-3 text-center">
+                    {/* Icon: Thay đổi icon khi dừng */}
+                    <div className="text-2xl mb-1">
+                        {t.status === 'Occupied' ? '🔥' : t.status === 'Stopped' ? '🚫' : '🪑'}
+                    </div>
 
-        {/* Dòng trạng thái chi tiết */}
-        <div className={`text-[8px] font-bold uppercase mt-1 ${
-            t.status === 'Occupied' ? 'text-white/70' : 'text-gray-400'
-        }`}>
-            {t.capacity} CHỖ • {
-                t.status === 'Occupied' ? 'CÓ KHÁCH' : 
-                t.status === 'Stopped' ? 'ĐANG DỪNG' : 'TRỐNG'
-            }
-        </div>
+                    {/* Tên bàn: Luôn hiển thị rõ */}
+                    <div className={`font-black text-sm ${t.status === 'Stopped' ? 'text-gray-800' : ''}`}>
+                        {t.tableNumber}
+                    </div>
 
-        {/* Các nút bấm: Có thể làm mờ hoặc ẩn khi dừng nếu cần */}
-        <div className="flex justify-center gap-1 mt-3">
-            <button 
-                onClick={() => onShowQR(t)} 
-                className={`p-1.5 rounded-lg ${
-                    t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-50 hover:bg-gray-100'
-                }`}
-                disabled={t.status === 'Stopped'}
-            >
-                <QrCode className="w-3 h-3" />
-            </button>
-            <button 
-                onClick={() => onDelete(t.id)} 
-                className={`p-1.5 rounded-lg ${
-                    t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-50 hover:bg-red-100 text-red-500'
-                }`}
-            >
-                <Trash2 className="w-3 h-3" />
-            </button>
-        </div>
-    </CardContent>
-</Card>
+                    {/* Dòng trạng thái chi tiết */}
+                    <div className={`text-[8px] font-bold uppercase mt-1 ${
+                        t.status === 'Occupied' ? 'text-white/70' : 'text-gray-400'
+                    }`}>
+                        {t.capacity} CHỖ • {
+                            t.status === 'Occupied' ? 'CÓ KHÁCH' : 
+                            t.status === 'Stopped' ? 'ĐANG DỪNG' : 'TRỐNG'
+                        }
+                    </div>
+
+                    {/* Các nút bấm: Có thể làm mờ hoặc ẩn khi dừng nếu cần */}
+                    <div className="flex justify-center gap-1 mt-3">
+                        <button 
+                            onClick={() => onShowQR(t)} 
+                            className={`p-1.5 rounded-lg ${
+                                t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-50 hover:bg-gray-100'
+                            }`}
+                            disabled={t.status === 'Stopped'}
+                        >
+                            <QrCode className="w-3 h-3" />
+                        </button>
+                        <button 
+                            onClick={() => onDelete(t.id)} 
+                            className={`p-1.5 rounded-lg ${
+                                t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-red-50 hover:bg-red-100 text-red-500'
+                            }`}
+                        >
+                            <Trash2 className="w-3 h-3" />
+                        </button>
+                    </div>
+                </CardContent>
+            </Card>
                     </div>
                 );
             })}

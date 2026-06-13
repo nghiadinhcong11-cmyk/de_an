@@ -153,9 +153,9 @@ export function CustomerBooking() {
     const total = zoneTables.length;
 
     return (
-      <div className="rounded-[28px] border border-gray-100 bg-gradient-to-b from-white to-gray-50 p-3 md:p-5 shadow-inner">
+      <div className="rounded-[28px] border border-gray-100 bg-gradient-to-b from-white to-gray-50 p-2.5 sm:p-3 md:p-5 shadow-inner">
         <div className="relative overflow-hidden rounded-[24px] border border-gray-100 bg-[linear-gradient(180deg,#ffffff_0%,#f9fafb_100%)]">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-[320px] w-full">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="aspect-video h-auto w-full">
             <defs>
               <pattern id="booking-grid" width="10" height="10" patternUnits="userSpaceOnUse">
                 <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#e5e7eb" strokeWidth="0.35" opacity="0.55" />
