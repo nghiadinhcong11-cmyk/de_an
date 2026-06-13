@@ -1,3 +1,5 @@
+namespace RestaurantPOS.Modules.Core.Entities;
+
 public class UserRole
 {
     public Guid UserId { get; set; }
