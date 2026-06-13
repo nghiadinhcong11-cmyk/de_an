@@ -1,3 +1,5 @@
+namespace RestaurantPOS.Modules.Core.Entities;
+
 public class Restaurant : BaseEntity
 {
     public string Name { get; set; } = string.Empty;

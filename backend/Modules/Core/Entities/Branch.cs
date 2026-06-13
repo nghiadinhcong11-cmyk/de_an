@@ -1,9 +1,6 @@
 using RestaurantPOS.Modules.Ordering.Entities;
 using RestaurantPOS.Modules.TableManagement.Entities;
 
-using RestaurantPOS.Modules.Ordering.Entities;
-using RestaurantPOS.Modules.TableManagement.Entities;
-
 namespace RestaurantPOS.Modules.Core.Entities;
 
 public class Branch : BaseEntity
