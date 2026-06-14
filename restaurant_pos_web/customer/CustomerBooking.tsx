@@ -4,7 +4,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { Calendar, Users, Loader2, CheckCircle2, Phone, Info, Map, ChevronDown, ChevronUp, Layers, Armchair } from "lucide-react";
+import { Calendar, Users, Loader2, CheckCircle2, Phone, Info, Map, ChevronDown, ChevronUp, Layers, Armchair, ArrowRight } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
 import api from "../services/api";

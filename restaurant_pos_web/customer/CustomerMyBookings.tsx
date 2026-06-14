@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { Loader2, Calendar, Clock, MapPin, Users, Armchair, ChevronRight, CheckCircle2, XCircle, Timer, Info } from "lucide-react";
+import { Loader2, Calendar, Clock, MapPin, Users, ChevronRight, CheckCircle2, XCircle, Timer, Info, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 
@@ -28,12 +28,12 @@ export function CustomerMyBookings() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Pending": return "bg-orange-100 text-orange-700";
-      case "Confirmed": return "bg-green-100 text-green-700";
-      case "Rejected": return "bg-red-100 text-red-700";
-      case "Cancelled": return "bg-gray-100 text-gray-600";
-      case "Completed": return "bg-blue-100 text-blue-700";
-      default: return "bg-gray-100 text-gray-600";
+      case "Pending": return "bg-orange-500/20 text-orange-500";
+      case "Confirmed": return "bg-green-500/20 text-green-500";
+      case "Rejected": return "bg-red-500/20 text-red-500";
+      case "Cancelled": return "bg-white/10 text-gray-400";
+      case "Completed": return "bg-blue-500/20 text-blue-500";
+      default: return "bg-white/10 text-gray-400";
     }
   };
 
@@ -50,119 +50,127 @@ export function CustomerMyBookings() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "Pending": return <Timer className="w-5 h-5 text-orange-600" />;
-      case "Confirmed": return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-      case "Rejected": return <XCircle className="w-5 h-5 text-red-600" />;
-      default: return <Calendar className="w-5 h-5 text-gray-400" />;
+      case "Pending": return <Timer className="w-5 h-5 text-orange-500" />;
+      case "Confirmed": return <CheckCircle2 className="w-5 h-5 text-green-500" />;
+      case "Rejected": return <XCircle className="w-5 h-5 text-red-500" />;
+      default: return <Calendar className="w-5 h-5 text-gray-500" />;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 gap-4">
-        <Loader2 className="w-12 h-12 text-orange-600 animate-spin" />
-        <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">Đang tải lịch đặt bàn...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-brand-dark gap-4">
+        <Loader2 className="w-12 h-12 text-brand-accent animate-spin" />
+        <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-xs">Đang tải lịch đặt bàn...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 pb-24">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-white p-10 rounded-[40px] shadow-sm border border-gray-100">
-         <div>
-            <h1 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">Lịch Đặt Bàn Của Bạn</h1>
-            <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mt-2">Quản lý các yêu cầu đặt chỗ và thời gian dùng bữa</p>
+    <div className="min-h-screen bg-brand-dark text-white p-6 md:p-12 space-y-12 md:space-y-24 font-['Montserrat']">
+      {/* Premium Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 border-b border-white/5 pb-12">
+         <div className="space-y-4">
+            <h1 className="text-4xl md:text-7xl font-black tracking-tighter uppercase leading-none">Lịch Đặt Bàn <span className="text-brand-accent">Của Bạn</span></h1>
+            <p className="text-gray-400 text-lg font-medium max-w-2xl leading-relaxed">
+                Theo dõi và quản lý các yêu cầu đặt chỗ để đảm bảo trải nghiệm ẩm thực hoàn hảo nhất.
+            </p>
          </div>
          <Link to="/customer/booking">
-            <Button className="bg-gray-900 hover:bg-black text-white px-8 h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-gray-200 active:scale-95">
-                ĐẶT BÀN MỚI
+            <Button className="group relative overflow-hidden bg-brand-accent hover:bg-orange-600 text-white h-16 px-10 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-brand-accent/20 transition-all">
+                <span className="relative z-10">ĐẶT BÀN MỚI</span>
+                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-shine"></div>
             </Button>
          </Link>
       </div>
 
       {bookings.length === 0 ? (
-        <div className="text-center py-32 bg-white rounded-[48px] border-2 border-dashed border-gray-100">
-            <Calendar className="mx-auto w-24 h-24 text-gray-50 mb-6" />
-            <h3 className="text-2xl font-black text-gray-300 uppercase">BẠN CHƯA CÓ LỊCH ĐẶT BÀN NÀO</h3>
-            <p className="text-gray-400 mt-2 font-medium">Hãy chọn vị trí yêu thích và đặt chỗ ngay hôm nay!</p>
-            <Link to="/customer/booking">
-                <Button variant="outline" className="mt-8 border-orange-200 text-orange-600 font-black px-10 h-14 rounded-2xl uppercase">Đặt bàn ngay</Button>
+        <div className="text-center py-40 bg-white/5 rounded-[60px] border-2 border-dashed border-white/10">
+            <Calendar className="mx-auto w-24 h-24 text-gray-700 mb-8 opacity-20" />
+            <h3 className="text-2xl font-black text-gray-500 uppercase tracking-widest">BẠN CHƯA CÓ LỊCH ĐẶT BÀN NÀO</h3>
+            <p className="text-gray-600 mt-4 font-medium text-lg">Hãy chọn vị trí yêu thích và đặt chỗ ngay hôm nay!</p>
+            <Link to="/customer/booking" className="inline-block mt-10">
+                <Button className="bg-white text-brand-dark hover:bg-brand-accent hover:text-white px-12 h-14 rounded-2xl font-black uppercase tracking-widest transition-all">Bắt đầu ngay</Button>
             </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           {bookings.map((booking) => (
-            <Card key={booking.id} className="border-none shadow-sm hover:shadow-xl transition-all rounded-[40px] overflow-hidden bg-white group">
+            <Card key={booking.id} className="border-none shadow-2xl bg-white/5 backdrop-blur-3xl rounded-[50px] overflow-hidden border border-white/5 group hover:border-brand-accent/30 transition-all duration-500">
               <CardContent className="p-0">
                 {/* Header Trạng thái */}
-                <div className="bg-gray-900 px-8 py-4 flex justify-between items-center text-white">
-                    <div className="flex items-center gap-3">
+                <div className="bg-brand-dark/40 px-10 py-6 flex justify-between items-center border-b border-white/5">
+                    <div className="flex items-center gap-4">
                         {getStatusIcon(booking.status)}
-                        <span className="text-xs font-black uppercase tracking-widest">{getStatusLabel(booking.status)}</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{getStatusLabel(booking.status)}</span>
                     </div>
-                    <div className="text-[10px] font-bold opacity-60 uppercase tracking-tighter">
-                        Mã: {booking.id.substring(0, 8).toUpperCase()}
+                    <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+                        REF: {booking.id.substring(0, 8).toUpperCase()}
                     </div>
                 </div>
 
-                <div className="p-8 space-y-6">
+                <div className="p-10 space-y-8">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h3 className="text-2xl font-black text-gray-900 leading-tight">
+                            <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
                                 {booking.tableId ? `Bàn ${booking.tableNumber}` : "Bàn tự do"}
                             </h3>
-                            <div className="flex items-center gap-2 mt-1 text-orange-600 font-black text-[10px] uppercase tracking-widest">
-                                <Layers className="w-3 h-3" /> {booking.zoneName || "Khu vực chung"}
+                            <div className="flex items-center gap-3 mt-3 text-brand-accent font-black text-[10px] uppercase tracking-[0.3em]">
+                                <Layers className="w-4 h-4" /> {booking.zoneName || "Khu vực chung"}
                             </div>
                         </div>
-                        <Badge className={`${getStatusColor(booking.status)} border-none font-black text-[10px] py-1.5 px-4 rounded-xl uppercase tracking-widest`}>
+                        <Badge className={`${getStatusColor(booking.status)} border-none font-black text-[10px] py-2 px-6 rounded-2xl uppercase tracking-widest`}>
                             {booking.status}
                         </Badge>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-50 rounded-3xl p-4 border border-gray-100">
-                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Thời gian</p>
-                            <div className="flex items-center gap-2 font-black text-gray-900">
-                                <Clock className="w-4 h-4 text-orange-500" />
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="bg-white/5 rounded-[32px] p-6 border border-white/5 hover:bg-white/10 transition-all">
+                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Thời gian hẹn</p>
+                            <div className="flex items-center gap-3 font-black text-xl text-white">
+                                <Clock className="w-5 h-5 text-brand-accent" />
                                 <span>{new Date(booking.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
-                            <p className="text-xs font-bold text-gray-400 mt-0.5">{new Date(booking.bookingDate).toLocaleDateString("vi-VN")}</p>
+                            <p className="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-tighter">{new Date(booking.bookingDate).toLocaleDateString("vi-VN")}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-3xl p-4 border border-gray-100">
-                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Số lượng khách</p>
-                            <div className="flex items-center gap-2 font-black text-gray-900">
-                                <Users className="w-4 h-4 text-orange-500" />
-                                <span>{booking.numberOfGuests} người</span>
+                        <div className="bg-white/5 rounded-[32px] p-6 border border-white/5 hover:bg-white/10 transition-all">
+                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Số lượng khách</p>
+                            <div className="flex items-center gap-3 font-black text-xl text-white">
+                                <Users className="w-5 h-5 text-brand-accent" />
+                                <span>{booking.numberOfGuests} <span className="text-sm font-bold opacity-60 ml-1">người</span></span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-start gap-4 p-4 bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
-                        <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-1" />
+                    <div className="flex items-start gap-6 p-6 bg-white/[0.02] rounded-[32px] border border-dashed border-white/10 group-hover:bg-white/5 transition-all">
+                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 mt-1">
+                            <MapPin className="w-6 h-6 text-brand-accent" />
+                        </div>
                         <div>
-                            <p className="font-black text-xs text-gray-900">{booking.branchName}</p>
-                            <p className="text-xs font-medium text-gray-400 mt-0.5 leading-relaxed">{booking.branchAddress}</p>
+                            <p className="font-black text-lg text-white uppercase tracking-tight">{booking.branchName}</p>
+                            <p className="text-sm font-medium text-gray-500 mt-1 leading-relaxed">{booking.branchAddress}</p>
                         </div>
                     </div>
 
                     {booking.notes && (
-                        <div className="p-4 bg-orange-50/50 rounded-3xl border border-orange-100/50">
-                            <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest mb-1">Ghi chú của bạn</p>
-                            <p className="text-sm font-medium text-gray-600 italic">"{booking.notes}"</p>
+                        <div className="p-8 bg-brand-accent/5 rounded-[32px] border border-brand-accent/10 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-10">
+                                <Info className="w-12 h-12" />
+                            </div>
+                            <p className="text-[9px] font-black text-brand-accent uppercase tracking-widest mb-2 relative z-10">Ghi chú của bạn</p>
+                            <p className="text-base font-medium text-gray-300 italic relative z-10 leading-relaxed">"{booking.notes}"</p>
                         </div>
                     )}
 
-                    <div className="pt-2">
+                    <div className="pt-4">
                         {booking.status === "Pending" ? (
-                            <Button variant="outline" className="w-full h-12 rounded-2xl border-red-100 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-50 hover:border-red-200">
-                                HỦY ĐẶT BÀN
+                            <Button variant="outline" className="w-full h-14 rounded-2xl border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl">
+                                HỦY ĐẶT BÀN TRỰC TUYẾN
                             </Button>
                         ) : (
-                            <div className="flex items-center justify-center gap-2 py-3 bg-gray-50 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                <Info className="w-4 h-4" />
-                                Liên hệ hotline 1900 123 456 để thay đổi
+                            <div className="flex items-center justify-center gap-3 py-4 bg-white/5 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest border border-white/5">
+                                <Info className="w-4 h-4 text-brand-accent" />
+                                Hotline 1900 123 456 hỗ trợ thay đổi
                             </div>
                         )}
                     </div>
@@ -180,4 +188,16 @@ function Layers({ className }: { className?: string }) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.1 6.34a2 2 0 0 0 0 3.66l9.07 4.16a2 2 0 0 0 1.66 0l9.07-4.16a2 2 0 0 0 0-3.66Z"/><path d="m2.1 14.98 9.07 4.15a2 2 0 0 0 1.66 0l9.07-4.15"/><path d="m2.1 10.65 9.07 4.15a2 2 0 0 0 1.66 0l9.07-4.15"/></svg>
     );
+}
+
+function Timer({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+    )
+}
+
+function Store({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+    )
 }

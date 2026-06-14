@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Search, Loader2, Info, UtensilsCrossed } from "lucide-react";
+import { Search, Loader2, Info, UtensilsCrossed, Star } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerMenu() {
