@@ -157,12 +157,12 @@ export function CustomerProfile() {
                 </DialogHeader>
                 <div className="grid gap-6 py-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Họ và tên</Label>
-                    <Input id="name" value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl focus:border-brand-accent transition-all" />
+                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-wider text-gray-300 ml-1">Họ và tên</Label>
+                    <Input id="name" value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-white/10 border-white/20 h-12 rounded-xl focus:border-brand-accent transition-all text-white placeholder:text-gray-500" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="avatar" className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Link ảnh đại diện</Label>
-                    <Input id="avatar" value={editAvatar} placeholder="https://..." onChange={(e) => setEditAvatar(e.target.value)} className="bg-white/5 border-white/10 h-12 rounded-xl focus:border-brand-accent transition-all" />
+                    <Label htmlFor="avatar" className="text-xs font-black uppercase tracking-wider text-gray-300 ml-1">Link ảnh đại diện</Label>
+                    <Input id="avatar" value={editAvatar} placeholder="https://..." onChange={(e) => setEditAvatar(e.target.value)} className="bg-white/10 border-white/20 h-12 rounded-xl focus:border-brand-accent transition-all text-white placeholder:text-gray-500" />
                   </div>
                 </div>
                 <DialogFooter>
@@ -178,10 +178,10 @@ export function CustomerProfile() {
         <Card className="mt-8 border-none bg-white/10 backdrop-blur-xl text-white rounded-[32px]">
           <CardContent className="p-6 flex justify-between items-center">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Điểm thưởng tích lũy</p>
-              <p className="text-5xl font-black tracking-tighter mt-1">{profile?.points?.toLocaleString()}<span className="text-sm ml-2 opacity-60 uppercase font-bold">pts</span></p>
+              <p className="text-xs font-black uppercase tracking-widest opacity-60 text-gray-300">Điểm thưởng tích lũy</p>
+              <p className="text-5xl font-black tracking-tighter mt-1">{profile?.points?.toLocaleString()}<span className="text-sm ml-2 opacity-60 uppercase font-bold text-gray-400">pts</span></p>
             </div>
-            <div className="bg-brand-accent text-white px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg animate-pulse">
+            <div className="bg-brand-accent text-white px-6 py-2 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg animate-pulse">
               Hạng Vàng
             </div>
           </CardContent>
@@ -190,11 +190,11 @@ export function CustomerProfile() {
 
       <div className="p-6 md:p-12">
         <Tabs defaultValue="history">
-          <TabsList className="w-full bg-white/5 border border-white/10 p-1.5 rounded-[24px] shadow-sm mb-12 flex overflow-x-auto no-scrollbar h-auto">
-            <TabsTrigger value="history" className="flex-1 font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white transition-all">Lịch sử</TabsTrigger>
-            <TabsTrigger value="redeem" className="flex-1 font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white transition-all">Đổi quà</TabsTrigger>
-            <TabsTrigger value="bookings" className="flex-1 font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white transition-all">Lịch hẹn</TabsTrigger>
-            <TabsTrigger value="feedback" className="flex-1 font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white transition-all">Góp ý</TabsTrigger>
+          <TabsList className="w-full bg-white/10 border border-white/20 p-1.5 rounded-[24px] shadow-sm mb-12 flex overflow-x-auto no-scrollbar h-auto">
+            <TabsTrigger value="history" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Lịch sử</TabsTrigger>
+            <TabsTrigger value="redeem" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Đổi quà</TabsTrigger>
+            <TabsTrigger value="bookings" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Lịch hẹn</TabsTrigger>
+            <TabsTrigger value="feedback" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Góp ý</TabsTrigger>
           </TabsList>
 
           {/* TAB 1: LỊCH SỬ TÍCH ĐIỂM & ĐƠN HÀNG */}
@@ -404,9 +404,9 @@ export function CustomerProfile() {
                       </div>
 
                       <div className="space-y-4">
-                          <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Lời nhắn của bạn</Label>
+                          <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Lời nhắn của bạn</Label>
                           <textarea
-                            className="w-full h-48 p-8 bg-white/5 border border-white/10 rounded-[32px] text-lg font-medium text-white focus:border-brand-accent transition-all outline-none resize-none placeholder:text-gray-700"
+                            className="w-full h-48 p-8 bg-white/10 border border-white/20 rounded-[32px] text-lg font-medium text-white focus:border-brand-accent transition-all outline-none resize-none placeholder:text-gray-500"
                             placeholder="Chia sẻ trải nghiệm ẩm thực của bạn..."
                             value={feedbackForm.message}
                             onChange={(e) => setFeedbackForm({...feedbackForm, message: e.target.value})}
@@ -461,9 +461,9 @@ export function CustomerProfile() {
                         />
                   </div>
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Cảm nhận của bạn</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Cảm nhận của bạn</Label>
                     <textarea
-                        className="w-full h-32 p-6 bg-white/5 border border-white/10 rounded-3xl text-sm font-medium text-white focus:border-brand-accent transition-all outline-none resize-none placeholder:text-gray-700"
+                        className="w-full h-32 p-6 bg-white/10 border border-white/20 rounded-3xl text-sm font-medium text-white focus:border-brand-accent transition-all outline-none resize-none placeholder:text-gray-500"
                         placeholder="Món ăn có vừa miệng bạn không?..."
                         value={feedbackForm.message}
                         onChange={(e) => setFeedbackForm({...feedbackForm, message: e.target.value})}

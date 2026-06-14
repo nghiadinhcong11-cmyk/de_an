@@ -99,13 +99,13 @@ export function CustomerMyBookings() {
             <Card key={booking.id} className="border-none shadow-2xl bg-white/5 backdrop-blur-3xl rounded-[50px] overflow-hidden border border-white/5 group hover:border-brand-accent/30 transition-all duration-500">
               <CardContent className="p-0">
                 {/* Header Trạng thái */}
-                <div className="bg-brand-dark/40 px-10 py-6 flex justify-between items-center border-b border-white/5">
+                <div className="bg-brand-dark/60 px-10 py-6 flex justify-between items-center border-b border-white/10">
                     <div className="flex items-center gap-4">
                         {getStatusIcon(booking.status)}
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{getStatusLabel(booking.status)}</span>
+                        <span className="text-xs font-black uppercase tracking-wider text-gray-200">{getStatusLabel(booking.status)}</span>
                     </div>
-                    <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                        REF: {booking.id.substring(0, 8).toUpperCase()}
+                    <div className="text-xs font-black text-gray-400 uppercase tracking-wider">
+                        Mã: {booking.id.substring(0, 8).toUpperCase()}
                     </div>
                 </div>
 
@@ -115,29 +115,29 @@ export function CustomerMyBookings() {
                             <h3 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
                                 {booking.tableId ? `Bàn ${booking.tableNumber}` : "Bàn tự do"}
                             </h3>
-                            <div className="flex items-center gap-3 mt-3 text-brand-accent font-black text-[10px] uppercase tracking-[0.3em]">
+                            <div className="flex items-center gap-3 mt-3 text-brand-accent font-black text-xs uppercase tracking-wider">
                                 <Layers className="w-4 h-4" /> {booking.zoneName || "Khu vực chung"}
                             </div>
                         </div>
-                        <Badge className={`${getStatusColor(booking.status)} border-none font-black text-[10px] py-2 px-6 rounded-2xl uppercase tracking-widest`}>
+                        <Badge className={`${getStatusColor(booking.status)} border-none font-black text-xs py-2 px-6 rounded-2xl uppercase tracking-widest`}>
                             {booking.status}
                         </Badge>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
-                        <div className="bg-white/5 rounded-[32px] p-6 border border-white/5 hover:bg-white/10 transition-all">
-                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Thời gian hẹn</p>
+                        <div className="bg-white/10 rounded-[32px] p-6 border border-white/10 hover:bg-white/15 transition-all">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Thời gian hẹn</p>
                             <div className="flex items-center gap-3 font-black text-xl text-white">
                                 <Clock className="w-5 h-5 text-brand-accent" />
                                 <span>{new Date(booking.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
-                            <p className="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-tighter">{new Date(booking.bookingDate).toLocaleDateString("vi-VN")}</p>
+                            <p className="text-[11px] font-bold text-gray-400 mt-2 uppercase tracking-tighter">{new Date(booking.bookingDate).toLocaleDateString("vi-VN")}</p>
                         </div>
-                        <div className="bg-white/5 rounded-[32px] p-6 border border-white/5 hover:bg-white/10 transition-all">
-                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Số lượng khách</p>
+                        <div className="bg-white/10 rounded-[32px] p-6 border border-white/10 hover:bg-white/15 transition-all">
+                            <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-2">Số lượng khách</p>
                             <div className="flex items-center gap-3 font-black text-xl text-white">
                                 <Users className="w-5 h-5 text-brand-accent" />
-                                <span>{booking.numberOfGuests} <span className="text-sm font-bold opacity-60 ml-1">người</span></span>
+                                <span>{booking.numberOfGuests} <span className="text-sm font-bold opacity-60 ml-1 text-gray-300">người</span></span>
                             </div>
                         </div>
                     </div>

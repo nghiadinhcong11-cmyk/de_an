@@ -57,7 +57,7 @@ export default function CustomerLayout() {
             </div>
             <div className="flex flex-col">
                 <span className="font-black text-2xl tracking-tighter text-white leading-none uppercase">RESTO<span className="text-brand-accent italic">POS</span></span>
-                <span className="text-[7px] font-black text-brand-accent tracking-[0.4em] uppercase mt-1">Culinary Excellence</span>
+                <span className="text-xs font-black text-brand-accent tracking-[0.15em] uppercase mt-1">Culinary Excellence</span>
             </div>
           </Link>
 
@@ -68,13 +68,13 @@ export default function CustomerLayout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
-                    isActive ? "text-brand-accent scale-110" : "text-gray-400 hover:text-white"
+                  className={`relative text-[13px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${
+                    isActive ? "text-brand-accent scale-110" : "text-gray-300 hover:text-white"
                   }`}
                 >
                   {item.label}
                   {isActive && (
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></span>
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></span>
                   )}
                 </Link>
               );
@@ -83,13 +83,13 @@ export default function CustomerLayout() {
 
           <div className="flex items-center gap-6">
              {user.fullName ? (
-               <Link to="/customer/profile" className="hidden md:flex items-center gap-4 bg-white/5 hover:bg-white/10 p-1.5 pr-6 rounded-2xl transition-all border border-white/10 group">
-                  <div className="w-10 h-10 bg-brand-accent rounded-xl flex items-center justify-center text-white font-black shadow-lg group-hover:scale-110 transition-transform">
+               <Link to="/customer/profile" className="hidden md:flex items-center gap-4 bg-white/10 hover:bg-white/15 p-1.5 pr-6 rounded-2xl transition-all border border-white/20 group">
+                  <div className="w-10 h-10 bg-brand-accent rounded-xl flex items-center justify-center text-white font-black shadow-lg group-hover:scale-110 transition-transform text-lg">
                     {userProfile?.fullName?.charAt(0) || user.fullName.charAt(0)}
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-black text-white leading-none">{userProfile?.fullName || user.fullName}</p>
-                    <p className="text-[9px] text-brand-accent font-black uppercase mt-1.5 tracking-tighter">
+                    <p className="text-sm font-black text-white leading-none">{userProfile?.fullName || user.fullName}</p>
+                    <p className="text-[11px] text-brand-accent font-black uppercase mt-1.5 tracking-wider">
                         {userProfile?.points?.toLocaleString() || 0} pts
                     </p>
                   </div>
@@ -137,25 +137,25 @@ export default function CustomerLayout() {
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-white">Khám phá</h4>
+              <h4 className="font-black text-xs uppercase tracking-[0.15em] text-white">Khám phá</h4>
               <ul className="space-y-4">
-                <li><Link to="/customer" className="text-sm text-gray-400 hover:text-brand-accent font-bold transition-colors">Về chúng tôi</Link></li>
-                <li><Link to="/customer/menu" className="text-sm text-gray-400 hover:text-brand-accent font-bold transition-colors">Thực đơn đặc sắc</Link></li>
-                <li><Link to="/customer/booking" className="text-sm text-gray-400 hover:text-brand-accent font-bold transition-colors">Hệ thống cơ sở</Link></li>
+                <li><Link to="/customer" className="text-[13px] text-gray-300 hover:text-brand-accent font-bold transition-colors">Về chúng tôi</Link></li>
+                <li><Link to="/customer/menu" className="text-[13px] text-gray-300 hover:text-brand-accent font-bold transition-colors">Thực đơn đặc sắc</Link></li>
+                <li><Link to="/customer/booking" className="text-[13px] text-gray-300 hover:text-brand-accent font-bold transition-colors">Hệ thống cơ sở</Link></li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-white">Dịch vụ</h4>
+              <h4 className="font-black text-xs uppercase tracking-[0.15em] text-white">Dịch vụ</h4>
               <ul className="space-y-4">
-                <li className="text-sm text-gray-400 font-bold cursor-pointer hover:text-brand-accent transition-colors">Chính sách bảo mật</li>
-                <li className="text-sm text-gray-400 font-bold cursor-pointer hover:text-brand-accent transition-colors">Điều khoản & Điều kiện</li>
-                <li className="text-sm text-gray-400 font-bold cursor-pointer hover:text-brand-accent transition-colors">Tuyển dụng</li>
+                <li className="text-[13px] text-gray-300 font-bold cursor-pointer hover:text-brand-accent transition-colors">Chính sách bảo mật</li>
+                <li className="text-[13px] text-gray-300 font-bold cursor-pointer hover:text-brand-accent transition-colors">Điều khoản & Điều kiện</li>
+                <li className="text-[13px] text-gray-300 font-bold cursor-pointer hover:text-brand-accent transition-colors">Tuyển dụng</li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-white">Theo dõi</h4>
+              <h4 className="font-black text-xs uppercase tracking-[0.15em] text-white">Theo dõi</h4>
               <div className="flex gap-4 justify-center md:justify-start">
                 <SocialIcon icon={<Facebook className="w-5 h-5 fill-current" />} />
                 <SocialIcon icon={<Youtube className="w-5 h-5 fill-current" />} />
@@ -163,12 +163,12 @@ export default function CustomerLayout() {
             </div>
           </div>
 
-          <div className="border-t border-white/5 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-gray-600 text-[10px] font-black uppercase tracking-[0.4em]">
+          <div className="border-t border-white/10 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-gray-400 text-xs font-black uppercase tracking-[0.2em]">
               © 2026 RESTO POS System • Made with Passion
             </p>
-            <div className="flex gap-8 text-[9px] font-black text-gray-600 uppercase tracking-widest">
-                <span className="hover:text-white cursor-pointer">English</span>
+            <div className="flex gap-8 text-xs font-black text-gray-400 uppercase tracking-widest">
+                <span className="hover:text-white cursor-pointer transition-colors">English</span>
                 <span className="text-brand-accent">Tiếng Việt</span>
             </div>
           </div>
@@ -176,18 +176,18 @@ export default function CustomerLayout() {
       </footer>
 
       {/* Floating Modern Bottom Nav for Mobile */}
-      <nav className="md:hidden fixed bottom-8 left-8 right-8 h-20 bg-brand-dark/90 backdrop-blur-2xl rounded-[32px] flex items-center justify-around px-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10">
+      <nav className="md:hidden fixed bottom-8 left-8 right-8 h-20 bg-brand-dark/95 backdrop-blur-2xl rounded-[32px] flex items-center justify-around px-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/10">
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
                 key={item.path}
                 to={item.path}
-                className={`relative flex flex-col items-center gap-1 transition-all duration-500 ${isActive ? "text-brand-accent scale-110" : "text-gray-500"}`}
+                className={`relative flex flex-col items-center gap-1 transition-all duration-500 ${isActive ? "text-brand-accent scale-125" : "text-gray-400"}`}
             >
-              <item.icon className="w-6 h-6" strokeWidth={isActive ? 3 : 2} />
+              <item.icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 2} />
               {isActive && (
-                <div className="absolute -top-3 w-1 h-1 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></div>
+                <div className="absolute -top-3 w-1.5 h-1.5 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></div>
               )}
             </Link>
           );

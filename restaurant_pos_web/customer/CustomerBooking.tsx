@@ -188,12 +188,12 @@ export function CustomerBooking() {
             <CardContent className="p-8 md:p-16">
                <form onSubmit={handleSubmit} className="space-y-10">
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Chi nhánh thực hiện</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Chi nhánh thực hiện</Label>
                     <Select value={form.branchId} onValueChange={(v) => setForm({...form, branchId: v})}>
-                        <SelectTrigger className="h-20 rounded-3xl bg-white/5 border-white/10 text-xl font-black tracking-tight text-white focus:ring-brand-accent shadow-none px-8 transition-all">
+                        <SelectTrigger className="h-20 rounded-3xl bg-white/10 border-white/20 text-xl font-black tracking-tight text-white focus:ring-brand-accent shadow-none px-8 transition-all">
                             <SelectValue placeholder="CHỌN CƠ SỞ GẦN BẠN" />
                         </SelectTrigger>
-                        <SelectContent className="bg-brand-dark border-white/10 text-white rounded-3xl overflow-hidden shadow-2xl">
+                        <SelectContent className="bg-brand-dark border-white/20 text-white rounded-3xl overflow-hidden shadow-2xl">
                             {branches.map(b => (
                                 <SelectItem key={b.id} value={b.id} className="font-bold py-4 hover:bg-white/10 transition-colors cursor-pointer">{b.name.toUpperCase()}</SelectItem>
                             ))}
@@ -203,21 +203,21 @@ export function CustomerBooking() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Danh tính</Label>
+                        <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Danh tính</Label>
                         <Input
                             required
                             placeholder="HỌ VÀ TÊN"
-                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all"
+                            className="h-20 rounded-3xl bg-white/10 border-white/20 text-lg font-bold px-8 text-white placeholder:text-gray-500 focus:border-brand-accent transition-all"
                             value={form.customerName}
                             onChange={(e: any) => setForm({...form, customerName: e.target.value})}
                         />
                     </div>
                     <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Liên lạc</Label>
+                        <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Liên lạc</Label>
                         <Input
                             required
                             placeholder="SỐ ĐIỆN THOẠI"
-                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all"
+                            className="h-20 rounded-3xl bg-white/10 border-white/20 text-lg font-bold px-8 text-white placeholder:text-gray-500 focus:border-brand-accent transition-all"
                             value={form.customerPhone}
                             onChange={(e: any) => setForm({...form, customerPhone: e.target.value})}
                         />
@@ -226,34 +226,34 @@ export function CustomerBooking() {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Ngày dự kiến</Label>
+                        <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Ngày dự kiến</Label>
                         <Input
                             required
                             type="date"
                             min={new Date().toISOString().split('T')[0]}
-                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all appearance-none inverted-scheme"
+                            className="h-20 rounded-3xl bg-white/10 border-white/20 text-lg font-bold px-8 text-white focus:border-brand-accent transition-all appearance-none inverted-scheme"
                             value={form.bookingDate}
                             onChange={(e: any) => setForm({...form, bookingDate: e.target.value})}
                         />
                     </div>
                     <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Thời gian</Label>
+                        <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Thời gian</Label>
                         <Input
                             required
                             type="time"
-                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all inverted-scheme"
+                            className="h-20 rounded-3xl bg-white/10 border-white/20 text-lg font-bold px-8 text-white focus:border-brand-accent transition-all inverted-scheme"
                             value={form.bookingTime}
                             onChange={(e: any) => setForm({...form, bookingTime: e.target.value})}
                         />
                     </div>
                     <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Tổng số khách</Label>
+                        <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Tổng số khách</Label>
                         <Input
                             required
                             type="number"
                             min={1}
                             max={50}
-                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-2xl font-black px-8 focus:border-brand-accent transition-all"
+                            className="h-20 rounded-3xl bg-white/10 border-white/20 text-2xl font-black px-8 text-white focus:border-brand-accent transition-all"
                             value={form.numberOfGuests}
                             onChange={(e: any) => setForm({...form, numberOfGuests: parseInt(e.target.value)})}
                         />
@@ -267,13 +267,13 @@ export function CustomerBooking() {
                              <Map className="w-5 h-5 text-brand-accent" />
                              <h4 className="font-black text-white text-xl tracking-tighter uppercase">Lựa Chọn Vị Trí Ngồi</h4>
                           </div>
-                          <Badge className="bg-brand-accent/20 text-brand-accent border-none text-[9px] font-black tracking-widest px-4 py-1.5 rounded-full">OPTIONAL</Badge>
+                          <Badge className="bg-brand-accent/20 text-brand-accent border-none text-xs font-black tracking-widest px-4 py-1.5 rounded-full">TÙY CHỌN</Badge>
                       </div>
 
                       {loadingTables ? (
                         <div className="py-20 flex flex-col items-center justify-center gap-4 bg-white/5 rounded-[40px] border-2 border-dashed border-white/10">
                             <Loader2 className="w-10 h-10 text-brand-accent animate-spin" />
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Đang tải sơ đồ cơ sở...</p>
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Đang tải sơ đồ cơ sở...</p>
                         </div>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -286,9 +286,9 @@ export function CustomerBooking() {
                                       <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                           <div className="flex items-center gap-3">
                                               <Layers className="w-4 h-4 text-brand-accent" />
-                                              <span className="font-black text-xs uppercase tracking-widest text-white">{zone.name}</span>
+                                              <span className="font-black text-sm uppercase tracking-wider text-white">{zone.name}</span>
                                           </div>
-                                          <span className="text-[10px] font-bold text-gray-500 uppercase">{zoneTables.length} BÀN</span>
+                                          <span className="text-xs font-bold text-gray-400 uppercase">{zoneTables.length} BÀN</span>
                                       </div>
 
                                       <div className="grid grid-cols-4 gap-3">
@@ -297,7 +297,7 @@ export function CustomerBooking() {
                                                   key={table.id}
                                                   type="button"
                                                   disabled={table.status === 'Occupied'}
-                                                  onClick={() => setForm({...form, tableId: form.tableId === table.id ? "" : table.id})}
+                                                  onClick={() => handleSelectTable(table.id, table.status)}
                                                   className={`relative h-14 rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
                                                       form.tableId === table.id
                                                       ? 'border-brand-accent bg-brand-accent text-white scale-110 shadow-2xl shadow-brand-accent/40'
@@ -307,7 +307,7 @@ export function CustomerBooking() {
                                                   }`}
                                               >
                                                   <Armchair className="w-4 h-4 mb-1" />
-                                                  <span className="font-black text-[9px]">{table.tableNumber}</span>
+                                                  <span className="font-black text-xs">{table.tableNumber}</span>
                                               </button>
                                           ))}
                                       </div>
@@ -319,11 +319,11 @@ export function CustomerBooking() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Yêu cầu đặc biệt</Label>
+                    <Label className="text-xs font-black uppercase tracking-wider text-gray-300 ml-2">Yêu cầu đặc biệt</Label>
                     <Textarea
                         rows={4}
                         placeholder="VD: CẦN TRANG TRÍ SINH NHẬT, KHU VỰC CỬA SỔ, GHẾ TRẺ EM..."
-                        className="rounded-3xl bg-white/5 border-white/10 text-lg font-medium p-8 focus:border-brand-accent transition-all resize-none uppercase"
+                        className="rounded-3xl bg-white/10 border-white/20 text-lg font-medium p-8 text-white placeholder:text-gray-500 focus:border-brand-accent transition-all resize-none uppercase"
                         value={form.notes}
                         onChange={(e: any) => setForm({...form, notes: e.target.value})}
                     />

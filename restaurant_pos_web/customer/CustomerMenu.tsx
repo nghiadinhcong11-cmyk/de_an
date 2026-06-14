@@ -64,19 +64,19 @@ export function CustomerMenu() {
                 Khám phá bản giao hưởng hương vị {branchName ? `tại ${branchName}` : ""} được tinh tuyển bởi các đầu bếp nghệ nhân.
             </p>
          </div>
-         <div className="bg-white/5 backdrop-blur-xl text-brand-accent px-8 py-4 rounded-2xl flex items-center gap-4 border border-white/10 shadow-2xl">
+         <div className="bg-white/10 backdrop-blur-xl text-brand-accent px-8 py-4 rounded-2xl flex items-center gap-4 border border-white/20 shadow-2xl">
             <Info className="w-5 h-5 animate-pulse" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em]">Chế độ tham khảo trực tuyến</p>
+            <p className="text-xs font-black uppercase tracking-wider">Chế độ tham khảo trực tuyến</p>
          </div>
       </div>
 
       {/* Advanced Filter Bar */}
-      <div className="flex flex-col lg:flex-row gap-8 items-center sticky top-28 z-40 bg-brand-dark/80 backdrop-blur-md py-4 -mx-4 px-4">
+      <div className="flex flex-col lg:flex-row gap-8 items-center sticky top-28 z-40 bg-brand-dark/90 backdrop-blur-md py-4 -mx-4 px-4">
          <div className="relative flex-1 w-full group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 group-focus-within:text-brand-accent transition-colors" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-accent transition-colors w-5 h-5" />
             <Input
                 placeholder="Tìm kiếm món ăn tinh hoa..."
-                className="pl-14 h-16 bg-white/5 border border-white/10 rounded-2xl text-lg font-bold placeholder:text-gray-600 focus:border-brand-accent focus:ring-0 transition-all"
+                className="pl-14 h-16 bg-white/10 border border-white/20 rounded-2xl text-lg font-bold text-white placeholder:text-gray-500 focus:border-brand-accent focus:ring-0 transition-all"
                 value={searchTerm}
                 onChange={(e: any) => setSearchTerm(e.target.value)}
             />
@@ -102,7 +102,7 @@ export function CustomerMenu() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
             {filteredItems.map(p => (
               <div key={p.id} className="group space-y-6">
-                <div className="aspect-[4/5] bg-white/5 rounded-[40px] overflow-hidden relative shadow-2xl border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:border-brand-accent/30">
+                <div className="aspect-[4/5] bg-white/10 rounded-[40px] overflow-hidden relative shadow-2xl border border-white/10 transition-all duration-500 hover:-translate-y-2 hover:border-brand-accent/30">
                     {p.imageUrl ? (
                         <img src={p.imageUrl} className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110" alt={p.name} />
                     ) : (
@@ -111,7 +111,7 @@ export function CustomerMenu() {
                     <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
 
                     <div className="absolute top-6 right-6">
-                        <div className="bg-brand-dark/60 backdrop-blur-md p-3 rounded-2xl border border-white/10 text-brand-accent">
+                        <div className="bg-brand-dark/80 backdrop-blur-md p-3 rounded-2xl border border-white/20 text-brand-accent">
                             <Star className="w-4 h-4 fill-current" />
                         </div>
                     </div>
@@ -119,13 +119,13 @@ export function CustomerMenu() {
 
                 <div className="px-2 space-y-2">
                     <h4 className="font-black text-2xl tracking-tighter uppercase group-hover:text-brand-accent transition-colors truncate">{p.name}</h4>
-                    <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed">{p.description || "Một tuyệt phẩm nghệ thuật ẩm thực kết hợp từ những nguyên liệu tươi ngon nhất."}</p>
+                    <p className="text-gray-300 text-sm font-medium line-clamp-2 leading-relaxed">{p.description || "Một tuyệt phẩm nghệ thuật ẩm thực kết hợp từ những nguyên liệu tươi ngon nhất."}</p>
                     <div className="pt-4 flex justify-between items-center">
                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Giá niêm yết</span>
+                            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Giá niêm yết</span>
                             <p className="text-brand-accent font-black text-3xl tracking-tighter">{p.price.toLocaleString("vi-VN")}đ</p>
                         </div>
-                        <Button className="bg-white/5 hover:bg-brand-accent border border-white/10 rounded-xl h-12 w-12 p-0 shadow-xl transition-all">
+                        <Button className="bg-white/10 hover:bg-brand-accent border border-white/20 rounded-xl h-12 w-12 p-0 shadow-xl transition-all text-white">
                             <Info className="w-5 h-5" />
                         </Button>
                     </div>

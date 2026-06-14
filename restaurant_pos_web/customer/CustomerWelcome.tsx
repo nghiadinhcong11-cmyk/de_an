@@ -41,13 +41,13 @@ export function CustomerWelcome() {
         </div>
 
         <div className="container mx-auto px-6 md:px-12 relative z-30 space-y-8">
-          <div className="inline-flex items-center gap-2 bg-brand-accent px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-[0_0_20px_rgba(249,115,22,0.4)] animate-bounce">
-            <Star className="w-3 h-3 fill-current" /> Đỉnh Cao Ẩm Thực
+          <div className="inline-flex items-center gap-2 bg-brand-accent px-6 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-[0_0_20px_rgba(249,115,22,0.4)] animate-bounce text-white">
+            <Star className="w-4 h-4 fill-current" /> Đỉnh Cao Ẩm Thực
           </div>
 
           <h1 className="text-5xl md:text-8xl font-black leading-[0.9] tracking-tighter drop-shadow-2xl">
             THƯỞNG THỨC <br />
-            <span className="text-brand-accent">NGHỆ THUẬT</span> <br />
+            <span className="text-brand-accent italic">NGHỆ THUẬT</span> <br />
             TRÊN TỪNG MÓN ĂN.
           </h1>
 
@@ -67,13 +67,13 @@ export function CustomerWelcome() {
               <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-shine"></div>
             </Button>
 
-            <div className="flex items-center gap-4 px-6 py-4 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10">
-              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
+            <div className="flex items-center gap-4 px-6 py-4 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-xl">
+              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
                 <Clock className="w-6 h-6 text-brand-accent" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Giờ mở cửa</p>
-                <p className="text-sm font-black mt-1 uppercase tracking-tighter">09:00 - 22:30 Hàng ngày</p>
+                <p className="text-xs font-black text-gray-300 uppercase tracking-wider leading-none">Giờ mở cửa</p>
+                <p className="text-sm font-black mt-1.5 uppercase tracking-tighter text-white">09:00 - 22:30 Hàng ngày</p>
               </div>
             </div>
           </div>
@@ -81,10 +81,10 @@ export function CustomerWelcome() {
 
         {/* Floating Decoration */}
         <div className="absolute bottom-12 right-12 hidden lg:block animate-float">
-          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-10 rounded-[48px] shadow-2xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-accent mb-2">Đặc Quyền Hội Viên</p>
-            <p className="text-4xl font-black tracking-tighter">FREE DRINK</p>
-            <p className="text-xs font-bold text-gray-400 mt-2 uppercase tracking-widest">Cho hóa đơn trên 500K</p>
+          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 p-10 rounded-[48px] shadow-2xl">
+            <p className="text-xs font-black uppercase tracking-wider text-brand-accent mb-2">Đặc Quyền Hội Viên</p>
+            <p className="text-4xl font-black tracking-tighter text-white">FREE DRINK</p>
+            <p className="text-xs font-bold text-gray-400 mt-3 uppercase tracking-widest">Cho hóa đơn trên 500K</p>
           </div>
         </div>
       </section>
@@ -182,10 +182,10 @@ export function CustomerWelcome() {
 
 function PromoCard({ title, desc, icon, accent }: any) {
   return (
-    <div className="bg-white/5 backdrop-blur-xl p-12 rounded-[50px] border border-white/10 transition-all hover:bg-white/10 hover:-translate-y-2 group">
+    <div className="bg-white/10 backdrop-blur-xl p-12 rounded-[50px] border border-white/20 transition-all hover:bg-white/15 hover:-translate-y-2 group shadow-2xl">
       <div className={`${accent} mb-8 transition-transform group-hover:scale-110 duration-500`}>{icon}</div>
-      <h4 className="text-2xl font-black tracking-tighter mb-4 uppercase">{title}</h4>
-      <p className="text-gray-400 font-medium leading-relaxed">{desc}</p>
+      <h4 className="text-2xl font-black tracking-tighter mb-4 uppercase text-white">{title}</h4>
+      <p className="text-gray-300 font-medium leading-relaxed">{desc}</p>
     </div>
   );
 }
