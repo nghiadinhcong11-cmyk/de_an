@@ -123,8 +123,25 @@ public class BookingsController : ControllerBase
         var userId = Guid.Parse(userIdStr);
 
         var bookings = await _context.Bookings
+            .Include(b => b.Branch)
+            .Include(b => b.Table)
+                .ThenInclude(t => t!.Zone)
             .Where(b => b.CustomerId == userId)
             .OrderByDescending(b => b.BookingDate)
+            .Select(b => new {
+                b.Id,
+                b.BranchId,
+                BranchName = b.Branch != null ? b.Branch.Name : "Chi nhánh",
+                BranchAddress = b.Branch != null ? b.Branch.Address : "",
+                b.TableId,
+                TableNumber = b.Table != null ? b.Table.TableNumber : null,
+                ZoneName = (b.Table != null && b.Table.Zone != null) ? b.Table.Zone.Name : null,
+                b.BookingDate,
+                b.NumberOfGuests,
+                b.Status,
+                b.Notes,
+                b.CreatedAtUtc
+            })
             .ToListAsync();
 
         return Ok(bookings);
