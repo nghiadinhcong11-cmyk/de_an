@@ -137,25 +137,25 @@ export default function CustomerLayout() {
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-black text-xs uppercase tracking-[0.15em] text-white">Khám phá</h4>
+              <h4 className="font-black text-sm uppercase tracking-wider text-white">Khám phá</h4>
               <ul className="space-y-4">
-                <li><Link to="/customer" className="text-[13px] text-gray-300 hover:text-brand-accent font-bold transition-colors">Về chúng tôi</Link></li>
-                <li><Link to="/customer/menu" className="text-[13px] text-gray-300 hover:text-brand-accent font-bold transition-colors">Thực đơn đặc sắc</Link></li>
-                <li><Link to="/customer/booking" className="text-[13px] text-gray-300 hover:text-brand-accent font-bold transition-colors">Hệ thống cơ sở</Link></li>
+                <li><Link to="/customer" className="text-[13px] text-gray-200 hover:text-brand-accent font-bold transition-colors">Về chúng tôi</Link></li>
+                <li><Link to="/customer/menu" className="text-[13px] text-gray-200 hover:text-brand-accent font-bold transition-colors">Thực đơn đặc sắc</Link></li>
+                <li><Link to="/customer/booking" className="text-[13px] text-gray-200 hover:text-brand-accent font-bold transition-colors">Hệ thống cơ sở</Link></li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-black text-xs uppercase tracking-[0.15em] text-white">Dịch vụ</h4>
+              <h4 className="font-black text-sm uppercase tracking-wider text-white">Dịch vụ</h4>
               <ul className="space-y-4">
-                <li className="text-[13px] text-gray-300 font-bold cursor-pointer hover:text-brand-accent transition-colors">Chính sách bảo mật</li>
-                <li className="text-[13px] text-gray-300 font-bold cursor-pointer hover:text-brand-accent transition-colors">Điều khoản & Điều kiện</li>
-                <li className="text-[13px] text-gray-300 font-bold cursor-pointer hover:text-brand-accent transition-colors">Tuyển dụng</li>
+                <li className="text-[13px] text-gray-200 font-bold cursor-pointer hover:text-brand-accent transition-colors">Chính sách bảo mật</li>
+                <li className="text-[13px] text-gray-200 font-bold cursor-pointer hover:text-brand-accent transition-colors">Điều khoản & Điều kiện</li>
+                <li className="text-[13px] text-gray-200 font-bold cursor-pointer hover:text-brand-accent transition-colors">Tuyển dụng</li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="font-black text-xs uppercase tracking-[0.15em] text-white">Theo dõi</h4>
+              <h4 className="font-black text-sm uppercase tracking-wider text-white">Theo dõi</h4>
               <div className="flex gap-4 justify-center md:justify-start">
                 <SocialIcon icon={<Facebook className="w-5 h-5 fill-current" />} />
                 <SocialIcon icon={<Youtube className="w-5 h-5 fill-current" />} />
@@ -164,10 +164,10 @@ export default function CustomerLayout() {
           </div>
 
           <div className="border-t border-white/10 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-gray-400 text-xs font-black uppercase tracking-[0.2em]">
+            <p className="text-gray-300 text-[13px] font-black uppercase tracking-widest">
               © 2026 RESTO POS System • Made with Passion
             </p>
-            <div className="flex gap-8 text-xs font-black text-gray-400 uppercase tracking-widest">
+            <div className="flex gap-8 text-[13px] font-black text-gray-300 uppercase tracking-widest">
                 <span className="hover:text-white cursor-pointer transition-colors">English</span>
                 <span className="text-brand-accent">Tiếng Việt</span>
             </div>
@@ -185,7 +185,7 @@ export default function CustomerLayout() {
                 to={item.path}
                 className={`relative flex flex-col items-center gap-1 transition-all duration-500 ${isActive ? "text-brand-accent scale-125" : "text-gray-400"}`}
             >
-              <item.icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 2} />
+              <item.icon className="w-7 h-7" strokeWidth={2.5} />
               {isActive && (
                 <div className="absolute -top-3 w-1.5 h-1.5 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></div>
               )}

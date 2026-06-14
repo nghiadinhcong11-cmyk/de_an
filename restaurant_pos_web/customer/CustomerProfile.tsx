@@ -179,7 +179,7 @@ export function CustomerProfile() {
           <CardContent className="p-6 flex justify-between items-center">
             <div>
               <p className="text-xs font-black uppercase tracking-widest opacity-60 text-gray-300">Điểm thưởng tích lũy</p>
-              <p className="text-5xl font-black tracking-tighter mt-1">{profile?.points?.toLocaleString()}<span className="text-sm ml-2 opacity-60 uppercase font-bold text-gray-400">pts</span></p>
+              <p className="text-5xl font-black tracking-tighter mt-1">{profile?.points?.toLocaleString()}<span className="text-xs ml-2 opacity-60 uppercase font-bold text-gray-400">pts</span></p>
             </div>
             <div className="bg-brand-accent text-white px-6 py-2 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg animate-pulse">
               Hạng Vàng
@@ -191,10 +191,10 @@ export function CustomerProfile() {
       <div className="p-6 md:p-12">
         <Tabs defaultValue="history">
           <TabsList className="w-full bg-white/10 border border-white/20 p-1.5 rounded-[24px] shadow-sm mb-12 flex overflow-x-auto no-scrollbar h-auto">
-            <TabsTrigger value="history" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Lịch sử</TabsTrigger>
-            <TabsTrigger value="redeem" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Đổi quà</TabsTrigger>
-            <TabsTrigger value="bookings" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Lịch hẹn</TabsTrigger>
-            <TabsTrigger value="feedback" className="flex-1 font-black uppercase text-[13px] tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Góp ý</TabsTrigger>
+            <TabsTrigger value="history" className="flex-1 font-black uppercase text-xs tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Lịch sử</TabsTrigger>
+            <TabsTrigger value="redeem" className="flex-1 font-black uppercase text-xs tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Đổi quà</TabsTrigger>
+            <TabsTrigger value="bookings" className="flex-1 font-black uppercase text-xs tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Lịch hẹn</TabsTrigger>
+            <TabsTrigger value="feedback" className="flex-1 font-black uppercase text-xs tracking-wider rounded-2xl py-4 data-[state=active]:bg-brand-accent data-[state=active]:text-white text-gray-400 transition-all">Góp ý</TabsTrigger>
           </TabsList>
 
           {/* TAB 1: LỊCH SỬ TÍCH ĐIỂM & ĐƠN HÀNG */}
@@ -220,7 +220,7 @@ export function CustomerProfile() {
                             <div className="font-black text-xl text-white tracking-tight uppercase">
                                 {item.order ? `Đơn hàng #${item.order.orderNumber.split('-')[1]}` : item.description}
                             </div>
-                            <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                            <div className="text-xs text-gray-400 font-black uppercase tracking-wider mt-1.5 flex items-center gap-2">
                                 <Calendar className="w-3.5 h-3.5" />
                                 {new Date(item.createdAtUtc).toLocaleString("vi-VN")}
                             </div>
@@ -234,7 +234,7 @@ export function CustomerProfile() {
                       {item.order && (
                         <div className="px-8 py-8 space-y-6 bg-white/[0.02]">
                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-500 font-black uppercase tracking-widest">Phục vụ bởi: <span className="text-white ml-2">{item.order.createdByUserName}</span></span>
+                              <span className="text-gray-500 font-black uppercase tracking-widest text-[11px]">Phục vụ bởi: <span className="text-white ml-2">{item.order.createdByUserName}</span></span>
                               <span className="font-black text-2xl text-white tracking-tighter">{item.order.totalAmount.toLocaleString("vi-VN")}đ</span>
                            </div>
 
@@ -242,7 +242,7 @@ export function CustomerProfile() {
                               {item.order.items?.map((food: any, idx: number) => (
                                 <div key={idx} className="flex justify-between text-sm text-gray-400 font-medium bg-white/5 p-4 rounded-2xl border border-white/5 hover:border-white/10 transition-all">
                                    <span className="flex items-center gap-3">
-                                        <span className="w-6 h-6 bg-brand-accent/20 text-brand-accent rounded-lg flex items-center justify-center text-[10px] font-black">{food.quantity}</span>
+                                        <span className="w-6 h-6 bg-brand-accent/20 text-brand-accent rounded-lg flex items-center justify-center text-xs font-black">{food.quantity}</span>
                                         {food.productName}
                                    </span>
                                    <span className="text-white font-bold">{food.totalPrice.toLocaleString("vi-VN")}đ</span>
@@ -266,7 +266,7 @@ export function CustomerProfile() {
                            )}
 
                            {item.order.isReviewed && (
-                             <div className="flex items-center justify-center gap-2 py-4 text-[10px] font-black text-green-500 uppercase tracking-[0.2em] bg-green-500/5 rounded-2xl border border-green-500/10">
+                             <div className="flex items-center justify-center gap-2 py-4 text-xs font-black text-green-500 uppercase tracking-widest bg-green-500/5 rounded-2xl border border-green-500/10">
                                 <CheckCircle className="w-4 h-4" /> Đã gửi đánh giá thành công
                              </div>
                            )}
@@ -292,11 +292,11 @@ export function CustomerProfile() {
                     </div>
                     <div className="flex-1 p-6 flex flex-col justify-center">
                       <div className="font-black text-xl text-white uppercase tracking-tight truncate">{v.name}</div>
-                      <div className="text-[10px] text-brand-accent font-black uppercase tracking-widest mt-2 flex items-center gap-2">
+                      <div className="text-xs text-brand-accent font-black uppercase tracking-wider mt-2 flex items-center gap-2">
                         <Coins className="w-3.5 h-3.5" />
                         Chi phí: {v.discountValue * 10} points
                       </div>
-                      <p className="text-[9px] text-gray-500 font-bold uppercase mt-2">Hết hạn: {new Date(v.endDate).toLocaleDateString("vi-VN")}</p>
+                      <p className="text-[11px] text-gray-500 font-bold uppercase mt-2">Hết hạn: {new Date(v.endDate).toLocaleDateString("vi-VN")}</p>
                     </div>
                     <div className="p-6 flex items-center">
                       <Button
@@ -342,10 +342,10 @@ export function CustomerProfile() {
                             {b.tableId ? `Bàn ${b.tableNumber}` : "Bàn tự do"}
                           </div>
                           <div className="flex flex-col gap-1">
-                            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest flex items-center gap-2">
+                            <div className="text-xs text-gray-400 font-black uppercase tracking-wider flex items-center gap-2">
                                 <Store className="w-3.5 h-3.5 text-brand-accent" /> {b.branchName}
                             </div>
-                            <div className="text-[10px] text-brand-accent font-black uppercase tracking-widest flex items-center gap-2">
+                            <div className="text-xs text-brand-accent font-black uppercase tracking-wider flex items-center gap-2">
                                 <Timer className="w-3.5 h-3.5" /> {new Date(b.bookingDate).toLocaleString("vi-VN")} • {b.status.toUpperCase()}
                             </div>
                           </div>
@@ -489,7 +489,7 @@ export function CustomerProfile() {
 function RatingInputSmall({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
     return (
         <div className="space-y-2">
-            <div className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-1">{label}</div>
+            <div className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">{label}</div>
             <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <button

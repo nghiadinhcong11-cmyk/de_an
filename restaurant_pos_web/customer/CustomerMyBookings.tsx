@@ -153,22 +153,22 @@ export function CustomerMyBookings() {
                     </div>
 
                     {booking.notes && (
-                        <div className="p-8 bg-brand-accent/5 rounded-[32px] border border-brand-accent/10 relative overflow-hidden">
+                        <div className="p-8 bg-brand-accent/10 rounded-[32px] border border-brand-accent/20 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <Info className="w-12 h-12" />
                             </div>
-                            <p className="text-[9px] font-black text-brand-accent uppercase tracking-widest mb-2 relative z-10">Ghi chú của bạn</p>
-                            <p className="text-base font-medium text-gray-300 italic relative z-10 leading-relaxed">"{booking.notes}"</p>
+                            <p className="text-xs font-black text-brand-accent uppercase tracking-wider mb-2 relative z-10">Ghi chú của bạn</p>
+                            <p className="text-lg font-medium text-gray-200 italic relative z-10 leading-relaxed">"{booking.notes}"</p>
                         </div>
                     )}
 
                     <div className="pt-4">
                         {booking.status === "Pending" ? (
-                            <Button variant="outline" className="w-full h-14 rounded-2xl border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl">
+                            <Button variant="outline" className="w-full h-14 rounded-2xl border-red-500/30 text-red-400 font-black text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl">
                                 HỦY ĐẶT BÀN TRỰC TUYẾN
                             </Button>
                         ) : (
-                            <div className="flex items-center justify-center gap-3 py-4 bg-white/5 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest border border-white/5">
+                            <div className="flex items-center justify-center gap-3 py-4 bg-white/10 rounded-2xl text-xs font-black text-gray-400 uppercase tracking-widest border border-white/10">
                                 <Info className="w-4 h-4 text-brand-accent" />
                                 Hotline 1900 123 456 hỗ trợ thay đổi
                             </div>

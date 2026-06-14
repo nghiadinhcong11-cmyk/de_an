@@ -156,8 +156,8 @@ export function CustomerWelcome() {
                         <span className="text-sm font-bold uppercase tracking-wider">{branch.address || "Địa chỉ đang cập nhật"}</span>
                       </div>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-                        <Button className="bg-white text-brand-dark rounded-2xl px-8 h-14 font-black uppercase text-xs tracking-widest shadow-2xl">
-                          Đặt bàn tại đây
+                        <Button className="bg-white text-gray-950 rounded-2xl px-8 h-14 font-black uppercase text-xs tracking-widest shadow-2xl transition-all duration-300 hover:bg-brand-accent hover:text-white hover:-translate-y-1 hover:scale-105 hover:shadow-[0_20px_40px_rgba(249,115,22,0.4)] active:scale-95">
+                          ĐẶT BÀN TẠI ĐÂY
                         </Button>
                       </div>
                     </div>

@@ -271,7 +271,7 @@ export function CustomerBooking() {
                       </div>
 
                       {loadingTables ? (
-                        <div className="py-20 flex flex-col items-center justify-center gap-4 bg-white/5 rounded-[40px] border-2 border-dashed border-white/10">
+                        <div className="py-20 flex flex-col items-center justify-center gap-4 bg-white/10 rounded-[40px] border-2 border-dashed border-white/10">
                             <Loader2 className="w-10 h-10 text-brand-accent animate-spin" />
                             <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Đang tải sơ đồ cơ sở...</p>
                         </div>
@@ -282,8 +282,8 @@ export function CustomerBooking() {
                                 if (zoneTables.length === 0) return null;
 
                                 return (
-                                  <div key={zone.id} className="bg-white/5 border border-white/10 rounded-[32px] p-6 space-y-6 transition-all hover:bg-white/10 group">
-                                      <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                  <div key={zone.id} className="bg-white/10 border border-white/20 rounded-[32px] p-6 space-y-6 transition-all hover:bg-white/15 group">
+                                      <div className="flex items-center justify-between border-b border-white/10 pb-4">
                                           <div className="flex items-center gap-3">
                                               <Layers className="w-4 h-4 text-brand-accent" />
                                               <span className="font-black text-sm uppercase tracking-wider text-white">{zone.name}</span>
@@ -303,7 +303,7 @@ export function CustomerBooking() {
                                                       ? 'border-brand-accent bg-brand-accent text-white scale-110 shadow-2xl shadow-brand-accent/40'
                                                       : table.status === 'Occupied'
                                                           ? 'border-white/5 bg-white/5 opacity-20 cursor-not-allowed'
-                                                          : 'border-white/10 bg-white/5 hover:border-brand-accent/50'
+                                                          : 'border-white/10 bg-white/10 hover:border-brand-accent/50 text-white font-bold'
                                                   }`}
                                               >
                                                   <Armchair className="w-4 h-4 mb-1" />

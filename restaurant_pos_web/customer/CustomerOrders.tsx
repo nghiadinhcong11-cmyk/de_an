@@ -86,7 +86,7 @@ export function CustomerOrders() {
          </div>
          <div className="bg-white/5 backdrop-blur-xl text-brand-accent px-8 py-4 rounded-2xl flex items-center gap-4 border border-white/10 shadow-2xl animate-pulse">
             <div className="w-2 h-2 bg-brand-accent rounded-full"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em]">Cập nhật thời gian thực</p>
+            <p className="text-xs font-black uppercase tracking-wider">Cập nhật thời gian thực</p>
          </div>
       </div>
 
@@ -115,13 +115,13 @@ export function CustomerOrders() {
                         {order.status === 'Completed' ? <CheckCircle className="w-12 h-12" /> : <Clock className="w-12 h-12" />}
                      </div>
                      <div>
-                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Mã định danh đơn hàng</div>
+                        <div className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Mã định danh đơn hàng</div>
                         <div className="font-black text-4xl text-white tracking-tighter leading-none">#{order.orderNumber.split('-')[1]}</div>
                         <div className="flex flex-col gap-3 mt-4">
                            <div className="flex items-center gap-3 text-xs font-black uppercase text-gray-400 tracking-wider">
                               <ShoppingBag className="w-4 h-4 text-brand-accent" /> {order.branchName}
                            </div>
-                           <div className="flex items-center gap-3 text-[10px] text-gray-500 font-black uppercase tracking-widest">
+                           <div className="flex items-center gap-3 text-xs text-gray-500 font-black uppercase tracking-wider">
                               <Calendar className="w-4 h-4" /> {new Date(order.createdAtUtc).toLocaleString("vi-VN")}
                            </div>
                         </div>
@@ -131,8 +131,8 @@ export function CustomerOrders() {
                   {/* Status Progress */}
                   <div className="hidden xl:block flex-1 max-w-sm mx-12">
                       <div className="flex justify-between mb-3">
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-accent">{order.status}</span>
-                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-600">Processing</span>
+                          <span className="text-xs font-black uppercase tracking-wider text-brand-accent">{order.status}</span>
+                          <span className="text-xs font-black uppercase tracking-wider text-gray-600">Processing</span>
                       </div>
                       <div className="h-2 bg-white/5 rounded-full relative overflow-hidden border border-white/5">
                          <div className={`absolute top-0 left-0 h-full bg-brand-accent shadow-[0_0_15px_#F97316] transition-all duration-1000 ${
@@ -143,7 +143,7 @@ export function CustomerOrders() {
 
                   <div className="text-right flex items-center gap-8 shrink-0">
                      <div>
-                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-right">Tổng giá trị</div>
+                        <div className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2 text-right">Tổng giá trị</div>
                         <div className="font-black text-4xl text-brand-accent tracking-tighter leading-none">{order.totalAmount.toLocaleString("vi-VN")}đ</div>
                      </div>
                      <div className={`p-3 rounded-2xl bg-white/5 transition-all ${expandedId === order.id ? 'bg-brand-accent text-white rotate-180' : 'text-gray-600'}`}>
@@ -179,7 +179,7 @@ export function CustomerOrders() {
                         <div className="space-y-8">
                             <Card className="border-none shadow-2xl bg-brand-dark/40 p-10 rounded-[40px] border border-white/5">
                                 <div className="space-y-6">
-                                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-8">Chi tiết đơn hàng</h4>
+                                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-8">Chi tiết đơn hàng</h4>
                                     <div className="space-y-5">
                                         <DetailRow label="Trạng thái" value={order.status} valueClass="text-brand-accent" />
                                         <DetailRow label="Nhân viên" value={order.createdByUserName || "Hệ thống"} />
@@ -187,7 +187,7 @@ export function CustomerOrders() {
                                         <DetailRow label="Thanh toán" value={order.paymentStatus} valueClass="text-green-500" />
                                     </div>
                                     <div className="pt-8 border-t border-white/5 flex gap-4">
-                                        <Button className="flex-1 bg-white text-brand-dark hover:bg-brand-accent hover:text-white h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all">Đặt lại đơn hàng</Button>
+                                        <Button className="flex-1 bg-white text-brand-dark hover:bg-brand-accent hover:text-white h-14 rounded-2xl font-black text-xs uppercase tracking-widest transition-all">Đặt lại đơn hàng</Button>
                                     </div>
                                 </div>
                             </Card>
@@ -228,7 +228,7 @@ export function CustomerOrders() {
                             {order.isReviewed && (
                                 <div className="bg-green-500/5 p-10 rounded-[40px] text-center border border-green-500/10">
                                     <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4 opacity-40" />
-                                    <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.3em]">BẠN ĐÃ ĐÁNH GIÁ ĐƠN HÀNG NÀY</p>
+                                    <p className="text-xs font-black text-green-500 uppercase tracking-widest">BẠN ĐÃ ĐÁNH GIÁ ĐƠN HÀNG NÀY</p>
                                     <p className="text-gray-500 font-medium mt-3 text-sm">Cảm ơn bạn đã tin tưởng và góp ý cho chúng tôi!</p>
                                 </div>
                             )}
@@ -248,7 +248,7 @@ export function CustomerOrders() {
 function DetailRow({ label, value, valueClass = "text-white" }: { label: string, value: string, valueClass?: string }) {
     return (
         <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-500 font-bold uppercase tracking-tighter">{label}</span>
+            <span className="text-gray-400 font-bold uppercase tracking-wider">{label}</span>
             <span className={`font-black uppercase tracking-tight ${valueClass}`}>{value}</span>
         </div>
     )
@@ -257,7 +257,7 @@ function DetailRow({ label, value, valueClass = "text-white" }: { label: string,
 function RatingInputSmall({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
     return (
         <div className="space-y-3">
-            <div className="text-[9px] font-black uppercase text-gray-500 tracking-widest ml-1">{label}</div>
+            <div className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">{label}</div>
             <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <button

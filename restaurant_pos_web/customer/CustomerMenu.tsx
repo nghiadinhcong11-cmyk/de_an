@@ -148,7 +148,7 @@ function FilterTab({ active, onClick, label }: { active: boolean, onClick: () =>
     return (
         <button
             onClick={onClick}
-            className={`px-10 h-14 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap border ${active ? 'bg-brand-accent text-white border-brand-accent shadow-[0_0_20px_rgba(249,115,22,0.4)]' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/20'}`}
+            className={`px-10 h-14 rounded-2xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap border ${active ? 'bg-brand-accent text-white border-brand-accent shadow-[0_0_20px_rgba(249,115,22,0.4)]' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/20'}`}
         >
             {label}
         </button>
