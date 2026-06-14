@@ -130,11 +130,13 @@ public class BookingsController : ControllerBase
         return Ok(bookings);
     }
 
-    [Authorize(Roles = "Owner,Manager")]
+    [Authorize(Roles = "Owner,Manager,Waiter,Cashier")]
     [HttpGet("owner")]
     public async Task<IActionResult> GetForOwner([FromQuery] Guid? branchId)
     {
         var resIdStr = User.FindFirstValue("RestaurantId");
+        var userBranchIdStr = User.FindFirstValue("BranchId");
+
         if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
         var resId = Guid.Parse(resIdStr);
 
@@ -144,7 +146,17 @@ public class BookingsController : ControllerBase
             .Include(b => b.Branch)
             .Where(b => b.RestaurantId == resId);
 
-        if (branchId.HasValue) query = query.Where(b => b.BranchId == branchId);
+        // Nếu là nhân viên chi nhánh (Waiter/Cashier), ép buộc lọc theo chi nhánh của họ
+        if (!string.IsNullOrEmpty(userBranchIdStr))
+        {
+            var userBranchId = Guid.Parse(userBranchIdStr);
+            query = query.Where(b => b.BranchId == userBranchId);
+        }
+        else if (branchId.HasValue)
+        {
+            // Nếu là Owner/Manager và có truyền branchId thì lọc theo param
+            query = query.Where(b => b.BranchId == branchId.Value);
+        }
 
         var bookings = await query.OrderByDescending(b => b.BookingDate)
             .Select(b => new {
