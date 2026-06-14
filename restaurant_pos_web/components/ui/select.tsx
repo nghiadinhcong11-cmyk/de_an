@@ -54,6 +54,7 @@ export const SelectContent = ({ children, value, onValueChange }: any) => {
       value={value || ""}
       onChange={(e) => onValueChange(e.target.value)}
       className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10"
+      style={{ colorScheme: 'light dark' }}
     >
       <option value="" disabled hidden>Chọn...</option>
       {children}
@@ -62,5 +63,5 @@ export const SelectContent = ({ children, value, onValueChange }: any) => {
 }
 
 export const SelectItem = ({ value, children }: any) => (
-  <option value={value}>{children}</option>
+  <option value={value} className="bg-white text-gray-900">{children}</option>
 )

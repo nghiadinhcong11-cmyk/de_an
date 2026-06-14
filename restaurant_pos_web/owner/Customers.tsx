@@ -80,7 +80,7 @@ export function OwnerCustomers() {
               placeholder="Tìm tên hoặc số điện thoại..."
               value={searchTerm}
               onChange={(e: any) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 bg-gray-50 border-none rounded-xl font-medium"
+              className="pl-10 h-12 bg-gray-50 border-gray-200 rounded-xl font-medium text-gray-900 focus:border-orange-500"
             />
           </div>
 

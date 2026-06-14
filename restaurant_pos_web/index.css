@@ -12,20 +12,44 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Global Readability Overrides */
+  /* Global Reset: Force dark text for all inputs/textareas by default */
+  input, textarea {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+  }
+
+  /* Scoped accessibility fixes for Dark Theme (Customer Portal) */
+  .bg-brand-dark input,
+  .bg-brand-dark textarea {
+    color: white !important;
+    -webkit-text-fill-color: white !important;
+  }
+
+  .bg-brand-dark select {
+    color-scheme: dark;
+  }
+
+  /* Handle specific background colors to ensure contrast */
+  .bg-white input, .bg-white textarea,
+  .bg-gray-50 input, .bg-gray-50 textarea {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+  }
+
+  /* Global typography overrides for minimum legibility */
   [class*="text-[7px]"],
   [class*="text-[8px]"],
   [class*="text-[9px]"],
   [class*="text-[10px]"] {
-    @apply text-xs !important;
-  }
-
-  /* Ensure all form inputs are visible on dark background */
-  input, select, textarea {
-    @apply text-white !important;
+    @apply text-[12px] !important;
   }
 
   input::placeholder, textarea::placeholder {
-    @apply text-gray-500 !important;
+    @apply text-gray-400 !important;
+  }
+
+  /* Handle Browser Autofill Contrast */
+  input:-webkit-autofill {
+    transition: background-color 5000s ease-in-out 0s;
   }
 }

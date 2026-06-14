@@ -75,20 +75,22 @@ export function OwnerPayments() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="bankName">Tên ngân hàng (Hoặc mã ngân hàng)</Label>
+              <Label htmlFor="bankName" className="text-gray-700 font-bold">Tên ngân hàng (Hoặc mã ngân hàng)</Label>
               <Input
                 id="bankName"
+                className="text-gray-900 border-gray-300 focus:border-orange-500"
                 placeholder="Vd: VCB, MB, Techcombank"
                 value={config.bankCode}
                 onChange={(e: any) => setConfig({...config, bankCode: e.target.value})}
               />
-              <p className="text-[10px] text-gray-400">Dùng mã viết tắt (VCB, ICB, v.v) để chính xác nhất</p>
+              <p className="text-xs text-gray-400">Dùng mã viết tắt (VCB, ICB, v.v) để chính xác nhất</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountNumber">Số tài khoản</Label>
+              <Label htmlFor="accountNumber" className="text-gray-700 font-bold">Số tài khoản</Label>
               <Input
                 id="accountNumber"
+                className="text-gray-900 border-gray-300 focus:border-orange-500"
                 placeholder="Vd: 123456789"
                 value={config.accountNumber}
                 onChange={(e: any) => setConfig({...config, accountNumber: e.target.value})}
@@ -96,9 +98,10 @@ export function OwnerPayments() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountName">Tên chủ tài khoản (Viết không dấu)</Label>
+              <Label htmlFor="accountName" className="text-gray-700 font-bold">Tên chủ tài khoản (Viết không dấu)</Label>
               <Input
                 id="accountName"
+                className="text-gray-900 border-gray-300 focus:border-orange-500"
                 placeholder="Vd: NGUYEN VAN A"
                 value={config.accountName}
                 onChange={(e: any) => setConfig({...config, accountName: e.target.value})}

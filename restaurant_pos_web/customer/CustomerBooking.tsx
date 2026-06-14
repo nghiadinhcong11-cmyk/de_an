@@ -193,9 +193,9 @@ export function CustomerBooking() {
                         <SelectTrigger className="h-20 rounded-3xl bg-white/10 border-white/20 text-xl font-black tracking-tight text-white focus:ring-brand-accent shadow-none px-8 transition-all">
                             <SelectValue placeholder="CHỌN CƠ SỞ GẦN BẠN" />
                         </SelectTrigger>
-                        <SelectContent className="bg-brand-dark border-white/20 text-white rounded-3xl overflow-hidden shadow-2xl">
+                        <SelectContent>
                             {branches.map(b => (
-                                <SelectItem key={b.id} value={b.id} className="font-bold py-4 hover:bg-white/10 transition-colors cursor-pointer">{b.name.toUpperCase()}</SelectItem>
+                                <SelectItem key={b.id} value={b.id}>{b.name.toUpperCase()}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
