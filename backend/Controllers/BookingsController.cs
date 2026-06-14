@@ -42,10 +42,11 @@ public class BookingsController : ControllerBase
             }
 
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Customer? customer = null;
             if (!string.IsNullOrEmpty(userIdStr))
             {
                 booking.CustomerId = Guid.Parse(userIdStr);
-                var customer = await _context.Customers.FindAsync(booking.CustomerId);
+                customer = await _context.Customers.FindAsync(booking.CustomerId);
                 if (customer != null)
                 {
                     if (string.IsNullOrEmpty(booking.CustomerName)) booking.CustomerName = customer.FullName;

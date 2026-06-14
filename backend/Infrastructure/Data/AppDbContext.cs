@@ -121,9 +121,9 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Booking>(b => {
-            b.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId);
-            b.HasOne<DiningTable>().WithMany().HasForeignKey(x => x.TableId).OnDelete(DeleteBehavior.SetNull);
-            b.HasOne<Customer>().WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId);
+            b.HasOne(x => x.Table).WithMany().HasForeignKey(x => x.TableId).OnDelete(DeleteBehavior.SetNull);
+            b.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<OrderRequestItem>(ori => {

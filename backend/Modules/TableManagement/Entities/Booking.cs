@@ -1,4 +1,6 @@
 using RestaurantPOS.Infrastructure.Common;
+using RestaurantPOS.Modules.Core.Entities;
+using RestaurantPOS.Modules.CRM.Entities;
 
 namespace RestaurantPOS.Modules.TableManagement.Entities;
 
@@ -15,4 +17,9 @@ public class Booking : BaseEntity
     public int NumberOfGuests { get; set; }
     public string Status { get; set; } = "Pending"; // Pending, Confirmed, Rejected, Cancelled, Completed
     public string? Notes { get; set; }
+
+    // Navigation Properties
+    public Branch? Branch { get; set; }
+    public DiningTable? Table { get; set; }
+    public Customer? Customer { get; set; }
 }
