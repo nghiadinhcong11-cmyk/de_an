@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -39,8 +43,6 @@ public class BranchesController : ControllerBase
             })
             .ToListAsync();
 
-        // Fallback: Nếu không tìm thấy chi nhánh nào của nhà hàng cụ thể,
-        // trả về các chi nhánh active bất kỳ (để trang chủ không bị trống trong bản Demo)
         if (branches.Count == 0)
         {
             branches = await _context.Branches
@@ -106,6 +108,7 @@ public class BranchesController : ControllerBase
         return Ok(new BranchDto
         {
             Id = branch.Id,
+            RestaurantId = branch.RestaurantId,
             Name = branch.Name,
             Address = branch.Address,
             Phone = branch.Phone,

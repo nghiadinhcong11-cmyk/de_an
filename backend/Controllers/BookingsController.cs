@@ -1,10 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using RestaurantPOS.Infrastructure.Common;
 using RestaurantPOS.Infrastructure.Data;
+using RestaurantPOS.Modules.Core.Entities;
+using RestaurantPOS.Modules.CRM.Entities;
 using RestaurantPOS.Modules.TableManagement.Entities;
 
 namespace RestaurantPOS.Controllers;
@@ -31,7 +37,6 @@ public class BookingsController : ControllerBase
             var restaurantIdStr = User.FindFirstValue("RestaurantId");
             if (string.IsNullOrEmpty(restaurantIdStr))
             {
-                // Nếu là khách hàng đặt bàn, lấy restaurantId từ chi nhánh
                 var branch = await _context.Branches.FindAsync(booking.BranchId);
                 if (branch == null) return BadRequest(new { message = "Chi nhánh không tồn tại" });
                 booking.RestaurantId = branch.RestaurantId;
@@ -42,22 +47,20 @@ public class BookingsController : ControllerBase
             }
 
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Customer? customer = null;
+            Customer? customerEntity = null;
             if (!string.IsNullOrEmpty(userIdStr))
             {
                 booking.CustomerId = Guid.Parse(userIdStr);
-                customer = await _context.Customers.FindAsync(booking.CustomerId);
-                if (customer != null)
+                customerEntity = await _context.Customers.FindAsync(booking.CustomerId);
+                if (customerEntity != null)
                 {
-                    if (string.IsNullOrEmpty(booking.CustomerName)) booking.CustomerName = customer.FullName;
-                    if (string.IsNullOrEmpty(booking.CustomerPhone)) booking.CustomerPhone = customer.PhoneNumber;
+                    if (string.IsNullOrEmpty(booking.CustomerName)) booking.CustomerName = customerEntity.FullName;
+                    if (string.IsNullOrEmpty(booking.CustomerPhone)) booking.CustomerPhone = customerEntity.PhoneNumber;
                 }
             }
 
             booking.Status = "Pending";
             booking.CreatedAtUtc = DateTime.UtcNow;
-
-            // Đảm bảo BookingDate là UTC để Postgres không lỗi
             booking.BookingDate = DateTime.SpecifyKind(booking.BookingDate, DateTimeKind.Utc);
 
             _context.Bookings.Add(booking);
@@ -65,8 +68,6 @@ public class BookingsController : ControllerBase
 
             var branchEntity = await _context.Branches.FindAsync(booking.BranchId);
             var branchName = branchEntity?.Name ?? "Chi nhánh";
-            var restaurantGroup = $"restaurant:{booking.RestaurantId}";
-            var branchGroup = booking.BranchId.ToString();
 
             // Load table info if selected
             string tableInfo = "Bàn tự do";
@@ -85,7 +86,7 @@ public class BookingsController : ControllerBase
                 bookingId = booking.Id,
                 customerName = booking.CustomerName,
                 customerPhone = booking.CustomerPhone,
-                customerAvatar = customer?.AvatarUrl,
+                customerAvatar = customerEntity?.AvatarUrl,
                 bookingDate = booking.BookingDate,
                 numberOfGuests = booking.NumberOfGuests,
                 tableInfo = tableInfo,
@@ -96,9 +97,8 @@ public class BookingsController : ControllerBase
                 status = booking.Status
             };
 
-            // Notify owner/manager across the restaurant and staff in the matching branch
-            await _hubContext.Clients.Group(restaurantGroup).SendAsync("NewBookingReceived", payload);
-            await _hubContext.Clients.Group(branchGroup).SendAsync("NewBookingReceived", payload);
+            await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("NewBookingReceived", payload);
+            await _hubContext.Clients.Group($"restaurant:{booking.RestaurantId}").SendAsync("NewBookingReceived", payload);
 
             return Ok(booking);
         }
@@ -134,7 +134,10 @@ public class BookingsController : ControllerBase
     [HttpGet("owner")]
     public async Task<IActionResult> GetForOwner([FromQuery] Guid? branchId)
     {
-        var resId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var resIdStr = User.FindFirstValue("RestaurantId");
+        if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
+        var resId = Guid.Parse(resIdStr);
+
         var query = _context.Bookings
             .Include(b => b.Table)
                 .ThenInclude(t => t!.Zone)
@@ -147,13 +150,13 @@ public class BookingsController : ControllerBase
             .Select(b => new {
                 b.Id,
                 b.BranchId,
-                BranchName = b.Branch.Name,
+                BranchName = b.Branch != null ? b.Branch.Name : "Chi nhánh",
                 b.TableId,
                 TableNumber = b.Table != null ? b.Table.TableNumber : null,
                 ZoneName = (b.Table != null && b.Table.Zone != null) ? b.Table.Zone.Name : null,
                 b.CustomerId,
-                CustomerName = b.CustomerName,
-                CustomerPhone = b.CustomerPhone,
+                b.CustomerName,
+                b.CustomerPhone,
                 CustomerAvatar = b.Customer != null ? b.Customer.AvatarUrl : null,
                 b.BookingDate,
                 b.NumberOfGuests,
@@ -175,11 +178,12 @@ public class BookingsController : ControllerBase
         booking.Status = "Confirmed";
         await _context.SaveChangesAsync();
 
+        var branch = await _context.Branches.FindAsync(booking.BranchId);
         var payload = new {
             bookingId = booking.Id,
             status = "Confirmed",
             branchId = booking.BranchId,
-            branchName = (await _context.Branches.FindAsync(booking.BranchId))?.Name ?? "Chi nhánh"
+            branchName = branch?.Name ?? "Chi nhánh"
         };
 
         await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("BookingStatusUpdated", payload);
@@ -198,11 +202,12 @@ public class BookingsController : ControllerBase
         booking.Status = "Rejected";
         await _context.SaveChangesAsync();
 
+        var branch = await _context.Branches.FindAsync(booking.BranchId);
         var payload = new {
             bookingId = booking.Id,
             status = "Rejected",
             branchId = booking.BranchId,
-            branchName = (await _context.Branches.FindAsync(booking.BranchId))?.Name ?? "Chi nhánh"
+            branchName = branch?.Name ?? "Chi nhánh"
         };
 
         await _hubContext.Clients.Group(booking.BranchId.ToString()).SendAsync("BookingStatusUpdated", payload);

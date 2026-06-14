@@ -1,3 +1,4 @@
+using System;
 using RestaurantPOS.Infrastructure.Common;
 using RestaurantPOS.Modules.Core.Entities;
 using RestaurantPOS.Modules.CRM.Entities;
@@ -19,7 +20,7 @@ public class Booking : BaseEntity
     public string? Notes { get; set; }
 
     // Navigation Properties
-    public Branch? Branch { get; set; }
-    public DiningTable? Table { get; set; }
-    public Customer? Customer { get; set; }
+    public virtual Branch? Branch { get; set; }
+    public virtual DiningTable? Table { get; set; }
+    public virtual Customer? Customer { get; set; }
 }
