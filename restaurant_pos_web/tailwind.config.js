@@ -10,7 +10,26 @@ export default {
     "./layouts/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'brand-dark': '#0F172A',
+        'brand-accent': '#F97316',
+      },
+      animation: {
+        'shine': 'shine 3s infinite',
+        'float': 'float 6s ease-in-out infinite',
+      },
+      keyframes: {
+        shine: {
+          '0%': { transform: 'translateX(-200%) skewX(-25deg)' },
+          '100%': { transform: 'translateX(200%) skewX(-25deg)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        }
+      }
+    },
   },
   plugins: [],
 }

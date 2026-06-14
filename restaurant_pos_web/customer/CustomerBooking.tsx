@@ -4,7 +4,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { Calendar, Users, Loader2, CheckCircle2, Phone, Info, Map, ChevronDown, ChevronUp, Layers } from "lucide-react";
+import { Calendar, Users, Loader2, CheckCircle2, Phone, Info, Map, ChevronDown, ChevronUp, Layers, Armchair } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
 import api from "../services/api";
@@ -60,13 +60,11 @@ export function CustomerBooking() {
             setTables(tablesRes.data);
             setZones(zonesRes.data);
 
-            // Mặc định mở rộng các khu vực có bàn
             const initialExpanded: Record<string, boolean> = {};
             zonesRes.data.forEach((z: any) => { initialExpanded[z.id] = true; });
             initialExpanded['none'] = true;
             setExpandedZones(initialExpanded);
 
-            // Reset selected table if it doesn't belong to the new branch
             setForm(prev => ({ ...prev, tableId: "", selectedTableId: "" }));
         } catch (err) {
             console.error("Lỗi tải sơ đồ bàn");
@@ -83,186 +81,13 @@ export function CustomerBooking() {
   };
 
   const normalizeTableStatus = (status?: string) => String(status ?? "Available").trim().toLowerCase();
-
   const isSelectableTable = (status?: string) => !["occupied", "reserved", "waiting-payment", "unavailable"].includes(normalizeTableStatus(status));
-
-  const getTableStatusLabel = (status?: string) => {
-    switch (normalizeTableStatus(status)) {
-      case "available":
-        return "Trống";
-      case "occupied":
-        return "Đang dùng";
-      case "reserved":
-        return "Đã giữ chỗ";
-      case "waiting-payment":
-        return "Chờ thanh toán";
-      default:
-        return status || "Trống";
-    }
-  };
-
-  const getSelectedTableId = () => form.selectedTableId || form.tableId;
-
-  const formatTableLabel = (tableNumber?: string | number) => {
-    const value = String(tableNumber ?? "").trim().replace(/^Bàn\s*/i, "").trim();
-    return value ? `Bàn ${value}` : "Bàn";
-  };
-
-  const getSelectedTableLabel = () => {
-    const selectedTable = tables.find(table => table.id === getSelectedTableId());
-    return formatTableLabel(selectedTable?.tableNumber || getSelectedTableId());
-  };
-
-  const handleBranchChange = (branchId: string) => {
-    setForm(prev => ({ ...prev, branchId, tableId: "", selectedTableId: "" }));
-  };
 
   const handleSelectTable = (tableId: string, status?: string) => {
     if (!isSelectableTable(status)) return;
-    const nextTableId = getSelectedTableId() === tableId ? "" : tableId;
+    const nextTableId = form.tableId === tableId ? "" : tableId;
     setForm(prev => ({ ...prev, tableId: nextTableId, selectedTableId: nextTableId }));
   };
-
-  const getTablePlacement = (table: any, index: number, total: number) => {
-    const hasCoordinates = Number.isFinite(Number(table.posX)) && Number.isFinite(Number(table.posY)) && (Number(table.posX) !== 0 || Number(table.posY) !== 0);
-
-    if (hasCoordinates) {
-      return {
-        x: Math.max(2, Math.min(86, Number(table.posX))),
-        y: Math.max(4, Math.min(88, Number(table.posY))),
-        fromCoordinates: true
-      };
-    }
-
-    const columns = total <= 4 ? 2 : total <= 8 ? 3 : 4;
-    const col = index % columns;
-    const row = Math.floor(index / columns);
-    const xSteps = [8, 31, 54, 77];
-    const yStart = 14;
-    const yGap = 18;
-
-    return {
-      x: xSteps[Math.min(col, xSteps.length - 1)],
-      y: yStart + row * yGap,
-      fromCoordinates: false
-    };
-  };
-
-  const renderTableMap = (zoneTables: any[]) => {
-    const selectedTableId = getSelectedTableId();
-    const total = zoneTables.length;
-
-    return (
-      <div className="rounded-[28px] border border-gray-100 bg-gradient-to-b from-white to-gray-50 p-2.5 sm:p-3 md:p-5 shadow-inner">
-        <div className="relative overflow-hidden rounded-[24px] border border-gray-100 bg-[linear-gradient(180deg,#ffffff_0%,#f9fafb_100%)]">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" className="aspect-video h-auto w-full">
-            <defs>
-              <pattern id="booking-grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#e5e7eb" strokeWidth="0.35" opacity="0.55" />
-              </pattern>
-              <linearGradient id="booking-floor" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffffff" />
-                <stop offset="100%" stopColor="#f9fafb" />
-              </linearGradient>
-            </defs>
-
-            <rect x="0" y="0" width="100" height="100" fill="url(#booking-floor)" />
-            <rect x="0" y="0" width="100" height="100" fill="url(#booking-grid)" opacity="0.5" />
-
-            <rect x="4" y="4" width="92" height="10" rx="3" fill="#111827" opacity="0.04" />
-            <rect x="4" y="86" width="92" height="10" rx="3" fill="#111827" opacity="0.04" />
-
-            {zoneTables.map((table, index) => {
-              const placement = getTablePlacement(table, index, total);
-              const tableStatus = normalizeTableStatus(table.status);
-              const selected = selectedTableId === table.id;
-              const selectable = isSelectableTable(table.status);
-              const width = placement.fromCoordinates ? 12 : 15;
-              const height = placement.fromCoordinates ? 10 : 11;
-              const x = placement.x;
-              const y = placement.y;
-
-              const fillClass = selected
-                ? "#facc15"
-                : tableStatus === "available"
-                  ? "#16a34a"
-                  : tableStatus === "reserved"
-                    ? "#9ca3af"
-                    : "#dc2626";
-
-              const textClass = selected ? "#111827" : "#ffffff";
-              const strokeClass = selected ? "#d97706" : tableStatus === "available" ? "#15803d" : "#b91c1c";
-
-              return (
-                <g
-                  key={table.id}
-                  transform={`translate(${x}, ${y})`}
-                  role="button"
-                  tabIndex={selectable ? 0 : -1}
-                  aria-label={`${table.tableNumber} - ${getTableStatusLabel(table.status)}`}
-                  onClick={() => handleSelectTable(table.id, table.status)}
-                  onKeyDown={(e) => {
-                    if (!selectable) return;
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleSelectTable(table.id, table.status);
-                    }
-                  }}
-                  style={{ cursor: selectable ? "pointer" : "not-allowed", opacity: selectable ? 1 : 0.45 }}
-                >
-                  <rect
-                    x="0"
-                    y="0"
-                    width={width}
-                    height={height}
-                    rx="2.5"
-                    fill={fillClass}
-                    stroke={strokeClass}
-                    strokeWidth={selected ? 0.8 : 0.4}
-                    style={{ filter: selected ? "drop-shadow(0px 4px 10px rgba(234, 179, 8, 0.45))" : "none" }}
-                  />
-                  <circle cx={width / 2} cy={2.2} r="0.6" fill="rgba(255,255,255,0.35)" />
-                  <text
-                    x={width / 2}
-                    y={height / 2.2}
-                    textAnchor="middle"
-                    fill={textClass}
-                    fontSize="2.2"
-                    fontWeight="900"
-                  >
-                    {String(table.tableNumber).replace(/^Bàn\s*/i, "")}
-                  </text>
-                  <text
-                    x={width / 2}
-                    y={height - 1.8}
-                    textAnchor="middle"
-                    fill={textClass}
-                    fontSize="1.2"
-                    fontWeight="700"
-                    opacity="0.85"
-                  >
-                    {table.capacity} chỗ
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-
-          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-            <Badge className="bg-green-500 text-white border-none font-black text-[9px] uppercase tracking-widest">Trống</Badge>
-            <Badge className="bg-gray-500 text-white border-none font-black text-[9px] uppercase tracking-widest">Đã giữ chỗ</Badge>
-            <Badge className="bg-red-500 text-white border-none font-black text-[9px] uppercase tracking-widest">Đang dùng</Badge>
-            <Badge className="bg-yellow-100 text-yellow-700 border-none font-black text-[9px] uppercase tracking-widest">Đã chọn</Badge>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const zoneCards = [
-    ...zones.map(zone => ({ id: zone.id, name: zone.name })),
-    ...(tables.some(table => !table.zoneId) ? [{ id: "none", name: "Khu vực chung" }] : [])
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,14 +95,10 @@ export function CustomerBooking() {
 
     setLoading(true);
     try {
-      const selectedTableId = getSelectedTableId();
       const dateTime = `${form.bookingDate}T${form.bookingTime}:00Z`;
-      const { selectedTableId: _selectedTableId, ...payload } = form;
+      const { selectedTableId, ...payload } = form;
       await api.post("/bookings", {
         ...payload,
-        tableId: selectedTableId || null,
-        selectedTableId: selectedTableId || null,
-        selected_table_id: selectedTableId || null,
         bookingDate: dateTime
       });
       setSubmitted(true);
@@ -290,263 +111,219 @@ export function CustomerBooking() {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
-        <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center mb-6">
-          <CheckCircle2 className="w-12 h-12 text-orange-500" />
+      <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-32 h-32 bg-brand-accent/20 rounded-full flex items-center justify-center mb-8 shadow-[0_0_50px_rgba(249,115,22,0.2)]">
+          <CheckCircle2 className="w-16 h-16 text-brand-accent" />
         </div>
-        <h2 className="text-3xl font-black text-gray-900 mb-4">Đặt bàn thành công!</h2>
-        <p className="text-gray-500 font-medium max-w-md mx-auto mb-8 leading-relaxed">
-          Yêu cầu của bạn đã được gửi đến nhà hàng. Chúng tôi sẽ liên hệ sớm nhất để xác nhận thông tin.
+        <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter uppercase">Đặt bàn thành công!</h2>
+        <p className="text-gray-400 text-lg md:text-xl font-medium max-w-xl mx-auto mb-12 leading-relaxed uppercase tracking-[0.1em]">
+          Yêu cầu của bạn đã được tiếp nhận. Đội ngũ nhân viên sẽ liên hệ xác nhận trong thời gian sớm nhất.
         </p>
-        <div className="flex gap-4">
-            <Button onClick={() => setSubmitted(false)} variant="outline" className="rounded-xl h-12 px-8 font-bold border-gray-200">ĐẶT THÊM</Button>
-            <Button onClick={() => window.location.href = "/customer"} className="bg-gray-900 rounded-xl h-12 px-8 font-bold">VỀ TRANG CHỦ</Button>
+        <div className="flex flex-col sm:flex-row gap-6 w-full max-w-md">
+            <Button onClick={() => setSubmitted(false)} variant="outline" className="flex-1 rounded-2xl h-16 px-8 font-black uppercase tracking-widest border-white/10 text-white hover:bg-white/5">ĐẶT THÊM</Button>
+            <Button onClick={() => window.location.href = "/customer"} className="flex-1 bg-brand-accent hover:bg-orange-600 text-white rounded-2xl h-16 px-8 font-black uppercase tracking-widest shadow-xl shadow-brand-accent/20">VỀ TRANG CHỦ</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12">
-      <div className="text-center space-y-4">
-         <h1 className="text-4xl font-black text-gray-900 tracking-tight uppercase">Đặt Bàn Trước</h1>
-         <p className="text-gray-500 font-medium max-w-2xl mx-auto">
-            Đặt chỗ ngay hôm nay để có một bữa tiệc hoàn hảo cùng gia đình và bạn bè. Chúng tôi luôn sẵn sàng phục vụ bạn.
+    <div className="min-h-screen bg-brand-dark text-white p-6 md:p-12 space-y-12 md:space-y-24">
+      <div className="text-center space-y-6">
+         <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-6 py-2 rounded-full">
+            <Calendar className="w-4 h-4 text-brand-accent" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-accent">Reservation Service</span>
+         </div>
+         <h1 className="text-5xl md:text-8xl font-black tracking-tighter uppercase leading-none">Đặt Bàn <span className="text-brand-accent italic">Trước</span></h1>
+         <p className="text-gray-400 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+            Kiến tạo những kỷ niệm đáng nhớ. Chọn vị trí ngồi lý tưởng và thời gian hoàn hảo cho bữa tiệc của bạn.
          </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+        {/* Sidebar Info */}
         <div className="space-y-8">
-            <div className="bg-orange-600 rounded-[40px] p-10 text-white relative overflow-hidden group shadow-2xl shadow-orange-100">
-                <Calendar className="absolute -right-6 -top-6 w-32 h-32 opacity-10 rotate-12 group-hover:scale-110 transition-transform duration-700" />
-                <h3 className="text-2xl font-black mb-4">Lưu ý đặt bàn</h3>
-                <ul className="space-y-4">
-                    <li className="flex gap-3 text-sm font-medium text-orange-50">
-                        <CheckCircle2 className="w-5 h-5 shrink-0" />
-                        Vui lòng đặt bàn trước ít nhất 1 giờ.
+            <div className="bg-brand-accent rounded-[50px] p-12 text-white relative overflow-hidden group shadow-2xl shadow-brand-accent/20">
+                <Map className="absolute -right-8 -top-8 w-48 h-48 opacity-10 rotate-12 group-hover:scale-110 transition-transform duration-700" />
+                <h3 className="text-3xl font-black mb-8 tracking-tighter uppercase">Chính Sách <br /> Đặt Chỗ</h3>
+                <ul className="space-y-6">
+                    <li className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0"><CheckCircle2 className="w-4 h-4" /></div>
+                        <p className="text-sm font-bold uppercase tracking-wider leading-relaxed">Vui lòng đặt bàn trước ít nhất 60 phút.</p>
                     </li>
-                    <li className="flex gap-3 text-sm font-medium text-orange-50">
-                        <CheckCircle2 className="w-5 h-5 shrink-0" />
-                        Bàn sẽ được giữ tối đa 15 phút so với giờ hẹn.
+                    <li className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0"><CheckCircle2 className="w-4 h-4" /></div>
+                        <p className="text-sm font-bold uppercase tracking-wider leading-relaxed">Giữ bàn tối đa 15 phút so với giờ hẹn.</p>
                     </li>
-                    <li className="flex gap-3 text-sm font-medium text-orange-50">
-                        <CheckCircle2 className="w-5 h-5 shrink-0" />
-                        Với đoàn trên 20 khách, vui lòng liên hệ hotline.
+                    <li className="flex gap-4 items-start">
+                        <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0"><CheckCircle2 className="w-4 h-4" /></div>
+                        <p className="text-sm font-bold uppercase tracking-wider leading-relaxed">Ưu tiên vị trí theo yêu cầu của hội viên VIP.</p>
                     </li>
                 </ul>
-                <div className="mt-10 pt-8 border-t border-white/10 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                        <Phone className="w-5 h-5" />
+                <div className="mt-12 pt-8 border-t border-white/20 flex items-center gap-6">
+                    <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/20">
+                        <Phone className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Hotline hỗ trợ</p>
-                        <p className="text-lg font-black">1900 123 456</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Hỗ trợ 24/7</p>
+                        <p className="text-xl font-black">1900 123 456</p>
                     </div>
                 </div>
             </div>
 
-            <Card className="border-none bg-gray-50 rounded-[32px] p-8">
-                <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400 shrink-0">
-                        <Info className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h4 className="font-black text-gray-900 mb-1">Quy định hủy bàn</h4>
-                        <p className="text-sm text-gray-400 font-medium leading-relaxed">
-                            Quý khách vui lòng hủy bàn trước ít nhất 30 phút nếu có thay đổi kế hoạch để chúng tôi sắp xếp tốt nhất.
-                        </p>
-                    </div>
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[40px] p-10 space-y-6">
+                <div className="flex items-center gap-4 text-brand-accent">
+                    <Info className="w-6 h-6" />
+                    <h4 className="font-black uppercase tracking-widest text-sm">Lưu ý quan trọng</h4>
                 </div>
-            </Card>
+                <p className="text-gray-400 text-sm font-medium leading-relaxed italic uppercase tracking-tighter">
+                    "Nếu quý khách đi đoàn trên 20 người, vui lòng liên hệ trực tiếp hotline để nhận ưu đãi thực đơn đoàn đặc biệt."
+                </p>
+            </div>
         </div>
 
+        {/* Main Booking Form */}
         <div className="lg:col-span-2">
-          <Card className="border-none shadow-xl rounded-[40px] overflow-hidden bg-white">
-            <CardHeader className="p-8 md:p-10 pb-0">
-               <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                    <Users className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <CardTitle className="text-2xl font-black">Thông tin đặt bàn</CardTitle>
-               </div>
-               <CardDescription className="font-medium">Vui lòng điền thông tin bên dưới, nhân viên sẽ liên hệ xác nhận.</CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 md:p-10">
-               <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Chọn chi nhánh</Label>
-                    <Select value={form.branchId} onValueChange={handleBranchChange}>
-                        <SelectTrigger className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-gray-900 shadow-none">
-                            <SelectValue placeholder="Chọn chi nhánh bạn muốn đặt" />
+          <Card className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[60px] overflow-hidden shadow-2xl">
+            <CardContent className="p-8 md:p-16">
+               <form onSubmit={handleSubmit} className="space-y-10">
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Chi nhánh thực hiện</Label>
+                    <Select value={form.branchId} onValueChange={(v) => setForm({...form, branchId: v})}>
+                        <SelectTrigger className="h-20 rounded-3xl bg-white/5 border-white/10 text-xl font-black tracking-tight text-white focus:ring-brand-accent shadow-none px-8 transition-all">
+                            <SelectValue placeholder="CHỌN CƠ SỞ GẦN BẠN" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-xl">
+                        <SelectContent className="bg-brand-dark border-white/10 text-white rounded-3xl overflow-hidden shadow-2xl">
                             {branches.map(b => (
-                                <SelectItem key={b.id} value={b.id} className="font-bold py-3">{b.name}</SelectItem>
+                                <SelectItem key={b.id} value={b.id} className="font-bold py-4 hover:bg-white/10 transition-colors cursor-pointer">{b.name.toUpperCase()}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Họ tên khách hàng</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Danh tính</Label>
                         <Input
                             required
-                            placeholder="Nhập tên của bạn"
-                            className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-gray-900"
+                            placeholder="HỌ VÀ TÊN"
+                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all"
                             value={form.customerName}
                             onChange={(e: any) => setForm({...form, customerName: e.target.value})}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Số điện thoại</Label>
+                    <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Liên lạc</Label>
                         <Input
                             required
-                            placeholder="Nhập số điện thoại"
-                            className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-gray-900"
+                            placeholder="SỐ ĐIỆN THOẠI"
+                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all"
                             value={form.customerPhone}
                             onChange={(e: any) => setForm({...form, customerPhone: e.target.value})}
                         />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Ngày đặt</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Ngày dự kiến</Label>
                         <Input
                             required
                             type="date"
                             min={new Date().toISOString().split('T')[0]}
-                            className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-gray-900"
+                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all appearance-none inverted-scheme"
                             value={form.bookingDate}
                             onChange={(e: any) => setForm({...form, bookingDate: e.target.value})}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Giờ đến</Label>
+                    <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Thời gian</Label>
                         <Input
                             required
                             type="time"
-                            className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-gray-900"
+                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-lg font-bold px-8 focus:border-brand-accent transition-all inverted-scheme"
                             value={form.bookingTime}
                             onChange={(e: any) => setForm({...form, bookingTime: e.target.value})}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Số khách</Label>
+                    <div className="space-y-4">
+                        <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Tổng số khách</Label>
                         <Input
                             required
                             type="number"
                             min={1}
                             max={50}
-                            className="h-14 rounded-2xl bg-gray-50 border-none font-bold text-gray-900"
+                            className="h-20 rounded-3xl bg-white/5 border-white/10 text-2xl font-black px-8 focus:border-brand-accent transition-all"
                             value={form.numberOfGuests}
                             onChange={(e: any) => setForm({...form, numberOfGuests: parseInt(e.target.value)})}
                         />
                     </div>
                   </div>
 
-                  {/* CHỌN VỊ TRÍ BÀN */}
-                  <div className="space-y-4 pt-4 border-t border-gray-100">
+                  {/* TABLE SELECTION AREA */}
+                  <div className="space-y-6 pt-10 border-t border-white/5">
                       <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600">
-                                <Map className="w-4 h-4" />
-                             </div>
-                             <h4 className="font-black text-gray-900 text-sm uppercase tracking-tight">Chọn bàn trên sơ đồ</h4>
+                          <div className="flex items-center gap-3">
+                             <Map className="w-5 h-5 text-brand-accent" />
+                             <h4 className="font-black text-white text-xl tracking-tighter uppercase">Lựa Chọn Vị Trí Ngồi</h4>
                           </div>
-                          <Badge className={`border-none text-[9px] font-black tracking-widest ${
-                            getSelectedTableId()
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-orange-100 text-orange-600'
-                          }`}>
-                            {getSelectedTableId() ? 'ĐÃ CHỌN BÀN' : 'TÙY CHỌN'}
-                          </Badge>
+                          <Badge className="bg-brand-accent/20 text-brand-accent border-none text-[9px] font-black tracking-widest px-4 py-1.5 rounded-full">OPTIONAL</Badge>
                       </div>
 
                       {loadingTables ? (
-                        <div className="py-12 flex flex-col items-center justify-center gap-3 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100">
-                            <Loader2 className="w-8 h-8 text-orange-600 animate-spin" />
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Đang tải sơ đồ...</p>
+                        <div className="py-20 flex flex-col items-center justify-center gap-4 bg-white/5 rounded-[40px] border-2 border-dashed border-white/10">
+                            <Loader2 className="w-10 h-10 text-brand-accent animate-spin" />
+                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Đang tải sơ đồ cơ sở...</p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
-                            {zoneCards.map(zone => {
-                                const zoneTables = tables.filter((table) => zone.id === "none" ? !table.zoneId : table.zoneId === zone.id);
-                                const expanded = expandedZones[zone.id] ?? true;
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {zones.map(zone => {
+                                const zoneTables = tables.filter(t => t.zoneId === zone.id);
+                                if (zoneTables.length === 0) return null;
 
                                 return (
-                                  <div key={zone.id} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden shadow-sm">
-                                      <button
-                                          type="button"
-                                          onClick={() => toggleZone(zone.id)}
-                                          className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                                      >
+                                  <div key={zone.id} className="bg-white/5 border border-white/10 rounded-[32px] p-6 space-y-6 transition-all hover:bg-white/10 group">
+                                      <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                           <div className="flex items-center gap-3">
-                                              <Layers className="w-4 h-4 text-orange-600" />
-                                              <div className="text-left">
-                                                <span className="block font-black text-xs uppercase text-gray-900">{zone.name}</span>
-                                                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">{zoneTables.length} bàn</span>
-                                              </div>
+                                              <Layers className="w-4 h-4 text-brand-accent" />
+                                              <span className="font-black text-xs uppercase tracking-widest text-white">{zone.name}</span>
                                           </div>
-                                          {expanded ? <ChevronUp className="w-4 h-4 text-gray-300" /> : <ChevronDown className="w-4 h-4 text-gray-300" />}
-                                      </button>
+                                          <span className="text-[10px] font-bold text-gray-500 uppercase">{zoneTables.length} BÀN</span>
+                                      </div>
 
-                                      {expanded && (
-                                          <div className="p-4 md:p-6 pt-0 border-t border-gray-50 animate-in fade-in slide-in-from-top-2">
-                                              {zoneTables.length > 0 ? (
-                                                renderTableMap(zoneTables)
-                                              ) : (
-                                                <div className="p-12 text-center bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100">
-                                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-loose">
-                                                        Khu vực này chưa có bàn khả dụng.
-                                                    </p>
-                                                </div>
-                                              )}
-                                          </div>
-                                      )}
+                                      <div className="grid grid-cols-4 gap-3">
+                                          {zoneTables.map(table => (
+                                              <button
+                                                  key={table.id}
+                                                  type="button"
+                                                  disabled={table.status === 'Occupied'}
+                                                  onClick={() => setForm({...form, tableId: form.tableId === table.id ? "" : table.id})}
+                                                  className={`relative h-14 rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                                                      form.tableId === table.id
+                                                      ? 'border-brand-accent bg-brand-accent text-white scale-110 shadow-2xl shadow-brand-accent/40'
+                                                      : table.status === 'Occupied'
+                                                          ? 'border-white/5 bg-white/5 opacity-20 cursor-not-allowed'
+                                                          : 'border-white/10 bg-white/5 hover:border-brand-accent/50'
+                                                  }`}
+                                              >
+                                                  <Armchair className="w-4 h-4 mb-1" />
+                                                  <span className="font-black text-[9px]">{table.tableNumber}</span>
+                                              </button>
+                                          ))}
+                                      </div>
                                   </div>
                                 );
                             })}
-
-                            {zoneCards.length === 0 && !loadingTables && (
-                                <div className="p-12 text-center bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-100">
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-loose">
-                                        Chi nhánh này chưa thiết lập sơ đồ bàn.<br/>
-                                        Bạn có thể bỏ qua phần chọn bàn này.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                      )}
-
-                      <input type="hidden" name="selected_table_id" value={getSelectedTableId()} />
-                      <input type="hidden" name="tableId" value={getSelectedTableId()} />
-
-                      {getSelectedTableId() && (
-                        <div className="flex items-center justify-between rounded-[24px] border border-yellow-100 bg-yellow-50 px-4 py-3">
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-yellow-700">Bàn đã chọn</p>
-                            <p className="font-black text-gray-900">{getSelectedTableLabel()}</p>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() => setForm(prev => ({ ...prev, tableId: "", selectedTableId: "" }))}
-                            className="h-10 rounded-xl font-black text-yellow-700 hover:bg-yellow-100"
-                          >
-                            Bỏ chọn
-                          </Button>
                         </div>
                       )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] text-gray-400 uppercase tracking-widest ml-1">Ghi chú thêm</Label>
+                  <div className="space-y-4">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 ml-2">Yêu cầu đặc biệt</Label>
                     <Textarea
-                        rows={3}
-                        placeholder="Yêu cầu đặc biệt về vị trí, món ăn..."
-                        className="rounded-2xl bg-gray-50 border-none font-medium text-gray-900 p-4"
+                        rows={4}
+                        placeholder="VD: CẦN TRANG TRÍ SINH NHẬT, KHU VỰC CỬA SỔ, GHẾ TRẺ EM..."
+                        className="rounded-3xl bg-white/5 border-white/10 text-lg font-medium p-8 focus:border-brand-accent transition-all resize-none uppercase"
                         value={form.notes}
                         onChange={(e: any) => setForm({...form, notes: e.target.value})}
                     />
@@ -554,9 +331,12 @@ export function CustomerBooking() {
 
                   <Button
                     disabled={loading || !form.branchId}
-                    className="w-full h-16 bg-orange-600 hover:bg-orange-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-orange-100 gap-3 uppercase tracking-wider"
+                    className="group relative overflow-hidden w-full h-24 bg-brand-accent hover:bg-orange-600 text-white font-black text-2xl rounded-3xl shadow-2xl shadow-brand-accent/30 transition-all uppercase tracking-widest active:scale-[0.98]"
                   >
-                    {loading ? <Loader2 className="animate-spin" /> : "XÁC NHẬN ĐẶT BÀN NGAY"}
+                    <span className="relative z-10 flex items-center justify-center gap-4">
+                        {loading ? <Loader2 className="animate-spin" /> : <>XÁC NHẬN ĐẶT BÀN <ArrowRight className="w-8 h-8" /></>}
+                    </span>
+                    <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-shine"></div>
                   </Button>
                </form>
             </CardContent>

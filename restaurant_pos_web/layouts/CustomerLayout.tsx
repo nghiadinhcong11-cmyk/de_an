@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Home, UtensilsCrossed, ShoppingBag, User, LogOut, Facebook, Youtube, CalendarCheck } from "lucide-react";
+import { Home, UtensilsCrossed, ShoppingBag, User, LogOut, Facebook, Youtube, CalendarCheck, Search } from "lucide-react";
 import { authApi } from "../services/authApi";
 import { Button } from "../components/ui/button";
 import api from "../services/api";
 
 const navItems = [
-  { icon: Home, label: "Khám phá", path: "/customer" },
+  { icon: Home, label: "Trang chủ", path: "/customer" },
   { icon: UtensilsCrossed, label: "Thực đơn", path: "/customer/menu" },
   { icon: CalendarCheck, label: "Đặt bàn", path: "/customer/booking" },
+  { icon: CalendarCheck, label: "Lịch hẹn", path: "/customer/my-bookings" },
   { icon: ShoppingBag, label: "Đơn hàng", path: "/customer/orders" },
-  { icon: User, label: "Cá nhân", path: "/customer/profile" },
 ];
 
 export default function CustomerLayout() {
@@ -31,7 +31,9 @@ export default function CustomerLayout() {
         localStorage.setItem("user_profile", JSON.stringify(res.data));
       } catch (err) { console.error("Layout profile error"); }
     };
-    fetchProfile();
+    if (user.token || localStorage.getItem("token")) {
+      fetchProfile();
+    }
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -44,134 +46,161 @@ export default function CustomerLayout() {
   });
 
   return (
-    <div className="min-h-screen bg-[#FCFBF8] flex flex-col font-sans selection:bg-orange-100 selection:text-orange-600">
-      {/* Premium Navbar */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
-        <div className="container mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
-          <Link to="/customer" className="flex items-center gap-2 group">
-            <div className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white text-2xl transition-transform group-hover:rotate-12 duration-300 shadow-lg shadow-gray-200">🥗</div>
+    <div className="min-h-screen bg-brand-dark flex flex-col font-['Montserrat'] selection:bg-brand-accent selection:text-white">
+      {/* Cinematic Navbar */}
+      <header className="bg-brand-dark/80 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-50 transition-all duration-300">
+        <div className="container mx-auto px-6 md:px-12 h-24 flex items-center justify-between">
+          <Link to="/customer" className="flex items-center gap-4 group">
+            <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-brand-accent to-orange-700 flex items-center justify-center shadow-xl shadow-brand-accent/20 group-hover:rotate-12 transition-all duration-500 overflow-hidden">
+                <span className="text-2xl relative z-10">🥗</span>
+                <div className="absolute inset-0 bg-white/20 -translate-x-full group-hover:animate-shine"></div>
+            </div>
             <div className="flex flex-col">
-                <span className="font-black text-xl tracking-tight text-gray-900 leading-none uppercase">RESTO<span className="text-orange-600">POS</span></span>
-                <span className="text-[8px] font-bold text-gray-400 tracking-[0.3em] uppercase">Premium Dining</span>
+                <span className="font-black text-2xl tracking-tighter text-white leading-none uppercase">RESTO<span className="text-brand-accent italic">POS</span></span>
+                <span className="text-[7px] font-black text-brand-accent tracking-[0.4em] uppercase mt-1">Culinary Excellence</span>
             </div>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-10">
+          <nav className="hidden lg:flex items-center gap-12">
             {filteredNavItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative flex items-center gap-2 text-xs font-black uppercase tracking-widest transition-all duration-300 ${
-                    isActive ? "text-orange-600" : "text-gray-400 hover:text-gray-900"
+                  className={`relative text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+                    isActive ? "text-brand-accent scale-110" : "text-gray-400 hover:text-white"
                   }`}
                 >
                   {item.label}
-                  {isActive && <span className="absolute -bottom-1 left-0 w-full h-1 bg-orange-600 rounded-full"></span>}
+                  {isActive && (
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></span>
+                  )}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="flex items-center gap-4">
-             {user.fullName && (
-               <Link to="/customer/profile" className="hidden md:flex items-center gap-3 bg-gray-50 hover:bg-gray-100 p-1.5 pr-4 rounded-2xl transition-all border border-gray-100">
-                  <div className="w-9 h-9 bg-orange-600 rounded-xl flex items-center justify-center text-white font-black shadow-md shadow-orange-200">
+          <div className="flex items-center gap-6">
+             {user.fullName ? (
+               <Link to="/customer/profile" className="hidden md:flex items-center gap-4 bg-white/5 hover:bg-white/10 p-1.5 pr-6 rounded-2xl transition-all border border-white/10 group">
+                  <div className="w-10 h-10 bg-brand-accent rounded-xl flex items-center justify-center text-white font-black shadow-lg group-hover:scale-110 transition-transform">
                     {userProfile?.fullName?.charAt(0) || user.fullName.charAt(0)}
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-black text-gray-900 leading-none">{userProfile?.fullName || user.fullName}</p>
-                    <p className="text-[9px] text-orange-600 font-bold uppercase mt-0.5 tracking-tighter">{userProfile?.points || 0} Điểm tích lũy</p>
+                    <p className="text-xs font-black text-white leading-none">{userProfile?.fullName || user.fullName}</p>
+                    <p className="text-[9px] text-brand-accent font-black uppercase mt-1.5 tracking-tighter">
+                        {userProfile?.points?.toLocaleString() || 0} pts
+                    </p>
                   </div>
                </Link>
+             ) : (
+                <Link to="/login">
+                    <Button className="bg-white text-brand-dark rounded-xl px-8 font-black text-xs uppercase tracking-widest hover:bg-brand-accent hover:text-white transition-all shadow-xl">
+                        Đăng nhập
+                    </Button>
+                </Link>
              )}
 
-             <div className="h-8 w-px bg-gray-100 mx-2 hidden md:block"></div>
+             <div className="h-8 w-px bg-white/10 mx-2 hidden md:block"></div>
 
-             <Button
-                onClick={handleLogout}
-                variant="ghost"
-                className="h-11 w-11 rounded-2xl text-red-400 hover:text-red-600 hover:bg-red-50 p-0"
-             >
-                <LogOut className="w-5 h-5" />
-             </Button>
+             {user.fullName && (
+                <Button
+                    onClick={handleLogout}
+                    variant="ghost"
+                    className="h-12 w-12 rounded-xl text-gray-500 hover:text-red-500 hover:bg-red-500/10 p-0"
+                >
+                    <LogOut className="w-5 h-5" />
+                </Button>
+             )}
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 container mx-auto px-4 py-8 md:px-6 md:py-12 pb-24 md:pb-12">
+      <main className="flex-1 pb-24 lg:pb-0">
         <Outlet />
       </main>
 
-      {/* Footer chuyên nghiệp */}
-      <footer className="bg-white border-t border-gray-100 pt-12 pb-28 md:pb-12">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            {/* Cột 1: Thông tin quán */}
-            <div className="md:col-span-1 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center text-white">🥗</div>
-                <span className="font-black text-xl tracking-tighter uppercase">RESTO<span className="text-orange-600">POS</span></span>
-              </div>
-              <p className="text-gray-400 text-sm font-medium leading-relaxed">
-                Hệ thống đặt món thông minh, mang lại trải nghiệm ẩm thực hiện đại và nhanh chóng nhất cho bạn.
+      {/* Premium Footer */}
+      <footer className="bg-black/40 backdrop-blur-md border-t border-white/5 pt-20 pb-32 md:pb-20">
+        <div className="container mx-auto px-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-20 mb-20 text-center md:text-left">
+            <div className="md:col-span-1 space-y-6">
+              <Link to="/customer" className="flex items-center gap-3 justify-center md:justify-start">
+                <div className="w-8 h-8 bg-brand-accent rounded-lg flex items-center justify-center text-white text-sm shadow-lg">🥗</div>
+                <span className="font-black text-2xl tracking-tighter text-white uppercase leading-none">RESTO<span className="text-brand-accent">POS</span></span>
+              </Link>
+              <p className="text-gray-500 text-sm font-medium leading-relaxed">
+                Định nghĩa lại trải nghiệm ẩm thực 4.0. <br /> Tinh hoa vị giác, công nghệ tiên phong.
               </p>
             </div>
 
-            {/* Cột 2: Đường dẫn nhanh */}
-            <div className="space-y-4">
-              <h4 className="font-black text-xs uppercase tracking-widest text-gray-900">Khám phá</h4>
-              <ul className="space-y-2">
-                <li><Link to="/customer" className="text-sm text-gray-500 hover:text-orange-600 font-bold transition-colors">Trang chủ</Link></li>
-                <li><Link to="/customer/menu" className="text-sm text-gray-500 hover:text-orange-600 font-bold transition-colors">Thực đơn</Link></li>
-                <li><Link to="/customer/orders" className="text-sm text-gray-500 hover:text-orange-600 font-bold transition-colors">Lịch sử đơn hàng</Link></li>
+            <div className="space-y-6">
+              <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-white">Khám phá</h4>
+              <ul className="space-y-4">
+                <li><Link to="/customer" className="text-sm text-gray-400 hover:text-brand-accent font-bold transition-colors">Về chúng tôi</Link></li>
+                <li><Link to="/customer/menu" className="text-sm text-gray-400 hover:text-brand-accent font-bold transition-colors">Thực đơn đặc sắc</Link></li>
+                <li><Link to="/customer/booking" className="text-sm text-gray-400 hover:text-brand-accent font-bold transition-colors">Hệ thống cơ sở</Link></li>
               </ul>
             </div>
 
-            <div className="space-y-4">
-              <h4 className="font-black text-xs uppercase tracking-widest text-gray-900">Hỗ trợ khách hàng</h4>
-              <ul className="space-y-2">
-                <li className="text-sm text-gray-500 font-bold cursor-pointer hover:text-orange-600 transition-colors">Chính sách bảo mật</li>
-                <li className="text-sm text-gray-500 font-bold cursor-pointer hover:text-orange-600 transition-colors">Điều khoản sử dụng</li>
-                <li><Link to="/customer/profile" className="text-sm text-gray-500 hover:text-orange-600 font-bold transition-colors">Đánh giá góp ý</Link></li>
+            <div className="space-y-6">
+              <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-white">Dịch vụ</h4>
+              <ul className="space-y-4">
+                <li className="text-sm text-gray-400 font-bold cursor-pointer hover:text-brand-accent transition-colors">Chính sách bảo mật</li>
+                <li className="text-sm text-gray-400 font-bold cursor-pointer hover:text-brand-accent transition-colors">Điều khoản & Điều kiện</li>
+                <li className="text-sm text-gray-400 font-bold cursor-pointer hover:text-brand-accent transition-colors">Tuyển dụng</li>
               </ul>
             </div>
 
-            {/* Cột 4: Liên hệ */}
-            <div className="space-y-4">
-              <h4 className="font-black text-xs uppercase tracking-widest text-gray-900">Kết nối với chúng tôi</h4>
-              <div className="flex gap-4">
-                <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-orange-50 hover:text-orange-600 transition-all cursor-pointer">
-                  <Facebook className="w-5 h-5 fill-current" />
-                </div>
-                <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:bg-orange-50 hover:text-orange-600 transition-all cursor-pointer">
-                  <Youtube className="w-5 h-5 fill-current" />
-                </div>
+            <div className="space-y-6">
+              <h4 className="font-black text-[10px] uppercase tracking-[0.3em] text-white">Theo dõi</h4>
+              <div className="flex gap-4 justify-center md:justify-start">
+                <SocialIcon icon={<Facebook className="w-5 h-5 fill-current" />} />
+                <SocialIcon icon={<Youtube className="w-5 h-5 fill-current" />} />
               </div>
             </div>
           </div>
 
-          <div className="border-t border-gray-50 py-8 text-center">
-            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-              © 2026 RESTO POS System. All Rights Reserved.
+          <div className="border-t border-white/5 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-gray-600 text-[10px] font-black uppercase tracking-[0.4em]">
+              © 2026 RESTO POS System • Made with Passion
             </p>
+            <div className="flex gap-8 text-[9px] font-black text-gray-600 uppercase tracking-widest">
+                <span className="hover:text-white cursor-pointer">English</span>
+                <span className="text-brand-accent">Tiếng Việt</span>
+            </div>
           </div>
         </div>
       </footer>
 
-      {/* Modern Bottom Nav for Mobile */}
-      <nav className="md:hidden fixed bottom-6 left-6 right-6 h-18 bg-gray-900/95 backdrop-blur-lg rounded-[28px] flex items-center justify-around px-4 z-50 shadow-2xl shadow-gray-400 border border-white/10">
+      {/* Floating Modern Bottom Nav for Mobile */}
+      <nav className="md:hidden fixed bottom-8 left-8 right-8 h-20 bg-brand-dark/90 backdrop-blur-2xl rounded-[32px] flex items-center justify-around px-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10">
         {filteredNavItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
-            <Link key={item.path} to={item.path} className={`p-4 transition-all duration-300 ${isActive ? "text-orange-500 scale-125" : "text-gray-500"}`}>
+            <Link
+                key={item.path}
+                to={item.path}
+                className={`relative flex flex-col items-center gap-1 transition-all duration-500 ${isActive ? "text-brand-accent scale-110" : "text-gray-500"}`}
+            >
               <item.icon className="w-6 h-6" strokeWidth={isActive ? 3 : 2} />
+              {isActive && (
+                <div className="absolute -top-3 w-1 h-1 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></div>
+              )}
             </Link>
           );
         })}
       </nav>
     </div>
   );
+}
+
+function SocialIcon({ icon }: { icon: any }) {
+    return (
+        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-gray-400 hover:bg-brand-accent hover:text-white transition-all cursor-pointer border border-white/5">
+            {icon}
+        </div>
+    )
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { Loader2, Calendar, Clock, MapPin, Users, Armchair, ChevronRight, CheckCircle2, XCircle, Timer } from "lucide-react";
+import { Loader2, Calendar, Clock, MapPin, Users, Armchair, ChevronRight, CheckCircle2, XCircle, Timer, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
 

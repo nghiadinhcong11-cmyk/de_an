@@ -15,6 +15,7 @@ export function CustomerProfile() {
   const [profile, setProfile] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [vouchers, setVouchers] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Edit state
@@ -39,10 +40,11 @@ export function CustomerProfile() {
 
   const fetchData = async () => {
     try {
-      const [pRes, hRes, vRes] = await Promise.all([
+      const [pRes, hRes, vRes, bRes] = await Promise.all([
         api.get("/customers/me"),
         api.get("/customers/me/points-history"),
-        api.get("/vouchers")
+        api.get("/vouchers"),
+        api.get("/bookings/my-bookings")
       ]);
       setProfile(pRes.data);
       localStorage.setItem("user_profile", JSON.stringify(pRes.data));
@@ -51,6 +53,7 @@ export function CustomerProfile() {
 
       setHistory(hRes.data);
       setVouchers(vRes.data);
+      setBookings(bRes.data);
       setEditName(pRes.data.fullName);
       setEditAvatar(pRes.data.avatarUrl || "");
     } catch (err) {
@@ -190,6 +193,7 @@ export function CustomerProfile() {
           <TabsList className="w-full bg-white border border-gray-100 p-1 rounded-2xl shadow-sm mb-6 flex overflow-x-auto">
             <TabsTrigger value="history" className="flex-1 font-bold rounded-xl py-2.5">Lịch sử</TabsTrigger>
             <TabsTrigger value="redeem" className="flex-1 font-bold rounded-xl py-2.5">Đổi quà</TabsTrigger>
+            <TabsTrigger value="bookings" className="flex-1 font-bold rounded-xl py-2.5">Lịch hẹn</TabsTrigger>
             <TabsTrigger value="feedback" className="flex-1 font-bold rounded-xl py-2.5">Đánh giá</TabsTrigger>
           </TabsList>
 
@@ -300,7 +304,47 @@ export function CustomerProfile() {
             </div>
           </TabsContent>
 
-          {/* TAB 3: ĐÁNH GIÁ GÓP Ý */}
+          {/* TAB 3: LỊCH ĐẶT BÀN */}
+          <TabsContent value="bookings">
+            <div className="space-y-4">
+              {bookings.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+                  <Calendar className="mx-auto w-10 h-10 text-gray-200 mb-2" />
+                  <p className="text-gray-400 font-bold">Chưa có lịch đặt bàn</p>
+                  <Link to="/customer/booking">
+                    <Button variant="link" className="text-orange-600 font-bold">Đặt bàn ngay</Button>
+                  </Link>
+                </div>
+              ) : (
+                bookings.map((b) => (
+                  <Card key={b.id} className="border-none shadow-sm overflow-hidden bg-white">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
+                            <Clock className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <div className="font-black text-gray-900 text-sm">
+                            {b.tableId ? `Bàn ${b.tableNumber}` : "Bàn tự do"} - {b.branchName}
+                          </div>
+                          <div className="text-[10px] text-gray-400 font-bold uppercase">
+                            {new Date(b.bookingDate).toLocaleString("vi-VN")} • {b.status}
+                          </div>
+                        </div>
+                      </div>
+                      <Link to="/customer/my-bookings">
+                        <Button size="icon" variant="ghost" className="rounded-full text-gray-300 hover:text-orange-600">
+                            <ChevronRight className="w-5 h-5" />
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* TAB 4: ĐÁNH GIÁ GÓP Ý */}
           <TabsContent value="feedback">
               <Card className="border-none shadow-sm bg-white rounded-[32px] overflow-hidden">
                   <CardHeader className="bg-orange-50/50">
