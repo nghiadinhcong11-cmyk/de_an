@@ -126,10 +126,10 @@ export function OwnerBookings() {
   };
 
   const getTableLabel = (booking: any) => {
-    if (!booking.tableId) return "Chưa chọn bàn";
-    const table = tableMap.get(booking.tableId);
-    if (!table) return "Bàn đã chọn";
-    return `Bàn ${String(table.tableNumber).replace(/^Bàn\s*/i, "")}`;
+    if (!booking.tableId) return "Bàn tự do";
+    const tableNum = String(booking.tableNumber || "").replace(/^Bàn\s*/i, "");
+    const zoneName = booking.zoneName || "Khu vực chung";
+    return `Bàn ${tableNum} - ${zoneName}`;
   };
 
   const getBranchName = (booking: any) => {
@@ -311,25 +311,47 @@ function BookingGrid({
             </Badge>
           </div>
 
-          <CardHeader className="pb-0">
-            <CardTitle className="text-2xl font-black text-gray-900 tracking-tighter">{getTableLabel(booking)}</CardTitle>
-            <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
-              <MapPin className="w-3 h-3" /> {getBranchName(booking)}
+          <CardHeader className="pb-0 flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl font-black text-gray-900 tracking-tighter">{getTableLabel(booking)}</CardTitle>
+              <div className="flex items-center gap-1 text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+                <MapPin className="w-3 h-3" /> {getBranchName(booking)}
+              </div>
+            </div>
+            <div className="text-right">
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Mã xác nhận</p>
+                <code className="text-xs font-black text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">
+                    {booking.id.substring(0, 8).toUpperCase()}
+                </code>
             </div>
           </CardHeader>
 
           <CardContent className="p-6 space-y-5">
+            <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center overflow-hidden shrink-0 border-2 border-white shadow-sm">
+                    {booking.customerAvatar ? (
+                        <img src={booking.customerAvatar} alt={booking.customerName} className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="font-black text-orange-600">{booking.customerName?.charAt(0) || "K"}</span>
+                    )}
+                </div>
+                <div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Khách hàng</p>
+                    <p className="font-black text-gray-900">{booking.customerName || "Khách vãng lai"}</p>
+                </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
-              <InfoItem label="Khách" value={booking.customerName || "Khách vãng lai"} />
               <InfoItem label="SĐT" value={booking.customerPhone || "Chưa có"} />
               <InfoItem label="Số khách" value={`${booking.numberOfGuests} người`} />
-              <InfoItem label="Bàn" value={booking.tableId ? "Đã chọn" : "Tự do"} />
+              <InfoItem label="Vị trí bàn" value={getTableLabel(booking)} />
+              <InfoItem label="Loại khách" value={booking.customerId ? "Thành viên" : "Vãng lai"} />
             </div>
 
             {booking.notes && (
-              <div className="rounded-2xl bg-gray-50 p-4 border border-gray-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Ghi chú</p>
-                <p className="text-sm text-gray-700 font-medium leading-relaxed">{booking.notes}</p>
+              <div className="rounded-2xl bg-gray-900 text-white p-4 shadow-xl shadow-gray-200">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-orange-500 mb-2">Ghi chú của khách</p>
+                <p className="text-sm font-medium leading-relaxed italic">"{booking.notes}"</p>
               </div>
             )}
 

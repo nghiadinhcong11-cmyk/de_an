@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
 import '../utils/currency_util.dart';
+import 'bookings_screen.dart';
 
 class OrderRequestsScreen extends StatefulWidget {
   const OrderRequestsScreen({super.key});
@@ -21,130 +22,139 @@ class _OrderRequestsScreenState extends State<OrderRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF9FAFB),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: const TabBar(
+              dividerColor: Colors.transparent,
+              indicatorColor: Color(0xFFEA580C),
+              labelColor: Color(0xFFEA580C),
+              unselectedLabelColor: Colors.grey,
+              labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+              unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+              tabs: [
+                Tab(text: 'MÓN ĂN'),
+                Tab(text: 'ĐẶT BÀN'),
+              ],
+            ),
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            _OrdersRequestList(),
+            BookingsScreen(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _OrdersRequestList extends StatelessWidget {
+  const _OrdersRequestList();
+
+  @override
+  Widget build(BuildContext context) {
     final orderProvider = Provider.of<OrderProvider>(context);
     final pendingOrders = orderProvider.orders
         .where((o) => o.status == 'PendingConfirmation')
         .toList();
 
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      body: RefreshIndicator(
-        onRefresh: orderProvider.fetchRequests,
-        child: orderProvider.isLoading && pendingOrders.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : pendingOrders.isEmpty
-            ? const Center(child: Text('Không có yêu cầu nào mới'))
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: pendingOrders.length,
-                itemBuilder: (context, index) {
-                  final order = pendingOrders[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+    return RefreshIndicator(
+      onRefresh: orderProvider.fetchRequests,
+      child: orderProvider.isLoading && pendingOrders.isEmpty
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C)))
+          : pendingOrders.isEmpty
+              ? const Center(child: Text('Không có yêu cầu nào mới'))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: pendingOrders.length,
+                  itemBuilder: (context, index) {
+                    final order = pendingOrders[index];
+                    return _OrderRequestCard(order: order);
+                  },
+                ),
+    );
+  }
+}
+
+class _OrderRequestCard extends StatelessWidget {
+  final dynamic order;
+  const _OrderRequestCard({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      elevation: 0,
+      color: Colors.white,
+      child: ExpansionTile(
+        shape: const RoundedRectangleBorder(side: BorderSide.none),
+        leading: CircleAvatar(
+          backgroundColor: const Color(0xFFFFF7ED),
+          child: Text(
+            order.tableNumber.replaceAll('Bàn ', ''),
+            style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.w900),
+          ),
+        ),
+        title: Text(
+          'Bàn ${order.tableNumber}',
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+        ),
+        subtitle: Text(
+          'Tổng: ${CurrencyUtil.format(order.totalAmount)} • Chờ xác nhận',
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Column(
+              children: [
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                ...order.items.map((item) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('${item.quantity}x ${item.productName}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                          Text(CurrencyUtil.format(item.unitPrice * item.quantity), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                        ],
+                      ),
+                    )),
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Tổng cộng', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                    Text(
+                      CurrencyUtil.format(order.totalAmount),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFFEA580C)),
                     ),
-                    elevation: 0,
-                    color: Colors.white,
-                    child: ExpansionTile(
-                      shape: const RoundedRectangleBorder(
-                        side: BorderSide.none,
-                      ),
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.orange.shade50,
-                        child: Text(
-                          order.tableNumber.replaceAll('Bàn ', ''),
-                          style: TextStyle(
-                            color: Colors.orange.shade800,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        'Bàn ${order.tableNumber}',
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      subtitle: Text(
-                        'Tổng: ${CurrencyUtil.format(order.totalAmount)} • Chờ xác nhận',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Column(
-                            children: [
-                              const Divider(),
-                              ...order.items.map(
-                                (item) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '${item.quantity}x ${item.productName}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        CurrencyUtil.format(
-                                          item.unitPrice * item.quantity,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const Divider(),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'Tổng cộng',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    CurrencyUtil.format(order.totalAmount),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 18,
-                                      color: Colors.orange.shade800,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _RejectButton(orderId: order.id),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _ConfirmButton(orderId: order.id),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(child: _RejectButton(orderId: order.id)),
+                    const SizedBox(width: 12),
+                    Expanded(flex: 2, child: _ConfirmButton(orderId: order.id)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

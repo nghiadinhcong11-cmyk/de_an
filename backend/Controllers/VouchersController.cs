@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using RestaurantPOS.Infrastructure.Common;
 using RestaurantPOS.Infrastructure.Data;
 using RestaurantPOS.Modules.CRM.Entities;
 
@@ -13,7 +15,13 @@ namespace RestaurantPOS.Controllers;
 public class VouchersController : ControllerBase
 {
     private readonly AppDbContext _context;
-    public VouchersController(AppDbContext context) => _context = context;
+    private readonly IHubContext<NotificationHub> _hubContext;
+
+    public VouchersController(AppDbContext context, IHubContext<NotificationHub> hubContext)
+    {
+        _context = context;
+        _hubContext = hubContext;
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -43,6 +51,16 @@ public class VouchersController : ControllerBase
 
         _context.Vouchers.Add(voucher);
         await _context.SaveChangesAsync();
+
+        // Thông báo có mã giảm giá mới
+        await _hubContext.Clients.Group($"restaurant:{voucher.RestaurantId}").SendAsync("VoucherCreated", new {
+            voucherId = voucher.Id,
+            code = voucher.Code,
+            name = voucher.Name,
+            discountValue = voucher.DiscountValue,
+            discountType = voucher.DiscountType
+        });
+
         return Ok(voucher);
     }
 
@@ -85,6 +103,14 @@ public class VouchersController : ControllerBase
         try
         {
             await _context.SaveChangesAsync();
+
+            // Thông báo cập nhật voucher
+            await _hubContext.Clients.Group($"restaurant:{existing.RestaurantId}").SendAsync("VoucherUpdated", new {
+                voucherId = existing.Id,
+                code = existing.Code,
+                isActive = existing.IsActive
+            });
+
             return Ok(existing);
         }
         catch (DbUpdateException ex)
@@ -101,6 +127,14 @@ public class VouchersController : ControllerBase
 
         voucher.IsActive = !voucher.IsActive;
         await _context.SaveChangesAsync();
+
+        // Gửi thông báo SignalR đến tất cả mọi người trong nhóm nhà hàng
+        await _hubContext.Clients.Group($"restaurant:{voucher.RestaurantId}").SendAsync("VoucherStatusChanged", new {
+            voucherId = voucher.Id,
+            code = voucher.Code,
+            isActive = voucher.IsActive
+        });
+
         return Ok(new { isActive = voucher.IsActive });
     }
 

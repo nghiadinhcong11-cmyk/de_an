@@ -176,13 +176,11 @@ class OrderProvider with ChangeNotifier {
         fetchAllOrders();
       },
       onNewBooking: (data) {
-        final tableInfo = data['tableInfo'] != null
-            ? ' - ${data['tableInfo']}'
-            : '';
+        final tableInfo = data['tableInfo'] != null ? ' tại ${data['tableInfo']}' : '';
+        final guests = data['numberOfGuests'] ?? 0;
         NotificationService.showLocalNotification(
           title: '📅 Lịch đặt bàn mới!',
-          body:
-              'Khách ${data['customerName']}$tableInfo đặt lúc ${data['bookingDate']}.',
+          body: 'Khách ${data['customerName']}$tableInfo ($guests người) đặt lúc ${data['bookingDate']}. Mã: ${data['bookingId'].toString().substring(0, 8).toUpperCase()}',
         );
       },
     );

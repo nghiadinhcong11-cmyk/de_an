@@ -8,13 +8,15 @@ import { Label } from "../components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Switch } from "../components/ui/switch";
-import { Plus, Ticket, Loader2, Trash2, Edit, Search, Calendar, Ban, CheckCircle } from "lucide-react";
+import { Plus, Ticket, Loader2, Trash2, Edit, Search, Calendar, Ban, CheckCircle, Bell } from "lucide-react";
 import api from "../services/api";
+import * as signalR from "@microsoft/signalr";
 
 export function OwnerVouchers() {
   const [vouchers, setVouchers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isToggling, setIsToggling] = useState<string | null>(null);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +44,33 @@ export function OwnerVouchers() {
     }
   };
 
-  useEffect(() => { fetchVouchers(); }, []);
+  useEffect(() => {
+    fetchVouchers();
+
+    // Thiết lập SignalR để đồng bộ trạng thái voucher thời gian thực
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const restaurantId = user.restaurantId;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("https://restaurant-pos-api-uvcz.onrender.com/notificationHub")
+      .withAutomaticReconnect()
+      .build();
+
+    connection.start().then(() => {
+        if (restaurantId) {
+            connection.invoke("JoinRestaurantGroup", restaurantId);
+        }
+
+        connection.on("VoucherStatusChanged", (data) => {
+            setVouchers(prev => prev.map(v => v.id === data.voucherId ? { ...v, isActive: data.isActive } : v));
+        });
+
+        connection.on("VoucherCreated", () => fetchVouchers());
+        connection.on("VoucherUpdated", () => fetchVouchers());
+    });
+
+    return () => { connection.stop(); };
+  }, []);
 
   const handleOpenModal = (voucher: any = null) => {
     if (voucher) {
@@ -95,10 +123,16 @@ export function OwnerVouchers() {
   };
 
   const handleToggle = async (id: string) => {
+      setIsToggling(id);
       try {
-          await api.post(`/vouchers/${id}/toggle`);
-          setVouchers(vouchers.map(v => v.id === id ? { ...v, isActive: !v.isActive } : v));
-      } catch { alert("Lỗi khi cập nhật trạng thái"); }
+          const res = await api.post(`/vouchers/${id}/toggle`);
+          // Cập nhật state cục bộ ngay lập tức để mượt mà
+          setVouchers(prev => prev.map(v => v.id === id ? { ...v, isActive: res.data.isActive } : v));
+      } catch {
+          alert("Lỗi khi cập nhật trạng thái");
+      } finally {
+          setIsToggling(null);
+      }
   };
 
   const filteredVouchers = vouchers.filter(v =>
@@ -175,11 +209,15 @@ export function OwnerVouchers() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                     <Switch
-                        checked={v.isActive}
-                        onCheckedChange={() => handleToggle(v.id)}
-                        className="data-[state=checked]:bg-orange-600"
-                     />
+                     <div className="flex justify-center relative">
+                        {isToggling === v.id && <div className="absolute inset-0 flex items-center justify-center z-10"><Loader2 className="w-4 h-4 animate-spin text-orange-600" /></div>}
+                        <Switch
+                            disabled={isToggling === v.id}
+                            checked={v.isActive}
+                            onCheckedChange={() => handleToggle(v.id)}
+                            className={`data-[state=checked]:bg-orange-600 transition-all ${v.isActive ? 'shadow-[0_0_8px_rgba(234,88,12,0.4)]' : ''}`}
+                        />
+                     </div>
                   </TableCell>
                   <TableCell className="text-right px-8">
                     <div className="flex justify-end gap-1">

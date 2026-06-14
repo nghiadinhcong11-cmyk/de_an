@@ -68,19 +68,28 @@ public class BookingsController : ControllerBase
             var branchGroup = booking.BranchId.ToString();
 
             // Load table info if selected
-            string tableInfo = "Chưa chọn bàn";
+            string tableInfo = "Bàn tự do";
+            string zoneName = "Chung";
             if (booking.TableId.HasValue)
             {
-                var table = await _context.DiningTables.FindAsync(booking.TableId.Value);
-                if (table != null) tableInfo = $"Bàn {table.TableNumber}";
+                var table = await _context.DiningTables.Include(t => t.Zone).FirstOrDefaultAsync(t => t.Id == booking.TableId.Value);
+                if (table != null)
+                {
+                    tableInfo = $"Bàn {table.TableNumber}";
+                    zoneName = table.Zone?.Name ?? "Chung";
+                }
             }
 
             var payload = new {
                 bookingId = booking.Id,
                 customerName = booking.CustomerName,
+                customerPhone = booking.CustomerPhone,
+                customerAvatar = customer?.AvatarUrl,
                 bookingDate = booking.BookingDate,
                 numberOfGuests = booking.NumberOfGuests,
                 tableInfo = tableInfo,
+                zoneName = zoneName,
+                notes = booking.Notes,
                 branchId = booking.BranchId,
                 branchName = branchName,
                 status = booking.Status
@@ -125,11 +134,33 @@ public class BookingsController : ControllerBase
     public async Task<IActionResult> GetForOwner([FromQuery] Guid? branchId)
     {
         var resId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var query = _context.Bookings.Where(b => b.RestaurantId == resId);
+        var query = _context.Bookings
+            .Include(b => b.Table)
+                .ThenInclude(t => t!.Zone)
+            .Include(b => b.Branch)
+            .Where(b => b.RestaurantId == resId);
 
         if (branchId.HasValue) query = query.Where(b => b.BranchId == branchId);
 
-        var bookings = await query.OrderByDescending(b => b.BookingDate).ToListAsync();
+        var bookings = await query.OrderByDescending(b => b.BookingDate)
+            .Select(b => new {
+                b.Id,
+                b.BranchId,
+                BranchName = b.Branch.Name,
+                b.TableId,
+                TableNumber = b.Table != null ? b.Table.TableNumber : null,
+                ZoneName = (b.Table != null && b.Table.Zone != null) ? b.Table.Zone.Name : null,
+                b.CustomerId,
+                CustomerName = b.CustomerName,
+                CustomerPhone = b.CustomerPhone,
+                CustomerAvatar = b.Customer != null ? b.Customer.AvatarUrl : null,
+                b.BookingDate,
+                b.NumberOfGuests,
+                b.Status,
+                b.Notes,
+                b.CreatedAtUtc
+            })
+            .ToListAsync();
         return Ok(bookings);
     }
 
