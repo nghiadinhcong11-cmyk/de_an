@@ -170,7 +170,7 @@ export function OwnerDashboard() {
                     tick={{fontSize: 10, fontWeight: 'bold', fill: '#94a3b8'}}
                     tickFormatter={(value) => {
                         if (timeRange === 'month') return value;
-                        return value; // value is already formatted like "12/06" from backend
+                        return value;
                     }}
                 />
                 <YAxis
@@ -265,7 +265,6 @@ export function OwnerDashboard() {
                 </div>
             </CardContent>
         </Card>
-        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
@@ -293,7 +292,7 @@ export function OwnerDashboard() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {staffPerformance.map((staff, idx) => (
+                            {staffPerformance.map((staff: any) => (
                                 <tr key={staff.staffId} className="hover:bg-gray-50/50 transition-colors group">
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-3">
@@ -346,12 +345,12 @@ export function OwnerDashboard() {
             </CardHeader>
             <CardContent className="px-8 pb-8 space-y-6">
                 {[5, 4, 3, 2, 1].map(star => {
-                    const count = staffPerformance.reduce((acc, curr) => {
+                    const count = staffPerformance.reduce((acc: number, curr: any) => {
                         if (star === 5) return acc + curr.fiveStarCount;
                         if (star === 1) return acc + curr.oneStarCount;
-                        return acc; // Simplified for demo, as backend only sends 5 and 1 star counts explicitly
+                        return acc;
                     }, 0);
-                    const total = staffPerformance.reduce((acc, curr) => acc + curr.feedbackCount, 0) || 1;
+                    const total = staffPerformance.reduce((acc: number, curr: any) => acc + curr.feedbackCount, 0) || 1;
                     const percent = (count / total) * 100;
 
                     return (
