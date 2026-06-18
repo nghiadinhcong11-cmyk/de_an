@@ -18,7 +18,8 @@ import {
   UserCircle,
   MessageSquare,
   Menu,
-  X
+  X,
+  Trophy
 } from "lucide-react";
 import { authApi } from "../services/authApi";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
