@@ -109,18 +109,41 @@ public class FeedbacksController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Owner,Manager")]
+    [Authorize(Roles = "Owner,Manager,Customer")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
         try
         {
             var resIdStr = User.FindFirstValue("RestaurantId");
-            if (string.IsNullOrEmpty(resIdStr)) return Unauthorized();
-            var restaurantId = Guid.Parse(resIdStr);
+            Guid restaurantId;
 
-            var feedbacks = await _context.Feedbacks
-                .Where(f => f.RestaurantId == restaurantId)
+            if (string.IsNullOrEmpty(resIdStr))
+            {
+                // Nếu không có RestaurantId trong claim (khách vãng lai/vừa đăng ký),
+                // thử lấy từ query hoặc lấy nhà hàng đầu tiên
+                var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
+                if (firstRestaurant == null) return Unauthorized();
+                restaurantId = firstRestaurant.Id;
+            }
+            else
+            {
+                restaurantId = Guid.Parse(resIdStr);
+            }
+
+            var isStaff = User.IsInRole("Owner") || User.IsInRole("Manager");
+
+            var feedbacksQuery = _context.Feedbacks
+                .Where(f => f.RestaurantId == restaurantId);
+
+            // Nếu không phải quản lý, chỉ xem được các đánh giá công khai (ví dụ >= 4 sao)
+            // và không thấy thông tin nhạy cảm
+            if (!isStaff)
+            {
+                feedbacksQuery = feedbacksQuery.Where(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4 >= 4);
+            }
+
+            var feedbacks = await feedbacksQuery
                 .OrderByDescending(f => f.CreatedAtUtc)
                 .ToListAsync();
 
@@ -149,6 +172,24 @@ public class FeedbacksController : ControllerBase
                 var customer = customers.FirstOrDefault(c => c.Id == f.CustomerId) ?? order?.Customer;
                 var branch = branches.FirstOrDefault(b => b.Id == f.BranchId) ?? order?.Branch;
 
+                // Dữ liệu tối giản cho Khách hàng
+                if (!isStaff)
+                {
+                    return new
+                    {
+                        f.Id,
+                        Name = string.IsNullOrEmpty(f.Name) ? "Khách hàng" : f.Name,
+                        BranchName = branch?.Name ?? order?.Branch?.Name ?? "Nhà hàng",
+                        f.ServiceRating,
+                        f.FoodRating,
+                        f.PriceRating,
+                        f.AtmosphereRating,
+                        f.Message,
+                        f.CreatedAtUtc
+                    } as object;
+                }
+
+                // Dữ liệu đầy đủ cho Quản lý
                 return new
                 {
                     f.Id,

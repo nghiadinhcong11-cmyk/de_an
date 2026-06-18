@@ -84,6 +84,8 @@ public class CustomersController : ControllerBase
                     h.Order.TotalAmount,
                     h.Order.Status,
                     h.Order.IsReviewed,
+                    Rating = _context.Feedbacks.Where(f => f.OrderId == h.Order.Id).Select(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4.0).FirstOrDefault(),
+                    ReviewMessage = _context.Feedbacks.Where(f => f.OrderId == h.Order.Id).Select(f => f.Message).FirstOrDefault(),
                     CreatedByUserName = h.Order.CreatedByUser != null ? h.Order.CreatedByUser.FullName : "Hệ thống",
                     Items = h.Order.OrderItems.Select(oi => new {
                         ProductName = oi.Product.Name,

@@ -226,10 +226,27 @@ export function CustomerOrders() {
                             )}
 
                             {order.isReviewed && (
-                                <div className="bg-green-500/5 p-10 rounded-[40px] text-center border border-green-500/10">
-                                    <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4 opacity-40" />
-                                    <p className="text-xs font-black text-green-500 uppercase tracking-widest">BẠN ĐÃ ĐÁNH GIÁ ĐƠN HÀNG NÀY</p>
-                                    <p className="text-gray-500 font-medium mt-3 text-sm">Cảm ơn bạn đã tin tưởng và góp ý cho chúng tôi!</p>
+                                <div className="bg-green-500/5 p-10 rounded-[40px] border border-green-500/10 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <CheckCircle className="w-8 h-8 text-green-500 opacity-40" />
+                                            <div>
+                                                <p className="text-xs font-black text-green-500 uppercase tracking-widest">BẠN ĐÃ ĐÁNH GIÁ</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Cảm ơn bạn đã góp ý!</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star key={star} className={`w-4 h-4 ${star <= (order.rating || 5) ? 'text-brand-accent fill-current' : 'text-gray-700'}`} />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {order.reviewMessage && (
+                                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 italic text-gray-300 text-sm leading-relaxed">
+                                            "{order.reviewMessage}"
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

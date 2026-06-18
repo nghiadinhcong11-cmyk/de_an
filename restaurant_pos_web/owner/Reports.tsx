@@ -46,6 +46,18 @@ export function OwnerReports() {
     fetchReports();
   }, []);
 
+  // Xử lý dữ liệu biểu đồ để tránh đường kẻ bị rơi xuống 0 ở các tháng tương lai
+  const processedMonthlyRevenue = monthlyRevenue.map((item, index) => {
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    const itemMonth = index + 1;
+
+    // Nếu là tháng tương lai và doanh thu bằng 0, chuyển thành null để biểu đồ không vẽ đoạn này
+    if (itemMonth > currentMonth && item.revenue === 0) {
+        return { ...item, revenue: null };
+    }
+    return item;
+  });
+
   if (loading) return <div className="flex justify-center p-10 md:p-20"><Loader2 className="animate-spin text-orange-600" /></div>;
 
   return (
@@ -79,7 +91,7 @@ export function OwnerReports() {
             </CardHeader>
             <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyRevenue}>
+                    <AreaChart data={processedMonthlyRevenue}>
                         <defs>
                             <linearGradient id="colorMonth" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/>
@@ -90,7 +102,7 @@ export function OwnerReports() {
                         <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
                         <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                         <Tooltip />
-                        <Area type="monotone" dataKey="revenue" stroke="#2563eb" fill="url(#colorMonth)" strokeWidth={3} />
+                        <Area type="monotone" dataKey="revenue" stroke="#2563eb" fill="url(#colorMonth)" strokeWidth={3} connectNulls={false} />
                     </AreaChart>
                 </ResponsiveContainer>
             </CardContent>

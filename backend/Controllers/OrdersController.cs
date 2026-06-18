@@ -180,6 +180,8 @@ public class OrdersController : ControllerBase
                 o.TotalAmount,
                 o.CreatedAtUtc,
                 o.IsReviewed,
+                Rating = _context.Feedbacks.Where(f => f.OrderId == o.Id).Select(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4.0).FirstOrDefault(),
+                ReviewMessage = _context.Feedbacks.Where(f => f.OrderId == o.Id).Select(f => f.Message).FirstOrDefault(),
                 BranchName = o.Branch.Name,
                 BranchAddress = o.Branch.Address,
                 TableNumber = o.Table.TableNumber,
