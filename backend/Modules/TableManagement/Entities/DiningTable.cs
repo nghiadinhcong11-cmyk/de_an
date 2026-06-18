@@ -10,6 +10,7 @@ public class DiningTable : BaseEntity
     public int Capacity { get; set; }
     public string? QrCode { get; set; }
     public string Status { get; set; } = "Available";
+    public string? Note { get; set; }
 
     // Vị trí trên sơ đồ (0-100%)
     public double PosX { get; set; } = 0;

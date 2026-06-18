@@ -7,7 +7,7 @@ import { Label } from "../components/ui/label";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Plus, Users, QrCode, Printer, Loader2, Trash2, Map, List as ListIcon, Save, Move, ChevronDown, ChevronUp, Layers } from "lucide-react";
+import { Plus, Users, QrCode, Printer, Loader2, Trash2, Map, List as ListIcon, Save, Move, ChevronDown, ChevronUp, Layers, Edit2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import api from "../services/api";
 
@@ -18,6 +18,8 @@ export function OwnerTables() {
   const [loading, setLoading] = useState(true);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isZoneOpen, setIsZoneOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingTable, setEditingTable] = useState<any>(null);
   const [activeQRTable, setActiveQRTable] = useState<any>(null);
   const [viewMode, setViewMode] = useState("list");
   const [expandedZones, setExpandedZones] = useState<Record<string, boolean>>({});
@@ -61,7 +63,8 @@ export function OwnerTables() {
     tableNumber: "",
     capacity: 4,
     branchId: "",
-    zoneId: ""
+    zoneId: "",
+    note: ""
   });
 
   const [newZone, setNewZone] = useState({
@@ -92,6 +95,17 @@ export function OwnerTables() {
       }
   };
 
+  const handleUpdateTable = async () => {
+    if (!editingTable.tableNumber) return alert("Vui lòng nhập số bàn");
+    try {
+      await api.put(`/tables/${editingTable.id}`, editingTable);
+      setIsEditOpen(false);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Lỗi khi cập nhật bàn");
+    }
+  };
+
   const handleAddTable = async () => {
     if (!newTable.tableNumber || !newTable.branchId) {
         alert("Vui lòng nhập số bàn và chọn chi nhánh");
@@ -108,7 +122,7 @@ export function OwnerTables() {
 
       await api.post("/tables", payload);
       setIsAddOpen(false);
-      setNewTable({ tableNumber: "", capacity: 4, branchId: "", zoneId: "" });
+      setNewTable({ tableNumber: "", capacity: 4, branchId: "", zoneId: "", note: "" });
       fetchData();
     } catch (err: any) {
       const msg = err.response?.data?.message || "Lỗi khi tạo bàn";
@@ -240,6 +254,10 @@ export function OwnerTables() {
                       <Input type="number" value={newTable.capacity} onChange={(e: any) => setNewTable({...newTable, capacity: parseInt(e.target.value)})} />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold uppercase text-[10px] text-gray-400">Ghi chú bàn</Label>
+                    <Input placeholder="Vd: Gần cửa sổ..." value={newTable.note} onChange={(e: any) => setNewTable({...newTable, note: e.target.value})} />
+                  </div>
                   <Button className="w-full bg-orange-600 font-bold h-12" onClick={handleAddTable}>XÁC NHẬN TẠO BÀN</Button>
                 </div>
               </DialogContent>
@@ -336,6 +354,10 @@ export function OwnerTables() {
                                       onDelete={() => handleDelete(table.id)}
                                       onShowQR={() => setActiveQRTable(table)}
                                       onUpdateStatus={handleUpdateStatus}
+                                      onEdit={(t) => {
+                                          setEditingTable(t);
+                                          setIsEditOpen(true);
+                                      }}
                                   />
                                 ))}
                              </div>
@@ -378,6 +400,10 @@ export function OwnerTables() {
                                         onUpdateStatus={handleUpdateStatus}
                                         onShowQR={(table: any) => setActiveQRTable(table)}
                                         onDelete={(id: string) => handleDelete(id)}
+                                        onEdit={(t: any) => {
+                                            setEditingTable(t);
+                                            setIsEditOpen(true);
+                                        }}
                                     />
                                 </div>
                             )}
@@ -414,6 +440,52 @@ export function OwnerTables() {
           </DialogContent>
       </Dialog>
 
+      {/* EDIT MODAL */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle className="font-bold uppercase tracking-tight">Chỉnh sửa thông tin bàn</DialogTitle>
+              </DialogHeader>
+              {editingTable && (
+                  <div className="space-y-6 py-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-gray-400">Số bàn / Tên bàn</Label>
+                        <Input value={editingTable.tableNumber} onChange={(e: any) => setEditingTable({...editingTable, tableNumber: e.target.value})} />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-gray-400">Số chỗ ngồi</Label>
+                            <Input type="number" value={editingTable.capacity} onChange={(e: any) => setEditingTable({...editingTable, capacity: parseInt(e.target.value)})} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-gray-400">Khu vực</Label>
+                            <Select
+                                value={editingTable.zoneId || "none"}
+                                onValueChange={(val: any) => setEditingTable({...editingTable, zoneId: val === "none" ? null : val})}
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">Chung</SelectItem>
+                                    {allZones.filter(z => z.branchId === editingTable.branchId).map(z => (
+                                        <SelectItem key={z.id} value={z.id}>{z.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                          </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-gray-400">Ghi chú bàn</Label>
+                        <Input placeholder="Vd: Gần cửa sổ, view đẹp..." value={editingTable.note || ""} onChange={(e: any) => setEditingTable({...editingTable, note: e.target.value})} />
+                      </div>
+
+                      <Button className="w-full bg-orange-600 font-bold h-12 shadow-lg shadow-orange-100" onClick={handleUpdateTable}>LƯU THAY ĐỔI</Button>
+                  </div>
+              )}
+          </DialogContent>
+      </Dialog>
+
       {!loading && tables.length === 0 && (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
               <p className="text-gray-400 font-bold">Chưa có bàn nào. Hãy nhấn "Thêm bàn" để bắt đầu.</p>
@@ -423,7 +495,7 @@ export function OwnerTables() {
   );
 }
 
-function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete }: any) {
+function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete, onEdit }: any) {
     const mapRef = useRef<HTMLDivElement>(null);
     const [draggingTable, setDraggingTable] = useState<any>(null);
 
@@ -518,7 +590,15 @@ function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete
 
                     {/* Các nút bấm: Có thể làm mờ hoặc ẩn khi dừng nếu cần */}
                     <div className="flex justify-center gap-1 mt-3">
-                        <button 
+                        <button
+                            onClick={() => onEdit(t)}
+                            className={`p-1.5 rounded-lg ${
+                                t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-50 hover:bg-gray-100'
+                            }`}
+                        >
+                            <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button
                             onClick={() => onShowQR(t)} 
                             className={`p-1.5 rounded-lg ${
                                 t.status === 'Occupied' ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-50 hover:bg-gray-100'
@@ -545,21 +625,31 @@ function TableMap({ tables, onUpdatePosition, onUpdateStatus, onShowQR, onDelete
     );
 }
 
-function TableCard({ table, onDelete, onShowQR, onUpdateStatus }: { table: any, onDelete: () => void, onShowQR: () => void, onUpdateStatus: (id: string, s: string) => void }) {
+function TableCard({ table, onDelete, onShowQR, onUpdateStatus, onEdit }: { table: any, onDelete: () => void, onShowQR: () => void, onUpdateStatus: (id: string, s: string) => void, onEdit: (t: any) => void }) {
   return (
     <Card className="group hover:shadow-xl transition-all border-none bg-white shadow-sm overflow-hidden relative">
       <div className={`h-1.5 w-full ${table.status === 'Occupied' ? 'bg-orange-600' : 'bg-green-500'}`}></div>
       <CardContent className="p-5 text-center">
-        <button onClick={onDelete} className="absolute top-2 right-2 p-1 text-gray-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={() => onEdit(table)} className="p-1 text-gray-400 hover:text-blue-500">
+                <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={onDelete} className="p-1 text-gray-400 hover:text-red-500">
+                <Trash2 className="w-3.5 h-3.5" />
+            </button>
+        </div>
         <div className="text-3xl mb-2 cursor-pointer" onClick={() => onUpdateStatus && onUpdateStatus(table.id, table.status)}>{table.status === 'Occupied' ? '🔥' : '🪑'}</div>
         <div className="font-black text-xl text-gray-900">{table.tableNumber}</div>
-        <div className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-1 mb-4 font-bold uppercase tracking-tighter">
+        <div className="flex items-center justify-center gap-1 text-xs text-gray-400 mt-1 font-bold uppercase tracking-tighter">
           <Users className="w-3 h-3" /> {table.capacity} chỗ
         </div>
+        {table.note && (
+            <div className="text-[10px] text-gray-400 italic mt-1 line-clamp-1">
+                {table.note}
+            </div>
+        )}
 
-        <Button variant="outline" onClick={onShowQR} className="w-full border-orange-100 text-orange-600 hover:bg-orange-50 font-bold h-9 text-[10px] gap-2 uppercase tracking-widest">
+        <Button variant="outline" onClick={onShowQR} className="w-full border-orange-100 text-orange-600 hover:bg-orange-50 font-bold h-9 text-[10px] gap-2 uppercase tracking-widest mt-4">
           <QrCode className="w-3.5 h-3.5" /> Xem mã QR
         </Button>
       </CardContent>

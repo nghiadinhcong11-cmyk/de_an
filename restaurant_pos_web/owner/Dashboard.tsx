@@ -8,7 +8,7 @@ import { Button } from "../components/ui/button";
 import api from "../services/api";
 
 export function OwnerDashboard() {
-  const [timeRange, setTimeRange] = useState("today"); // today, week, month
+  const [timeRange, setTimeRange] = useState("month"); // today, week, month
   const [loading, setLoading] = useState(true);
 
   // Data States
@@ -160,8 +160,22 @@ export function OwnerDashboard() {
                     </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey={timeRange === 'month' ? 'month' : 'date'} axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold', fill: '#94a3b8'}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
+                <XAxis
+                    dataKey={timeRange === 'month' ? 'month' : 'date'}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{fontSize: 10, fontWeight: 'bold', fill: '#94a3b8'}}
+                    tickFormatter={(value) => {
+                        if (timeRange === 'month') return value;
+                        return value; // value is already formatted like "12/06" from backend
+                    }}
+                />
+                <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{fontSize: 10, fill: '#94a3b8'}}
+                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                />
                 <Tooltip
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
                 />

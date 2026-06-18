@@ -293,22 +293,34 @@ export function CustomerBooking() {
 
                                       <div className="grid grid-cols-4 gap-3">
                                           {zoneTables.map(table => (
-                                              <button
-                                                  key={table.id}
-                                                  type="button"
-                                                  disabled={table.status === 'Occupied'}
-                                                  onClick={() => handleSelectTable(table.id, table.status)}
-                                                  className={`relative h-14 rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
-                                                      form.tableId === table.id
-                                                      ? 'border-brand-accent bg-brand-accent text-white scale-110 shadow-2xl shadow-brand-accent/40'
-                                                      : table.status === 'Occupied'
-                                                          ? 'border-white/5 bg-white/5 opacity-20 cursor-not-allowed'
-                                                          : 'border-white/10 bg-white/10 hover:border-brand-accent/50 text-white font-bold'
-                                                  }`}
-                                              >
-                                                  <Armchair className="w-4 h-4 mb-1" />
-                                                  <span className="font-black text-xs">{table.tableNumber}</span>
-                                              </button>
+                                              <div key={table.id} className="relative group/table">
+                                                  <button
+                                                      type="button"
+                                                      disabled={table.status === 'Occupied'}
+                                                      onClick={() => handleSelectTable(table.id, table.status)}
+                                                      className={`w-full h-14 rounded-xl flex flex-col items-center justify-center transition-all border-2 ${
+                                                          form.tableId === table.id
+                                                          ? 'border-brand-accent bg-brand-accent text-white scale-110 shadow-2xl shadow-brand-accent/40'
+                                                          : table.status === 'Occupied'
+                                                              ? 'border-white/5 bg-white/5 opacity-20 cursor-not-allowed'
+                                                              : 'border-white/10 bg-white/10 hover:border-brand-accent/50 text-white font-bold'
+                                                      }`}
+                                                  >
+                                                      <Armchair className="w-4 h-4 mb-1" />
+                                                      <span className="font-black text-xs">{table.tableNumber}</span>
+                                                  </button>
+
+                                                  {/* Tooltip Description */}
+                                                  {table.note && (
+                                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 p-4 bg-white text-brand-dark rounded-2xl shadow-2xl opacity-0 invisible group-hover/table:opacity-100 group-hover/table:visible transition-all duration-300 z-50 pointer-events-none">
+                                                          <div className="text-[10px] font-black uppercase tracking-widest text-brand-accent mb-1 flex items-center gap-2">
+                                                              <Info className="w-3 h-3" /> Đặc điểm bàn
+                                                          </div>
+                                                          <p className="text-xs font-bold leading-relaxed">{table.note}</p>
+                                                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 bg-white rotate-45"></div>
+                                                      </div>
+                                                  )}
+                                              </div>
                                           ))}
                                       </div>
                                   </div>

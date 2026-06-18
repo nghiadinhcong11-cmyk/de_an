@@ -76,6 +76,7 @@ public class TablesController : ControllerBase
                 t.TableNumber,
                 t.Capacity,
                 t.Status,
+                t.Note,
                 t.PosX,
                 t.PosY,
                 ZoneName = t.Zone?.Name ?? "Chung",
@@ -145,6 +146,21 @@ public class TablesController : ControllerBase
                 inner = ex.InnerException?.Message
             });
         }
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] DiningTable updateData)
+    {
+        var table = await _context.DiningTables.FindAsync(id);
+        if (table == null) return NotFound();
+
+        table.TableNumber = updateData.TableNumber;
+        table.Capacity = updateData.Capacity;
+        table.Note = updateData.Note;
+        table.ZoneId = updateData.ZoneId == Guid.Empty ? null : updateData.ZoneId;
+
+        await _context.SaveChangesAsync();
+        return Ok(table);
     }
 
     [HttpPut("{id}/position")]
