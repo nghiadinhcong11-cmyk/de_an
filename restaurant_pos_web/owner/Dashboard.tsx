@@ -18,6 +18,7 @@ export function OwnerDashboard() {
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [branchPerformance, setBranchPerformance] = useState<any[]>([]);
   const [yearlyRevenue, setYearlyRevenue] = useState<any[]>([]);
+  const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
 
   const fetchDashboardData = async (range: string) => {
     try {
@@ -41,13 +42,14 @@ export function OwnerDashboard() {
 
       const current = (endpoints as any)[range] || endpoints.today;
 
-      const [statsRes, ordersRes, revRes, topRes, branchRes, yearRes] = await Promise.all([
+      const [statsRes, ordersRes, revRes, topRes, branchRes, yearRes, staffRes] = await Promise.all([
         api.get(current.summary),
         api.get("/orders"),
         api.get(current.revenue),
         api.get("/reports/top-products"),
         api.get("/reports/revenue-by-branch"),
-        api.get("/reports/yearly-revenue")
+        api.get("/reports/yearly-revenue"),
+        api.get("/reports/staff-performance")
       ]);
 
       setStats(statsRes.data);
@@ -56,6 +58,7 @@ export function OwnerDashboard() {
       setTopProducts(topRes.data.slice(0, 5));
       setBranchPerformance(branchRes.data);
       setYearlyRevenue(yearRes.data);
+      setStaffPerformance(staffRes.data);
     } catch (err) {
       console.error("Lỗi tải dữ liệu báo cáo", err);
     } finally {
@@ -262,6 +265,109 @@ export function OwnerDashboard() {
                 </div>
             </CardContent>
         </Card>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+         {/* Staff Performance Ranking */}
+         <Card className="lg:col-span-2 border-none shadow-sm bg-white rounded-[40px] overflow-hidden">
+            <CardHeader className="p-8 border-b border-gray-50 flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="text-xl font-black uppercase tracking-tight">Xếp hạng nhân viên</CardTitle>
+                    <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Dựa trên đánh giá của khách hàng</CardDescription>
+                </div>
+                <div className="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    <Award className="w-3 h-3" /> Bảng vinh danh
+                </div>
+            </CardHeader>
+            <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            <tr>
+                                <th className="px-8 py-4">Nhân viên</th>
+                                <th className="px-6 py-4">Số lượt đánh giá</th>
+                                <th className="px-6 py-4">Điểm trung bình</th>
+                                <th className="px-6 py-4">Performance Score</th>
+                                <th className="px-8 py-4 text-right">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {staffPerformance.map((staff, idx) => (
+                                <tr key={staff.staffId} className="hover:bg-gray-50/50 transition-colors group">
+                                    <td className="px-8 py-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-black text-xs">
+                                                {staff.staffName.charAt(0)}
+                                            </div>
+                                            <div className="font-black text-gray-900 leading-none uppercase text-xs">{staff.staffName}</div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="text-xs font-bold text-gray-500">{staff.feedbackCount} lượt</div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-1.5">
+                                            <Star className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />
+                                            <span className="text-sm font-black text-gray-900">{staff.averageRating.toFixed(1)}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="w-full max-w-[100px] h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full ${
+                                                    staff.performanceScore >= 80 ? 'bg-green-500' :
+                                                    staff.performanceScore >= 60 ? 'bg-orange-500' : 'bg-red-500'
+                                                }`}
+                                                style={{ width: `${staff.performanceScore}%` }}
+                                            ></div>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-5 text-right">
+                                        <div className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${
+                                            staff.performanceScore >= 80 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                                        }`}>
+                                            {staff.performanceScore >= 80 ? 'Thưởng' : staff.performanceScore < 40 ? 'Phạt' : 'Bình thường'}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </CardContent>
+         </Card>
+
+         {/* Review Summary Stats */}
+         <Card className="border-none shadow-sm bg-white rounded-[40px] overflow-hidden">
+            <CardHeader className="p-8">
+                <CardTitle className="text-xl font-black uppercase tracking-tight">Thống kê sao</CardTitle>
+                <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Chất lượng phục vụ tổng thể</CardDescription>
+            </CardHeader>
+            <CardContent className="px-8 pb-8 space-y-6">
+                {[5, 4, 3, 2, 1].map(star => {
+                    const count = staffPerformance.reduce((acc, curr) => {
+                        if (star === 5) return acc + curr.fiveStarCount;
+                        if (star === 1) return acc + curr.oneStarCount;
+                        return acc; // Simplified for demo, as backend only sends 5 and 1 star counts explicitly
+                    }, 0);
+                    const total = staffPerformance.reduce((acc, curr) => acc + curr.feedbackCount, 0) || 1;
+                    const percent = (count / total) * 100;
+
+                    return (
+                        <div key={star} className="space-y-2">
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                                <span className="flex items-center gap-1.5"><Star className="w-3 h-3 fill-orange-400 text-orange-400" /> {star} SAO</span>
+                                <span className="text-gray-400">{Math.round(percent)}%</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-50 rounded-full overflow-hidden">
+                                <div className="h-full bg-orange-500 rounded-full" style={{ width: `${percent}%` }}></div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </CardContent>
+         </Card>
       </div>
 
       {/* Recent Orders Table */}

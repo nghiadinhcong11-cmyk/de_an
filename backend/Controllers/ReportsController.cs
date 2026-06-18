@@ -211,4 +211,44 @@ public class ReportsController : ControllerBase
 
         return Ok(report);
     }
+
+    // 8. Thống kê hiệu suất nhân viên (Đánh giá từ khách hàng)
+    [HttpGet("staff-performance")]
+    public async Task<IActionResult> GetStaffPerformance()
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+
+        var performance = await _context.Feedbacks
+            .Where(f => f.RestaurantId == restaurantId && f.StaffId != null)
+            .GroupBy(f => f.StaffId)
+            .Select(g => new
+            {
+                StaffId = g.Key,
+                AverageRating = (double)g.Average(f => f.ServiceRating),
+                FeedbackCount = g.Count(),
+                FiveStarCount = g.Count(f => f.ServiceRating == 5),
+                OneStarCount = g.Count(f => f.ServiceRating == 1)
+            })
+            .ToListAsync();
+
+        var staffIds = performance.Select(p => p.StaffId!.Value).ToList();
+        var staffNames = await _context.Users
+            .Where(u => staffIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+        var result = performance.Select(p => new
+        {
+            p.StaffId,
+            StaffName = staffNames.GetValueOrDefault(p.StaffId!.Value, "Ẩn danh"),
+            p.AverageRating,
+            p.FeedbackCount,
+            p.FiveStarCount,
+            p.OneStarCount,
+            PerformanceScore = Math.Round(p.AverageRating * 20, 1) // Quy ra thang điểm 100
+        })
+        .OrderByDescending(x => x.AverageRating)
+        .ToList();
+
+        return Ok(result);
+    }
 }

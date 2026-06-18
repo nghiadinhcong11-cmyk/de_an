@@ -8,6 +8,7 @@ public class Feedback : BaseEntity
     public Guid? CustomerId { get; set; } // Optional: link to customer
     public Guid? OrderId { get; set; }    // Optional: link to specific order
     public Guid? BranchId { get; set; }
+    public Guid? StaffId { get; set; }   // Link to staff being rated
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string? TableNumber { get; set; }

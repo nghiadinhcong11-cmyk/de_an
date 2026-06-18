@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Clock, CheckCircle, XCircle, Loader2, Bell } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Loader2, Bell, Star, Award, TrendingUp } from "lucide-react";
 import api from "../services/api";
 import * as signalR from "@microsoft/signalr";
 
@@ -11,15 +11,18 @@ export function EmployeeOrders() {
   const [requests, setRequests] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
 
   const fetchData = async () => {
     try {
-      const [reqRes, orderRes] = await Promise.all([
+      const [reqRes, orderRes, staffRes] = await Promise.all([
         api.get("/orders/pending-requests"),
-        api.get("/orders")
+        api.get("/orders"),
+        api.get("/reports/staff-performance")
       ]);
       setRequests(reqRes.data);
       setOrders(orderRes.data);
+      setStaffPerformance(staffRes.data.slice(0, 5));
     } catch (err) {
       console.error("Lỗi tải đơn hàng");
     } finally {
@@ -95,7 +98,78 @@ export function EmployeeOrders() {
             {requests.length > 0 && <Badge className="bg-orange-600 text-white border-none h-5 min-w-5 flex items-center justify-center p-0 text-[10px]">{requests.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="active" className="flex-1 sm:flex-none px-8 font-bold rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">Đang phục vụ</TabsTrigger>
+          <TabsTrigger value="ranking" className="flex-1 sm:flex-none gap-2 px-8 font-bold rounded-xl data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+            <Star className="w-4 h-4 text-orange-400 fill-orange-400" /> Bảng xếp hạng
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ranking">
+            <Card className="border-none shadow-xl rounded-[40px] overflow-hidden bg-white">
+                <CardHeader className="p-8 border-b border-gray-50 bg-gray-900 text-white">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                                <Award className="w-6 h-6 text-orange-500" /> Top Nhân Viên Xuất Sắc
+                            </CardTitle>
+                            <CardDescription className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mt-1">Dựa trên điểm sao đánh giá từ khách hàng</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                <tr>
+                                    <th className="px-8 py-4">Thứ hạng</th>
+                                    <th className="px-8 py-4">Nhân viên</th>
+                                    <th className="px-6 py-4">Đánh giá TB</th>
+                                    <th className="px-6 py-4">Tổng lượt</th>
+                                    <th className="px-8 py-4 text-right">Thành tích</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {staffPerformance.map((staff, idx) => (
+                                    <tr key={staff.staffId} className="hover:bg-gray-50/50 transition-colors group">
+                                        <td className="px-8 py-5">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${
+                                                idx === 0 ? 'bg-orange-500 text-white' :
+                                                idx === 1 ? 'bg-gray-300 text-gray-700' :
+                                                idx === 2 ? 'bg-orange-200 text-orange-800' : 'bg-gray-100 text-gray-400'
+                                            }`}>
+                                                {idx + 1}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-900">
+                                                    {staff.staffName.charAt(0)}
+                                                </div>
+                                                <div className="font-black text-gray-900 uppercase text-xs">{staff.staffName}</div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-1.5">
+                                                <Star className="w-4 h-4 fill-orange-400 text-orange-400" />
+                                                <span className="text-sm font-black text-gray-900">{staff.averageRating.toFixed(1)}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-xs font-bold text-gray-500">
+                                            {staff.feedbackCount} lượt
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <div className="flex justify-end gap-1">
+                                                {idx === 0 && <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg"><Award className="w-4 h-4" /></div>}
+                                                {staff.performanceScore >= 90 && <div className="bg-green-100 text-green-600 p-1.5 rounded-lg"><TrendingUp className="w-4 h-4" /></div>}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
 
         <TabsContent value="requests">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

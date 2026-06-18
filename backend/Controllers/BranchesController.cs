@@ -31,36 +31,41 @@ public class BranchesController : ControllerBase
             query = query.Where(b => b.RestaurantId == restaurantId.Value);
         }
 
-        var branches = await query
-            .Select(b => new BranchDto
-            {
-                Id = b.Id,
-                RestaurantId = b.RestaurantId,
-                Name = b.Name,
-                Address = b.Address,
-                Phone = b.Phone,
-                IsActive = b.IsActive
-            })
-            .ToListAsync();
+        var branches = await query.ToListAsync();
 
         if (branches.Count == 0)
         {
             branches = await _context.Branches
                 .Where(b => b.IsActive)
                 .Take(10)
-                .Select(b => new BranchDto
-                {
-                    Id = b.Id,
-                    RestaurantId = b.RestaurantId,
-                    Name = b.Name,
-                    Address = b.Address,
-                    Phone = b.Phone,
-                    IsActive = b.IsActive
-                })
                 .ToListAsync();
         }
 
-        return Ok(branches);
+        // Tính toán rating trung bình cho từng chi nhánh dựa trên Feedbacks
+        var branchIds = branches.Select(b => b.Id).ToList();
+        var ratings = await _context.Feedbacks
+            .Where(f => branchIds.Contains(f.BranchId ?? Guid.Empty))
+            .GroupBy(f => f.BranchId)
+            .Select(g => new
+            {
+                BranchId = g.Key,
+                AverageRating = (double)g.Average(f => f.ServiceRating),
+                ReviewCount = g.Count()
+            })
+            .ToDictionaryAsync(x => x.BranchId, x => new { x.AverageRating, x.ReviewCount });
+
+        var result = branches.Select(b => new {
+            b.Id,
+            b.RestaurantId,
+            b.Name,
+            b.Address,
+            b.Phone,
+            b.IsActive,
+            AverageRating = ratings.ContainsKey(b.Id) ? ratings[b.Id].AverageRating : 5.0,
+            ReviewCount = ratings.ContainsKey(b.Id) ? ratings[b.Id].ReviewCount : 0
+        }).ToList();
+
+        return Ok(result);
     }
 
     [Authorize]

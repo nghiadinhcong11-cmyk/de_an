@@ -150,6 +150,11 @@ export function CustomerWelcome() {
                           <Store className="w-5 h-5" />
                         </div>
                         <h3 className="text-3xl font-black tracking-tighter uppercase">{branch.name}</h3>
+                        <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 ml-auto">
+                           <Star className="w-3.5 h-3.5 fill-brand-accent text-brand-accent" />
+                           <span className="text-xs font-black text-white">{branch.averageRating?.toFixed(1) || "5.0"}</span>
+                           <span className="text-[9px] font-bold text-gray-400">({branch.reviewCount || 0})</span>
+                        </div>
                       </div>
                       <div className="flex items-start gap-3 text-gray-300 mb-8 max-w-sm">
                         <MapPin className="w-5 h-5 text-brand-accent shrink-0" />

@@ -79,6 +79,7 @@ public class FeedbacksController : ControllerBase
                     feedback.OrderNumber = order.OrderNumber;
                     feedback.InvoiceId = order.OrderNumber;
                     feedback.TableNumber = order.Table?.TableNumber;
+                    feedback.StaffId = order.CreatedByUserId;
                     if (feedback.CustomerId == null)
                     {
                         feedback.CustomerId = order.CustomerId;

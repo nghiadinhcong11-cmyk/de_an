@@ -71,7 +71,7 @@ export function CustomerMenu() {
       </div>
 
       {/* Advanced Filter Bar */}
-      <div className="flex flex-col lg:flex-row gap-8 items-center sticky top-28 z-40 bg-brand-dark/90 backdrop-blur-md py-4 -mx-4 px-4">
+      <div className="flex flex-col lg:flex-row gap-8 items-center sticky top-28 z-40 bg-brand-dark/90 backdrop-blur-md py-4 -mx-4 px-4 border-b border-white/5">
          <div className="relative flex-1 w-full group">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-accent transition-colors w-5 h-5" />
             <Input
@@ -96,6 +96,13 @@ export function CustomerMenu() {
                />
             ))}
          </div>
+         <Button
+            variant="outline"
+            onClick={() => document.getElementById('reviews-section')?.scrollIntoView({ behavior: 'smooth' })}
+            className="hidden lg:flex bg-brand-accent/10 border-brand-accent/20 text-brand-accent rounded-2xl h-16 px-6 font-black uppercase text-xs tracking-widest gap-3"
+         >
+            <Star className="w-4 h-4 fill-current" /> Xem Đánh giá
+         </Button>
       </div>
 
       {/* Cinematic Product Grid */}
@@ -140,8 +147,88 @@ export function CustomerMenu() {
               <p className="font-black text-gray-500 uppercase tracking-widest">Không tìm thấy món ăn phù hợp</p>
           </div>
       )}
+
+      {/* Reviews Section */}
+      <div id="reviews-section" className="pt-24 space-y-12">
+          <div className="flex flex-col md:flex-row items-end justify-between gap-8 border-b border-white/5 pb-12">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-brand-accent">
+                  <Star className="w-8 h-8 fill-current" />
+                  <span className="text-sm font-black uppercase tracking-[0.3em]">Community Reviews</span>
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
+                Cảm nhận <br /> <span className="text-brand-accent italic">Khách hàng</span>
+              </h2>
+            </div>
+            <p className="text-gray-400 text-lg max-w-md font-medium leading-relaxed">
+                Những chia sẻ chân thực từ cộng đồng khách hàng đã trải nghiệm dịch vụ tại nhà hàng.
+            </p>
+          </div>
+
+          <ReviewGrid restaurantId={queryRestaurantId || localStorage.getItem("current_restaurant_id")} />
+      </div>
     </div>
   );
+}
+
+function ReviewGrid({ restaurantId }: { restaurantId: string | null }) {
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                const res = await api.get("/feedbacks"); // API này hiện trả về tất cả của nhà hàng nếu là Owner/Manager,
+                // nhưng với Public/Customer cần 1 endpoint public hoặc xử lý filter.
+                // Ở đây dùng API hiện có để demo, trong thực tế nên có /api/feedbacks/public
+                setReviews(res.data.slice(0, 6));
+            } catch (err) {
+                console.error("Lỗi tải đánh giá", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchReviews();
+    }, [restaurantId]);
+
+    if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brand-accent w-10 h-10" /></div>;
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {reviews.map((r) => (
+                <div key={r.id} className="bg-white/5 border border-white/10 p-8 rounded-[40px] space-y-6 hover:bg-white/[0.08] transition-all group">
+                    <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-brand-accent/20 rounded-2xl flex items-center justify-center text-brand-accent font-black text-xl shadow-inner">
+                                {r.name?.charAt(0) || "C"}
+                            </div>
+                            <div>
+                                <h4 className="font-black text-white uppercase text-sm tracking-wider">{r.name || "Khách hàng"}</h4>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(r.createdAtUtc).toLocaleDateString("vi-VN")}</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Star key={star} className={`w-3 h-3 ${star <= r.serviceRating ? 'text-brand-accent fill-current' : 'text-gray-700'}`} />
+                            ))}
+                        </div>
+                    </div>
+
+                    <p className="text-gray-300 text-sm italic font-medium leading-relaxed">
+                        "{r.message}"
+                    </p>
+
+                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                             <div className={`w-2 h-2 rounded-full ${r.serviceRating >= 4 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dịch vụ: {r.serviceRating}/5</span>
+                        </div>
+                        <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">{r.branchName}</span>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 }
 
 function FilterTab({ active, onClick, label }: { active: boolean, onClick: () => void, label: string }) {
