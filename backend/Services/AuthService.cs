@@ -87,6 +87,7 @@ public class AuthService : IAuthService
             var token = GenerateJwtToken(user.Id, user.Username, userRole, user.RestaurantId, user.BranchId);
             return new LoginResponse
             {
+                Id = user.Id,
                 Token = token,
                 Username = user.Username,
                 FullName = user.FullName,
@@ -104,6 +105,7 @@ public class AuthService : IAuthService
              var token = GenerateJwtToken(customer.Id, customer.PhoneNumber, "Customer", customer.RestaurantId, null);
              return new LoginResponse
              {
+                 Id = customer.Id,
                  Token = token,
                  Username = customer.PhoneNumber,
                  FullName = customer.FullName,

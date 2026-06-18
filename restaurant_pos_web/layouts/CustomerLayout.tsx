@@ -175,24 +175,31 @@ export default function CustomerLayout() {
         </div>
       </footer>
 
-      {/* Floating Modern Bottom Nav for Mobile */}
-      <nav className="md:hidden fixed bottom-8 left-8 right-8 h-20 bg-brand-dark/95 backdrop-blur-2xl rounded-[32px] flex items-center justify-around px-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/10">
-        {filteredNavItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-                key={item.path}
-                to={item.path}
-                className={`relative flex flex-col items-center gap-1 transition-all duration-500 ${isActive ? "text-brand-accent scale-125" : "text-gray-400"}`}
-            >
-              <item.icon className="w-7 h-7" strokeWidth={2.5} />
-              {isActive && (
-                <div className="absolute -top-3 w-1.5 h-1.5 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></div>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+          <nav className="md:hidden fixed bottom-8 left-8 right-8 h-20 bg-brand-dark/95 backdrop-blur-2xl rounded-[32px] flex items-center justify-around px-4 z-50 shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-white/10">
+            {filteredNavItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`relative flex flex-col items-center gap-1 transition-all duration-500 ${isActive ? "text-brand-accent scale-125" : "text-gray-400"}`}
+                >
+                  <item.icon className="w-7 h-7" strokeWidth={2.5} />
+                  {isActive && (
+                    <div className="absolute -top-3 w-1.5 h-1.5 bg-brand-accent rounded-full shadow-[0_0_10px_#F97316]"></div>
+                  )}
+                </Link>
+              );
+            })}
+            {user.fullName && (
+              <button
+                onClick={handleLogout}
+                className="flex flex-col items-center gap-1 text-gray-400 hover:text-red-500 transition-all"
+              >
+                <LogOut className="w-7 h-7" strokeWidth={2.5} />
+              </button>
+            )}
+          </nav>
     </div>
   );
 }

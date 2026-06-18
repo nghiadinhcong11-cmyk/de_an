@@ -8,8 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Link } from "react-router-dom";
-import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save, KeyRound, Star, MessageSquare, Utensils, DollarSign, Home, Users, CheckCircle, Calendar, ChevronRight, Store, Timer, MapPin, Layers } from "lucide-react";
+import { Gift, ShoppingBag, Loader2, Coins, PlusCircle, MinusCircle, Clock, Edit2, Save, KeyRound, Star, MessageSquare, Utensils, DollarSign, Home, Users, CheckCircle, Calendar, ChevronRight, Store, Timer, MapPin, Layers, LogOut } from "lucide-react";
 import api from "../services/api";
+import { authApi } from "../services/authApi";
 
 export function CustomerProfile() {
   const [profile, setProfile] = useState<any>(null);
@@ -172,6 +173,15 @@ export function CustomerProfile() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <Button
+              onClick={() => { if (confirm("Bạn có chắc chắn muốn đăng xuất?")) authApi.logout(); }}
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-red-500/20 hover:text-red-500 rounded-2xl w-12 h-12"
+              title="Đăng xuất"
+            >
+              <LogOut className="w-6 h-6" />
+            </Button>
           </div>
         </div>
 

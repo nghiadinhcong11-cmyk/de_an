@@ -6,6 +6,7 @@ import 'order_requests_screen.dart';
 import 'tables_screen.dart';
 import 'orders_list_screen.dart';
 import 'pos_screen.dart';
+import 'ranking_screen.dart';
 import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -23,6 +24,7 @@ class _MainScreenState extends State<MainScreen> {
     const OrdersListScreen(),
     const POSScreen(),
     const OrderRequestsScreen(),
+    const RankingScreen(),
     const ProfileScreen(),
   ];
 
@@ -46,7 +48,7 @@ class _MainScreenState extends State<MainScreen> {
     final user = authProvider.user;
 
     return Scaffold(
-      appBar: _selectedIndex == 4 ? null : AppBar(
+      appBar: _selectedIndex >= 4 ? null : AppBar(
         toolbarHeight: 80,
         title: Padding(
           padding: const EdgeInsets.only(top: 8),
@@ -126,6 +128,7 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.list_alt_rounded)), label: 'ĐƠN HÀNG'),
             BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.add_circle_outline_rounded, size: 28)), label: 'POS'),
             BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.notifications_active_outlined)), label: 'YÊU CẦU'),
+            BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.emoji_events_outlined)), label: 'XẾP HẠNG'),
             BottomNavigationBarItem(icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.person_2_outlined)), label: 'HỒ SƠ'),
           ],
         ),
