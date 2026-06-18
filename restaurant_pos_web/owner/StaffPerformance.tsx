@@ -11,6 +11,7 @@ export function StaffPerformance() {
   const [performance, setPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all"); // "all", "excellent", "stable", "warning"
 
   const fetchData = async () => {
     try {
@@ -28,9 +29,13 @@ export function StaffPerformance() {
     fetchData();
   }, []);
 
-  const filteredPerformance = performance.filter(p =>
-    p.staffName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPerformance = performance.filter(p => {
+    const matchesSearch = p.staffName.toLowerCase().includes(searchTerm.toLowerCase());
+    if (filterType === "excellent") return matchesSearch && p.averageRating >= 4.7;
+    if (filterType === "stable") return matchesSearch && p.averageRating >= 3.5 && p.averageRating < 4.7;
+    if (filterType === "warning") return matchesSearch && p.averageRating < 3.5;
+    return matchesSearch;
+  });
 
   if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-10 h-10" /></div>;
 
@@ -154,9 +159,20 @@ export function StaffPerformance() {
                         onChange={(e: any) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Button variant="outline" className="h-11 rounded-xl border-gray-100 px-4">
-                    <Filter className="w-4 h-4 mr-2" /> Lọc
-                </Button>
+                <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100">
+                    <button
+                        onClick={() => setFilterType("all")}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${filterType === 'all' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-400'}`}
+                    >Tất cả</button>
+                    <button
+                        onClick={() => setFilterType("excellent")}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${filterType === 'excellent' ? 'bg-white shadow-sm text-green-600' : 'text-gray-400'}`}
+                    >Ưu tú</button>
+                    <button
+                        onClick={() => setFilterType("warning")}
+                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${filterType === 'warning' ? 'bg-white shadow-sm text-red-600' : 'text-gray-400'}`}
+                    >Cảnh báo</button>
+                </div>
             </div>
         </CardHeader>
         <CardContent className="p-0">

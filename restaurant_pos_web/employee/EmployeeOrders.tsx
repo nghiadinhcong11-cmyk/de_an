@@ -129,7 +129,7 @@ export function EmployeeOrders() {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {staffPerformance.map((staff, idx) => (
-                                    <tr key={staff.staffId} className="hover:bg-gray-50/50 transition-colors group">
+                                    <tr key={staff.staffId || idx} className="hover:bg-gray-50/50 transition-colors group">
                                         <td className="px-8 py-5">
                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${
                                                 idx === 0 ? 'bg-orange-500 text-white' :
@@ -142,24 +142,29 @@ export function EmployeeOrders() {
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-900">
-                                                    {staff.staffName.charAt(0)}
+                                                    {staff.staffName?.charAt(0) || '?'}
                                                 </div>
-                                                <div className="font-black text-gray-900 uppercase text-xs">{staff.staffName}</div>
+                                                <div>
+                                                    <div className="font-black text-gray-900 uppercase text-xs">{staff.staffName}</div>
+                                                    {staff.staffId === JSON.parse(localStorage.getItem("user") || "{}").id && (
+                                                        <div className="text-[8px] font-black text-orange-600 uppercase">Bạn</div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex items-center gap-1.5">
                                                 <Star className="w-4 h-4 fill-orange-400 text-orange-400" />
-                                                <span className="text-sm font-black text-gray-900">{staff.averageRating.toFixed(1)}</span>
+                                                <span className="text-sm font-black text-gray-900">{staff.averageRating?.toFixed(1) || '0.0'}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-xs font-bold text-gray-500">
-                                            {staff.feedbackCount} lượt
+                                            {staff.feedbackCount || 0} lượt
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex justify-end gap-1">
                                                 {idx === 0 && <div className="bg-orange-100 text-orange-600 p-1.5 rounded-lg"><Award className="w-4 h-4" /></div>}
-                                                {staff.performanceScore >= 90 && <div className="bg-green-100 text-green-600 p-1.5 rounded-lg"><TrendingUp className="w-4 h-4" /></div>}
+                                                {staff.averageRating >= 4.7 && <div className="bg-green-100 text-green-600 p-1.5 rounded-lg"><TrendingUp className="w-4 h-4" /></div>}
                                             </div>
                                         </td>
                                     </tr>

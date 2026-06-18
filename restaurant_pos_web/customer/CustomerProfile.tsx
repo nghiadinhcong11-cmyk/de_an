@@ -253,7 +253,14 @@ export function CustomerProfile() {
                            {item.order.status === 'Completed' && !item.order.isReviewed && (
                              <Button
                                 onClick={() => {
-                                    setExpandedOrderForFeedback(item.order);
+                                    // Đảm bảo các thông tin cơ bản được truyền vào modal
+                                    const orderWithDetails = {
+                                        ...item.order,
+                                        createdAtUtc: item.order.createdAtUtc || item.createdAtUtc,
+                                        branchName: item.order.branchName || "Chi nhánh hệ thống",
+                                        tableNumber: item.order.tableNumber || null
+                                    };
+                                    setExpandedOrderForFeedback(orderWithDetails);
                                     setIsFeedbackDialogOpen(true);
                                 }}
                                 className="group relative overflow-hidden w-full h-14 bg-brand-accent hover:bg-orange-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-brand-accent/20 transition-all"
@@ -266,8 +273,20 @@ export function CustomerProfile() {
                            )}
 
                            {item.order.isReviewed && (
-                             <div className="flex items-center justify-center gap-2 py-4 text-xs font-black text-green-500 uppercase tracking-widest bg-green-500/5 rounded-2xl border border-green-500/10">
-                                <CheckCircle className="w-4 h-4" /> Đã gửi đánh giá thành công
+                             <div className="space-y-4 bg-green-500/5 p-6 rounded-3xl border border-green-500/10">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-xs font-black text-green-500 uppercase tracking-widest">
+                                        <CheckCircle className="w-4 h-4" /> Đã gửi đánh giá
+                                    </div>
+                                    <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <Star key={s} className={`w-3 h-3 ${s <= (item.order.rating || 5) ? 'fill-green-500 text-green-500' : 'text-gray-700'}`} />
+                                        ))}
+                                    </div>
+                                </div>
+                                {item.order.reviewMessage && (
+                                    <p className="text-sm text-gray-300 italic font-medium leading-relaxed">"{item.order.reviewMessage}"</p>
+                                )}
                              </div>
                            )}
                         </div>
