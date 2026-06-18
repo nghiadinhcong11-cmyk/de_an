@@ -443,6 +443,11 @@ export function CustomerProfile() {
                             label="Phục vụ"
                             value={feedbackForm.serviceRating}
                             onChange={(v) => setFeedbackForm({...feedbackForm, serviceRating: v})}
+                            badge={expandedOrderForFeedback?.createdByUserName && (
+                                <div className="text-[10px] font-bold text-brand-accent bg-brand-accent/10 px-2 py-0.5 rounded-md border border-brand-accent/20">
+                                    NV: {expandedOrderForFeedback.createdByUserName}
+                                </div>
+                            )}
                         />
                         <RatingInputSmall
                             label="Món ăn"
@@ -469,6 +474,34 @@ export function CustomerProfile() {
                         onChange={(e) => setFeedbackForm({...feedbackForm, message: e.target.value})}
                     ></textarea>
                   </div>
+
+                  <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-8">
+                    <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest flex items-center gap-1.5">
+                            <Calendar className="w-3 h-3" /> Ngày
+                        </p>
+                        <p className="text-[11px] font-bold text-white">
+                            {expandedOrderForFeedback?.createdAtUtc ? new Date(expandedOrderForFeedback.createdAtUtc).toLocaleDateString("vi-VN") : "---"}
+                        </p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest flex items-center gap-1.5">
+                            <Store className="w-3 h-3" /> Chi nhánh
+                        </p>
+                        <p className="text-[11px] font-bold text-white truncate">
+                            {expandedOrderForFeedback?.branchName || "---"}
+                        </p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest flex items-center gap-1.5">
+                            <Layers className="w-3 h-3" /> Vị trí
+                        </p>
+                        <p className="text-[11px] font-bold text-white">
+                            {expandedOrderForFeedback?.tableNumber ? `Bàn ${expandedOrderForFeedback.tableNumber}` : "Mang về"}
+                        </p>
+                    </div>
+                  </div>
+
                   <Button
                     onClick={handleSubmitFeedback}
                     disabled={submittingFeedback}
@@ -486,10 +519,13 @@ export function CustomerProfile() {
   );
 }
 
-function RatingInputSmall({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
+function RatingInputSmall({ label, value, onChange, badge }: { label: string, value: number, onChange: (v: number) => void, badge?: any }) {
     return (
         <div className="space-y-2">
-            <div className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">{label}</div>
+            <div className="flex justify-between items-center mb-1">
+                <div className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">{label}</div>
+                {badge}
+            </div>
             <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <button

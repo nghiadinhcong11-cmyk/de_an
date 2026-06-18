@@ -17,6 +17,7 @@ import { OwnerProfile } from '../owner/OwnerProfile';
 import { OwnerFeedbacks } from '../owner/Feedbacks';
 import { OwnerBranches } from '../owner/Branches';
 import { OwnerEmployees } from '../owner/Employees';
+import { StaffPerformance } from '../owner/StaffPerformance';
 import { OwnerMenu } from '../owner/Menu';
 import { OwnerTables } from '../owner/Tables';
 import { OwnerCustomers } from '../owner/Customers';
@@ -90,6 +91,7 @@ function App() {
             <Route path="profile" element={<OwnerProfile />} />
             <Route path="branches" element={<OwnerBranches />} />
             <Route path="employees" element={<OwnerEmployees />} />
+            <Route path="staff-ranking" element={<StaffPerformance />} />
             <Route path="menu" element={<OwnerMenu />} />
             <Route path="tables" element={<OwnerTables />} />
             <Route path="customers" element={<OwnerCustomers />} />

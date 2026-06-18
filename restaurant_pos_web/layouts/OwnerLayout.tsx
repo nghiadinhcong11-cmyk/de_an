@@ -29,6 +29,7 @@ const navItems = [
   { icon: Bell, label: "Lịch đặt bàn", path: "/owner/bookings" },
   { icon: Store, label: "Chi nhánh", path: "/owner/branches" },
   { icon: Users, label: "Nhân viên", path: "/owner/employees" },
+  { icon: Trophy, label: "Xếp hạng nhân sự", path: "/owner/staff-ranking" },
   { icon: Package, label: "Chi tiêu & Kho", path: "/owner/inventory" },
   { icon: Utensils, label: "Thực đơn", path: "/owner/menu" },
   { icon: Table2, label: "Sơ đồ bàn", path: "/owner/tables" },

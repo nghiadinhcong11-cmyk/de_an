@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Label } from "../components/ui/label";
-import { Search, Edit, Trash2, CheckCircle, XCircle, Loader2, UserPlus, MapPin, ShieldCheck, Lock, Unlock } from "lucide-react";
+import { Search, Edit, Trash2, CheckCircle, XCircle, Loader2, UserPlus, MapPin, ShieldCheck, Lock, Unlock, Star, Award, TrendingUp, Trophy } from "lucide-react";
 import api from "../services/api";
 
 export function OwnerEmployees() {
@@ -17,6 +17,7 @@ export function OwnerEmployees() {
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [roles, setRoles] = useState<any[]>([]);
+  const [performance, setPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -36,16 +37,18 @@ export function OwnerEmployees() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [empRes, reqRes, branchRes, rolesRes] = await Promise.all([
+      const [empRes, reqRes, branchRes, rolesRes, perfRes] = await Promise.all([
         api.get("/users"),
         api.get("/users/pending-requests"),
         api.get("/branches"),
-        api.get("/users/roles")
+        api.get("/users/roles"),
+        api.get("/reports/staff-performance")
       ]);
       setEmployees(empRes.data);
       setPendingRequests(reqRes.data);
       setBranches(branchRes.data);
       setRoles(rolesRes.data);
+      setPerformance(perfRes.data);
 
       if (branchRes.data.length > 0 && addForm.branchId === "all") {
           setAddForm(prev => ({ ...prev, branchId: branchRes.data[0].id }));
@@ -196,6 +199,9 @@ export function OwnerEmployees() {
         <TabsList className="mb-6 bg-white border border-gray-100 p-1 rounded-xl shadow-sm flex flex-wrap h-auto">
           <TabsTrigger value="list" className="flex-1 sm:flex-none px-8 font-bold">Đang làm việc ({employees.length})</TabsTrigger>
           <TabsTrigger value="requests" className="flex-1 sm:flex-none px-8 font-bold gap-2">Yêu cầu mới {pendingRequests.length > 0 && <Badge className="bg-red-500 text-white border-none">{pendingRequests.length}</Badge>}</TabsTrigger>
+          <TabsTrigger value="performance" className="flex-1 sm:flex-none px-8 font-bold gap-2">
+            <Trophy className="w-4 h-4 text-orange-500" /> Bảng vàng nhân sự
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="list">
@@ -284,52 +290,146 @@ export function OwnerEmployees() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="requests">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {pendingRequests.map(req => (
-               <Card key={req.id} className="border-none shadow-md bg-white p-6 relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-orange-600"></div>
-                  <div className="flex justify-between items-start mb-6">
+        <TabsContent value="performance">
+           <div className="space-y-8">
+              {/* Performance Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {performance.slice(0, 3).map((staff, idx) => (
+                    <Card key={staff.staffId} className={`border-none shadow-xl rounded-[40px] overflow-hidden relative group transition-all hover:-translate-y-2 ${
+                        idx === 0 ? 'bg-gradient-to-br from-gray-900 to-black text-white' : 'bg-white'
+                    }`}>
+                       {idx === 0 && <div className="absolute top-6 right-6"><Trophy className="w-12 h-12 text-orange-500 animate-bounce" /></div>}
+                       <CardContent className="p-8">
+                          <div className="flex items-center gap-4 mb-6">
+                             <div className={`w-16 h-16 rounded-3xl flex items-center justify-center font-black text-2xl shadow-inner ${
+                                idx === 0 ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-900'
+                             }`}>
+                                {staff.staffName.charAt(0)}
+                             </div>
+                             <div>
+                                <div className={`font-black uppercase tracking-tight text-xl ${idx === 0 ? 'text-white' : 'text-gray-900'}`}>{staff.staffName}</div>
+                                <div className={`text-[10px] font-bold uppercase tracking-widest ${idx === 0 ? 'text-gray-400' : 'text-gray-400'}`}>Top {idx + 1} Nhân viên tháng</div>
+                             </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 mb-6">
+                             <div className={`p-4 rounded-2xl ${idx === 0 ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                <p className="text-[10px] font-black uppercase opacity-60 mb-1">Đánh giá</p>
+                                <div className="flex items-center gap-1.5">
+                                   <Star className="w-4 h-4 fill-orange-400 text-orange-400" />
+                                   <span className="text-xl font-black">{staff.averageRating.toFixed(1)}</span>
+                                </div>
+                             </div>
+                             <div className={`p-4 rounded-2xl ${idx === 0 ? 'bg-white/5' : 'bg-gray-50'}`}>
+                                <p className="text-[10px] font-black uppercase opacity-60 mb-1">Phản hồi</p>
+                                <div className="text-xl font-black">{staff.feedbackCount} <span className="text-[10px]">lượt</span></div>
+                             </div>
+                          </div>
+
+                          <div className={`w-full h-2 rounded-full mb-4 ${idx === 0 ? 'bg-white/10' : 'bg-gray-100'}`}>
+                             <div
+                                className="h-full bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
+                                style={{ width: `${(staff.averageRating / 5) * 100}%` }}
+                             ></div>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                             <span className={`text-[10px] font-black uppercase tracking-widest ${idx === 0 ? 'text-orange-500' : 'text-orange-600'}`}>
+                                {staff.averageRating >= 4.7 ? "XUẤT SẮC (Thưởng)" : staff.averageRating >= 3.5 ? "ỔN ĐỊNH" : "CẦN CẢI THIỆN"}
+                             </span>
+                             <div className={`px-3 py-1 rounded-lg font-black text-[10px] ${
+                                staff.averageRating >= 4.7 ? 'bg-green-500/10 text-green-500' :
+                                staff.averageRating >= 3.5 ? 'bg-blue-500/10 text-blue-500' : 'bg-red-500/10 text-red-500'
+                             }`}>
+                                {staff.averageRating >= 4.7 ? '+500k pts' : '---'}
+                             </div>
+                          </div>
+                       </CardContent>
+                    </Card>
+                 ))}
+              </div>
+
+              {/* Detailed Ranking Table */}
+              <Card className="border-none shadow-sm rounded-[40px] overflow-hidden bg-white">
+                <CardHeader className="p-8 border-b border-gray-50 flex flex-row items-center justify-between">
                     <div>
-                      <div className="font-black text-xl text-gray-900">{req.fullName}</div>
-                      <div className="text-sm text-gray-400 font-bold uppercase tracking-tighter">@{req.username}</div>
+                        <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                            <Award className="w-6 h-6 text-orange-500" /> Danh sách xếp hạng chi tiết
+                        </CardTitle>
+                        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mt-1">Cập nhật theo thời gian thực từ đánh giá khách hàng</p>
                     </div>
-                    <Avatar className="w-12 h-12">
-                        {req.avatarUrl ? (
-                            <img src={req.avatarUrl} alt={req.fullName} className="aspect-square h-full w-full object-cover rounded-2xl" />
-                        ) : (
-                            <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 text-xl font-bold uppercase">
-                                {req.fullName.charAt(0)}
-                            </div>
-                        )}
-                    </Avatar>
-                  </div>
-
-                  <div className="space-y-3 mb-6 bg-gray-50/50 p-3 rounded-2xl">
-                     <div className="flex items-center gap-2 text-sm">
-                        <ShieldCheck className="w-4 h-4 text-orange-600" />
-                        <span className="text-gray-400 font-bold uppercase text-[10px]">Vị trí mong muốn:</span>
-                        <span className="font-black text-gray-900">{req.roleName}</span>
-                     </div>
-                     <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-4 h-4 text-blue-600" />
-                        <span className="text-gray-400 font-bold uppercase text-[10px]">Cơ sở đăng ký:</span>
-                        <span className="font-black text-gray-900">{req.branchName}</span>
-                     </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button onClick={() => handleApprove(req.id)} className="flex-1 bg-green-600 hover:bg-green-700 font-bold h-10 shadow-lg shadow-green-100"><CheckCircle className="w-4 h-4 mr-2" /> Duyệt</Button>
-                    <Button onClick={() => handleReject(req.id)} variant="outline" className="px-3 border-red-100 text-red-500 hover:bg-red-50 h-10"><XCircle className="w-5 h-5" /></Button>
-                  </div>
-               </Card>
-             ))}
-             {pendingRequests.length === 0 && (
-                 <div className="col-span-full text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100 shadow-inner">
-                    <p className="text-gray-400 font-black uppercase tracking-widest text-xs">Hiện tại không có yêu cầu nào.</p>
-                 </div>
-             )}
-          </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow>
+                                <TableHead className="px-8 font-black text-[10px] uppercase">Hạng</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase">Nhân viên</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase">Đánh giá TB</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase">Tổng đơn</TableHead>
+                                <TableHead className="font-black text-[10px] uppercase">Điểm hiệu suất</TableHead>
+                                <TableHead className="text-right px-8 font-black text-[10px] uppercase">Trạng thái thưởng/phạt</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {performance.map((staff, idx) => (
+                                <TableRow key={staff.staffId} className="hover:bg-gray-50/50 transition-colors group">
+                                    <TableCell className="px-8">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${
+                                            idx === 0 ? 'bg-orange-500 text-white' :
+                                            idx === 1 ? 'bg-gray-300 text-gray-700' :
+                                            idx === 2 ? 'bg-orange-200 text-orange-800' : 'bg-gray-100 text-gray-400'
+                                        }`}>
+                                            {idx + 1}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center font-black text-gray-900 uppercase">
+                                                {staff.staffName.charAt(0)}
+                                            </div>
+                                            <div className="font-black text-gray-900 uppercase text-xs">{staff.staffName}</div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-1.5">
+                                            <Star className="w-4 h-4 fill-orange-400 text-orange-400" />
+                                            <span className="text-sm font-black text-gray-900">{staff.averageRating.toFixed(1)}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-xs font-bold text-gray-500">
+                                        {staff.feedbackCount} lượt
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full rounded-full ${
+                                                        staff.averageRating >= 4.5 ? 'bg-green-500' :
+                                                        staff.averageRating >= 3 ? 'bg-orange-500' : 'bg-red-500'
+                                                    }`}
+                                                    style={{ width: `${(staff.averageRating / 5) * 100}%` }}
+                                                ></div>
+                                            </div>
+                                            <span className="text-[10px] font-black text-gray-400">{(staff.averageRating * 20).toFixed(0)}%</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right px-8">
+                                        {staff.averageRating >= 4.7 ? (
+                                            <Badge className="bg-green-50 text-green-600 border-none font-black text-[10px] uppercase tracking-tighter">Ưu tú (Khen thưởng)</Badge>
+                                        ) : staff.averageRating < 3.0 ? (
+                                            <Badge className="bg-red-50 text-red-600 border-none font-black text-[10px] uppercase tracking-tighter">Cảnh cáo (Phạt)</Badge>
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase">Bình thường</span>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+              </Card>
+           </div>
         </TabsContent>
       </Tabs>
 
