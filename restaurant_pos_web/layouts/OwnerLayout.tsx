@@ -24,21 +24,20 @@ import { authApi } from "../services/authApi";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/owner" },
-  { icon: ShoppingBag, label: "Orders History", path: "/owner/orders" },
-  { icon: Bell, label: "Bookings", path: "/owner/bookings" },
-  { icon: Store, label: "Branches", path: "/owner/branches" },
-  { icon: Users, label: "Employees", path: "/owner/employees" },
-  { icon: Package, label: "Chi tiêu & Nhập hàng", path: "/owner/inventory" },
-  { icon: Utensils, label: "Menu", path: "/owner/menu" },
-  { icon: Table2, label: "Tables", path: "/owner/tables" },
-  { icon: Users, label: "Customers", path: "/owner/customers" },
-  { icon: CreditCard, label: "Payments", path: "/owner/payments" },
+  { icon: LayoutDashboard, label: "Báo cáo tổng quan", path: "/owner" },
+  { icon: ShoppingBag, label: "Lịch sử đơn hàng", path: "/owner/orders" },
+  { icon: Bell, label: "Lịch đặt bàn", path: "/owner/bookings" },
+  { icon: Store, label: "Chi nhánh", path: "/owner/branches" },
+  { icon: Users, label: "Nhân viên", path: "/owner/employees" },
+  { icon: Package, label: "Chi tiêu & Kho", path: "/owner/inventory" },
+  { icon: Utensils, label: "Thực đơn", path: "/owner/menu" },
+  { icon: Table2, label: "Sơ đồ bàn", path: "/owner/tables" },
+  { icon: Users, label: "Khách hàng", path: "/owner/customers" },
+  { icon: CreditCard, label: "Thanh toán", path: "/owner/payments" },
   { icon: Ticket, label: "Vouchers", path: "/owner/vouchers" },
-  { icon: BarChart3, label: "Reports", path: "/owner/reports" },
-  { icon: MessageSquare, label: "Feedbacks", path: "/owner/feedbacks" },
-  { icon: Settings, label: "Restaurant", path: "/owner/restaurant" },
-  { icon: KeyRound, label: "Password", path: "/owner/change-password" },
+  { icon: MessageSquare, label: "Góp ý", path: "/owner/feedbacks" },
+  { icon: Settings, label: "Nhà hàng", path: "/owner/restaurant" },
+  { icon: KeyRound, label: "Mật khẩu", path: "/owner/change-password" },
 ];
 
 export default function OwnerLayout() {

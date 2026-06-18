@@ -22,7 +22,7 @@ import { OwnerTables } from '../owner/Tables';
 import { OwnerCustomers } from '../owner/Customers';
 import { OwnerPayments } from '../owner/Payments';
 import { OwnerVouchers } from '../owner/Vouchers';
-import { OwnerReports } from '../owner/Reports';
+
 import { OwnerRestaurant } from '../owner/Restaurant';
 import { OwnerInventory } from '../owner/Inventory';
 import { OwnerSuppliers } from '../owner/Suppliers';
@@ -96,7 +96,7 @@ function App() {
             <Route path="loyalty" element={<OwnerLoyalty />} />
             <Route path="payments" element={<OwnerPayments />} />
             <Route path="vouchers" element={<OwnerVouchers />} />
-            <Route path="reports" element={<OwnerReports />} />
+
             <Route path="restaurant" element={<OwnerRestaurant />} />
             <Route path="inventory" element={<OwnerInventory />} />
             <Route path="suppliers" element={<OwnerSuppliers />} />
