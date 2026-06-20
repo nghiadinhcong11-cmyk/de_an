@@ -45,7 +45,7 @@ export function OwnerDashboard() {
 
       const current = (endpoints as any)[range] || endpoints.today;
 
-      const currentMonth = new Date().getMonth() + 1;
+      const reportMonth = new Date().getMonth() + 1;
       const currentYear = new Date().getFullYear();
 
       const [statsRes, ordersRes, revRes, topRes, branchRes, hourRes, staffRes] = await Promise.all([
@@ -55,7 +55,7 @@ export function OwnerDashboard() {
         api.get("/reports/top-products"),
         api.get("/reports/revenue-by-branch"),
         api.get(`/reports/orders-by-hour?dayOfWeek=${selectedDay}`),
-        api.get(`/reports/staff-performance?month=${currentMonth}&year=${currentYear}`)
+        api.get(`/reports/staff-performance?month=${reportMonth}&year=${currentYear}`)
       ]);
 
       setStats(statsRes.data);
@@ -63,9 +63,9 @@ export function OwnerDashboard() {
 
       // Process revenue data to handle future months
       const rawRev = revRes.data;
-      const currentMonth = new Date().getMonth(); // 0-11
+      const currentMonthIdx = new Date().getMonth(); // 0-11
       const processedRev = rawRev.map((item: any, idx: number) => {
-          if (range === 'month' && idx > currentMonth) {
+          if (range === 'month' && idx > currentMonthIdx) {
               return { ...item, revenue: 0 };
           }
           return item;
