@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Clock, CheckCircle, XCircle, Loader2, Bell, Star, Award, TrendingUp, Trophy } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Clock, CheckCircle, XCircle, Loader2, Bell, Star, Award, TrendingUp, Trophy, Calendar } from "lucide-react";
 import api from "../services/api";
 import * as signalR from "@microsoft/signalr";
 
@@ -13,22 +14,36 @@ export function EmployeeOrders() {
   const [loading, setLoading] = useState(true);
   const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
 
+  const [selectedMonth, setSelectedMonth] = useState<string>((new Date().getMonth() + 1).toString());
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
+  const fetchPerformance = async () => {
+    try {
+      const staffRes = await api.get(`/reports/staff-performance?month=${selectedMonth}&year=${selectedYear}`);
+      setStaffPerformance(staffRes.data.slice(0, 5));
+    } catch (err) {
+      console.error("Lỗi tải hiệu suất");
+    }
+  };
+
   const fetchData = async () => {
     try {
-      const [reqRes, orderRes, staffRes] = await Promise.all([
+      const [reqRes, orderRes] = await Promise.all([
         api.get("/orders/pending-requests"),
-        api.get("/orders"),
-        api.get("/reports/staff-performance")
+        api.get("/orders")
       ]);
       setRequests(reqRes.data);
       setOrders(orderRes.data);
-      setStaffPerformance(staffRes.data.slice(0, 5));
     } catch (err) {
       console.error("Lỗi tải đơn hàng");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPerformance();
+  }, [selectedMonth, selectedYear]);
 
   useEffect(() => {
     fetchData();
@@ -105,6 +120,40 @@ export function EmployeeOrders() {
 
         <TabsContent value="ranking">
             <div className="space-y-6">
+                <div className="flex justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div>
+                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Kỳ vinh danh</div>
+                            <div className="text-sm font-black text-gray-900">Tháng {selectedMonth}/{selectedYear}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger className="w-[110px] h-10 border-none bg-gray-50 font-bold text-xs rounded-xl focus:ring-0">
+                                <SelectValue placeholder="Tháng" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-none shadow-xl">
+                                {Array.from({ length: 12 }, (_, i) => (
+                                    <SelectItem key={i + 1} value={(i + 1).toString()}>Tháng {i + 1}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                            <SelectTrigger className="w-[100px] h-10 border-none bg-gray-50 font-bold text-xs rounded-xl focus:ring-0">
+                                <SelectValue placeholder="Năm" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-none shadow-xl">
+                                {[2024, 2025, 2026].map(year => (
+                                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
                 {/* Spotlight Top 3 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
                     {staffPerformance.slice(0, 3).map((staff, idx) => (

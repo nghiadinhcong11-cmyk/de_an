@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Loader2, Star, Award, TrendingUp, Trophy, Users, Search, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Loader2, Star, Award, TrendingUp, Trophy, Users, Search, Filter, Calendar } from "lucide-react";
 import api from "../services/api";
 
 export function StaffPerformance() {
@@ -13,10 +14,13 @@ export function StaffPerformance() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all"); // "all", "excellent", "stable", "warning"
 
+  const [selectedMonth, setSelectedMonth] = useState<string>((new Date().getMonth() + 1).toString());
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/reports/staff-performance");
+      const res = await api.get(`/reports/staff-performance?month=${selectedMonth}&year=${selectedYear}`);
       setPerformance(res.data);
     } catch (err) {
       console.error("Lỗi lấy dữ liệu hiệu suất nhân viên");
@@ -27,7 +31,7 @@ export function StaffPerformance() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
   const filteredPerformance = performance.filter(p => {
     const matchesSearch = p.staffName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -47,7 +51,32 @@ export function StaffPerformance() {
           <p className="text-gray-500 font-medium">Thống kê đánh giá và xếp hạng nhân viên ưu tú</p>
         </div>
         <div className="flex items-center gap-3">
-            <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-2 px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-100 mr-2">
+                    <Calendar className="w-3.5 h-3.5" /> Kỳ báo cáo
+                </div>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                    <SelectTrigger className="w-[110px] h-9 border-none bg-transparent font-black uppercase text-[10px] shadow-none focus:ring-0">
+                        <SelectValue placeholder="Tháng" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-none shadow-xl">
+                        {Array.from({ length: 12 }, (_, i) => (
+                            <SelectItem key={i + 1} value={(i + 1).toString()}>Tháng {i + 1}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger className="w-[100px] h-9 border-none bg-transparent font-black uppercase text-[10px] shadow-none focus:ring-0">
+                        <SelectValue placeholder="Năm" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-none shadow-xl">
+                        {[2024, 2025, 2026].map(year => (
+                            <SelectItem key={year} value={year.toString()}>Năm {year}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-2">
                 <Users className="w-4 h-4 text-orange-600" />
                 <span className="font-bold text-sm text-gray-900">{performance.length} Nhân viên</span>
             </div>
@@ -79,7 +108,7 @@ export function StaffPerformance() {
                   <Badge className={`mt-2 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1 rounded-full ${
                     idx === 0 ? 'bg-orange-500/20 text-orange-500' : 'bg-gray-100 text-gray-500'
                   }`}>
-                    Hạng {idx + 1} Tháng này
+                    Hạng {idx + 1} T{selectedMonth}/{selectedYear}
                   </Badge>
                 </div>
               </div>
@@ -130,7 +159,7 @@ export function StaffPerformance() {
                         <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
                             <Award className="w-4 h-4 text-green-500" />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Khen thưởng tháng</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-green-500">Khen thưởng kỳ</span>
                     </div>
                     <span className="text-sm font-black text-white">+500.000đ</span>
                 </div>

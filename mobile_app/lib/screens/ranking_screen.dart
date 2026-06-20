@@ -13,6 +13,8 @@ class RankingScreen extends StatefulWidget {
 class _RankingScreenState extends State<RankingScreen> {
   List<dynamic> _performance = [];
   bool _isLoading = true;
+  int _selectedMonth = DateTime.now().month;
+  int _selectedYear = DateTime.now().year;
 
   @override
   void initState() {
@@ -21,9 +23,16 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 
   Future<void> _fetchPerformance() async {
+    setState(() => _isLoading = true);
     try {
       final api = ApiService();
-      final response = await api.dio.get('/reports/staff-performance');
+      final response = await api.dio.get(
+        '/reports/staff-performance',
+        queryParameters: {
+          'month': _selectedMonth,
+          'year': _selectedYear,
+        },
+      );
       setState(() {
         _performance = response.data;
         _isLoading = false;
@@ -36,6 +45,73 @@ class _RankingScreenState extends State<RankingScreen> {
         );
       }
     }
+  }
+
+  Widget _buildDatePicker() {
+    return InkWell(
+      onTap: () async {
+        final month = await showDialog<int>(
+          context: context,
+          builder: (context) => SimpleDialog(
+            title: const Text('Chọn tháng vinh danh'),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            children: [
+              SizedBox(
+                width: double.maxFinite,
+                child: GridView.count(
+                  shrinkWrap: true,
+                  crossAxisCount: 3,
+                  padding: const EdgeInsets.all(16),
+                  children: List.generate(12, (i) => i + 1).map((m) => InkWell(
+                    onTap: () => Navigator.pop(context, m),
+                    child: Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: m == _selectedMonth ? const Color(0xFFEA580C) : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'T$m',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: m == _selectedMonth ? Colors.white : Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )).toList(),
+                ),
+              ),
+            ],
+          ),
+        );
+        if (month != null && month != _selectedMonth) {
+          setState(() {
+            _selectedMonth = month;
+          });
+          _fetchPerformance();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_month, size: 16, color: Color(0xFFEA580C)),
+            const SizedBox(width: 4),
+            Text(
+              'T$_selectedMonth/$_selectedYear',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -57,21 +133,32 @@ class _RankingScreenState extends State<RankingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'VINH DANH',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                          Text(
-                            'Những nhân viên xuất sắc nhất tháng này',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.between,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'VINH DANH',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -1,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Xếp hạng nhân viên tháng $_selectedMonth/$_selectedYear',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              _buildDatePicker(),
+                            ],
                           ),
                           const SizedBox(height: 24),
                           if (_performance.isNotEmpty) _buildTopThree(currentUserId),

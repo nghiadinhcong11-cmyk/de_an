@@ -45,6 +45,9 @@ export function OwnerDashboard() {
 
       const current = (endpoints as any)[range] || endpoints.today;
 
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+
       const [statsRes, ordersRes, revRes, topRes, branchRes, hourRes, staffRes] = await Promise.all([
         api.get(current.summary),
         api.get("/orders"),
@@ -52,7 +55,7 @@ export function OwnerDashboard() {
         api.get("/reports/top-products"),
         api.get("/reports/revenue-by-branch"),
         api.get(`/reports/orders-by-hour?dayOfWeek=${selectedDay}`),
-        api.get("/reports/staff-performance")
+        api.get(`/reports/staff-performance?month=${currentMonth}&year=${currentYear}`)
       ]);
 
       setStats(statsRes.data);
@@ -238,7 +241,7 @@ export function OwnerDashboard() {
                 <div>
                     <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
                         <Clock className="w-5 h-5 text-blue-600" />
-                        Lượng đơn theo giờ
+                        Lượng đơn theo giờ của cả hệ thống
                     </CardTitle>
                     <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Phân tích mật độ đơn hàng trong ngày</CardDescription>
                 </div>
@@ -302,15 +305,21 @@ export function OwnerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-         {/* Staff Performance Ranking */}
          <Card className="lg:col-span-2 border-none shadow-sm bg-white rounded-[40px] overflow-hidden">
             <CardHeader className="p-8 border-b border-gray-50 flex flex-row items-center justify-between">
                 <div>
                     <CardTitle className="text-xl font-black uppercase tracking-tight">Xếp hạng nhân viên</CardTitle>
                     <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Dựa trên đánh giá của khách hàng</CardDescription>
                 </div>
-                <div className="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-                    <Award className="w-3 h-3" /> Bảng vinh danh
+                <div className="flex items-center gap-3">
+                    <Link to="/owner/staff-ranking">
+                        <Button variant="ghost" className="text-orange-600 font-black text-[10px] uppercase tracking-widest hover:bg-orange-50 rounded-xl px-4 h-9">
+                            Chi tiết <ArrowRight className="ml-2 w-3 h-3" />
+                        </Button>
+                    </Link>
+                    <div className="hidden sm:flex items-center gap-2 bg-green-50 text-green-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                        <Award className="w-3 h-3" /> Bảng vinh danh
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="p-0">

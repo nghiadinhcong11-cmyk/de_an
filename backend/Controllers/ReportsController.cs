@@ -214,12 +214,19 @@ public class ReportsController : ControllerBase
 
     // 8. Thống kê hiệu suất nhân viên (Đánh giá từ khách hàng)
     [HttpGet("staff-performance")]
-    public async Task<IActionResult> GetStaffPerformance()
+    public async Task<IActionResult> GetStaffPerformance([FromQuery] int? month, [FromQuery] int? year)
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
 
-        var performance = await _context.Feedbacks
-            .Where(f => f.RestaurantId == restaurantId && f.StaffId != null)
+        var query = _context.Feedbacks
+            .Where(f => f.RestaurantId == restaurantId && f.StaffId != null);
+
+        if (month.HasValue && year.HasValue)
+        {
+            query = query.Where(f => f.CreatedAtUtc.Month == month.Value && f.CreatedAtUtc.Year == year.Value);
+        }
+
+        var performance = await query
             .GroupBy(f => f.StaffId)
             .Select(g => new
             {
