@@ -19,7 +19,8 @@ export function OwnerDashboard() {
   const [revenueChartData, setRevenueData] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [branchPerformance, setBranchPerformance] = useState<any[]>([]);
-  const [yearlyRevenue, setYearlyRevenue] = useState<any[]>([]);
+  const [hourlyOrders, setHourlyOrders] = useState<any[]>([]);
+  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay()); // 0-6
   const [staffPerformance, setStaffPerformance] = useState<any[]>([]);
 
   const fetchDashboardData = async (range: string) => {
@@ -44,13 +45,13 @@ export function OwnerDashboard() {
 
       const current = (endpoints as any)[range] || endpoints.today;
 
-      const [statsRes, ordersRes, revRes, topRes, branchRes, yearRes, staffRes] = await Promise.all([
+      const [statsRes, ordersRes, revRes, topRes, branchRes, hourRes, staffRes] = await Promise.all([
         api.get(current.summary),
         api.get("/orders"),
         api.get(current.revenue),
         api.get("/reports/top-products"),
         api.get("/reports/revenue-by-branch"),
-        api.get("/reports/yearly-revenue"),
+        api.get(`/reports/orders-by-hour?dayOfWeek=${selectedDay}`),
         api.get("/reports/staff-performance")
       ]);
 
@@ -70,7 +71,7 @@ export function OwnerDashboard() {
       setRevenueData(processedRev);
       setTopProducts(topRes.data.slice(0, 5));
       setBranchPerformance(branchRes.data);
-      setYearlyRevenue(yearRes.data);
+      setHourlyOrders(hourRes.data);
       setStaffPerformance(staffRes.data);
     } catch (err) {
       console.error("Lỗi tải dữ liệu báo cáo", err);
@@ -81,7 +82,7 @@ export function OwnerDashboard() {
 
   useEffect(() => {
     fetchDashboardData(timeRange);
-  }, [timeRange]);
+  }, [timeRange, selectedDay]);
 
   if (loading && !stats) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-orange-600 w-12 h-12" /></div>;
 
@@ -231,25 +232,43 @@ export function OwnerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-        {/* Yearly Growth */}
+        {/* Hourly Orders Chart */}
         <Card className="border-none shadow-sm bg-white rounded-[40px] overflow-hidden">
-            <CardHeader className="p-8">
-                <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-green-600" />
-                    Tăng trưởng qua các năm
-                </CardTitle>
-                <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">So sánh doanh thu 5 năm gần nhất</CardDescription>
+            <CardHeader className="p-8 pb-4 flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-blue-600" />
+                        Lượng đơn theo giờ
+                    </CardTitle>
+                    <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Phân tích mật độ đơn hàng trong ngày</CardDescription>
+                </div>
+                <Select value={selectedDay.toString()} onValueChange={(val) => setSelectedDay(parseInt(val))}>
+                    <SelectTrigger className="w-[140px] h-9 border border-gray-100 rounded-xl text-[10px] font-black uppercase shadow-none focus:ring-0">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-none shadow-xl">
+                        <SelectItem value="1">Thứ Hai</SelectItem>
+                        <SelectItem value="2">Thứ Ba</SelectItem>
+                        <SelectItem value="3">Thứ Tư</SelectItem>
+                        <SelectItem value="4">Thứ Năm</SelectItem>
+                        <SelectItem value="5">Thứ Sáu</SelectItem>
+                        <SelectItem value="6">Thứ Bảy</SelectItem>
+                        <SelectItem value="0">Chủ Nhật</SelectItem>
+                    </SelectContent>
+                </Select>
             </CardHeader>
-            <CardContent className="p-8 h-80">
+            <CardContent className="p-8 pt-4 h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={yearlyRevenue}>
+                    <BarChart data={hourlyOrders}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
+                        <XAxis dataKey="hour" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 'bold'}} />
                         <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                         <Tooltip
+                            cursor={{fill: '#f8fafc'}}
                             contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: any) => [`${value} đơn`, 'Số lượng']}
                         />
-                        <Bar dataKey="revenue" fill="#16a34a" radius={[10, 10, 0, 0]} />
+                        <Bar dataKey="orderCount" fill="#2563eb" radius={[6, 6, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </CardContent>

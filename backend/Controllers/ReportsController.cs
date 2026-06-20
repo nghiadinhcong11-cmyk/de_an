@@ -251,4 +251,30 @@ public class ReportsController : ControllerBase
 
         return Ok(result);
     }
+
+    // 9. Thống kê số lượng đơn theo giờ
+    [HttpGet("orders-by-hour")]
+    public async Task<IActionResult> GetOrdersByHour([FromQuery] int? dayOfWeek)
+    {
+        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
+        var startDate = DateTime.UtcNow.Date.AddDays(-7);
+
+        var query = _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.CreatedAtUtc >= startDate);
+
+        if (dayOfWeek.HasValue)
+        {
+            query = query.Where(o => (int)o.CreatedAtUtc.DayOfWeek == dayOfWeek.Value);
+        }
+
+        var orders = await query.ToListAsync();
+
+        var report = Enumerable.Range(0, 24).Select(hour => new
+        {
+            Hour = $"{hour}h",
+            OrderCount = orders.Count(o => o.CreatedAtUtc.Hour == hour)
+        }).ToList();
+
+        return Ok(report);
+    }
 }
