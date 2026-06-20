@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { Search, Loader2, Info, UtensilsCrossed, Star } from "lucide-react";
+import { Search, Loader2, Info, UtensilsCrossed, Star, ChevronDown } from "lucide-react";
 import api from "../services/api";
 
 export function CustomerMenu() {
@@ -149,84 +149,188 @@ export function CustomerMenu() {
       )}
 
       {/* Reviews Section */}
-      <div id="reviews-section" className="pt-24 space-y-12">
-          <div className="flex flex-col md:flex-row items-end justify-between gap-8 border-b border-white/5 pb-12">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-brand-accent">
-                  <Star className="w-8 h-8 fill-current" />
-                  <span className="text-sm font-black uppercase tracking-[0.3em]">Community Reviews</span>
-              </div>
-              <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
-                Cảm nhận <br /> <span className="text-brand-accent italic">Khách hàng</span>
-              </h2>
-            </div>
-            <p className="text-gray-400 text-lg max-w-md font-medium leading-relaxed">
-                Những chia sẻ chân thực từ cộng đồng khách hàng đã trải nghiệm dịch vụ tại nhà hàng.
-            </p>
-          </div>
-
-          <ReviewGrid restaurantId={queryRestaurantId || localStorage.getItem("current_restaurant_id")} />
-      </div>
+      <ReviewGrid restaurantId={queryRestaurantId || localStorage.getItem("current_restaurant_id")} />
     </div>
   );
 }
 
 function ReviewGrid({ restaurantId }: { restaurantId: string | null }) {
     const [reviews, setReviews] = useState<any[]>([]);
+    const [branches, setBranches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Filter states
+    const [selectedBranch, setSelectedBranch] = useState("all");
+    const [selectedStars, setSelectedStars] = useState("all");
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
     useEffect(() => {
-        const fetchReviews = async () => {
+        const fetchData = async () => {
             try {
-                const res = await api.get("/feedbacks"); // API này hiện trả về tất cả của nhà hàng nếu là Owner/Manager,
-                // nhưng với Public/Customer cần 1 endpoint public hoặc xử lý filter.
-                // Ở đây dùng API hiện có để demo, trong thực tế nên có /api/feedbacks/public
-                setReviews(res.data.slice(0, 6));
+                const targetId = restaurantId || localStorage.getItem("current_restaurant_id");
+
+                const [feedbackRes, branchRes] = await Promise.all([
+                    api.get(`/feedbacks?restaurantId=${targetId}`),
+                    api.get(`/branches/public?restaurantId=${targetId}`)
+                ]);
+                setReviews(feedbackRes.data);
+                setBranches(branchRes.data);
             } catch (err) {
-                console.error("Lỗi tải đánh giá", err);
+                console.error("Lỗi tải đánh giá và chi nhánh", err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchReviews();
+        fetchData();
     }, [restaurantId]);
+
+    const filteredReviews = reviews.filter(r => {
+        const avgRating = ((r.serviceRating || 0) + (r.foodRating || 0) + (r.priceRating || 0) + (r.atmosphereRating || 0)) / 4;
+        const matchesBranch = selectedBranch === "all" || r.branchName === selectedBranch;
+        const matchesStars = selectedStars === "all" || Math.round(avgRating).toString() === selectedStars;
+        return matchesBranch && matchesStars;
+    });
+
+    // Calculate dynamic stats for the header (respects branch filter)
+    const stats = useMemo(() => {
+        const targetReviews = selectedBranch === "all"
+            ? reviews
+            : reviews.filter(r => r.branchName === selectedBranch);
+
+        if (targetReviews.length === 0) return { avg: "5.0", count: 0 };
+
+        const total = targetReviews.reduce((acc, r) => acc + ((r.serviceRating || 0) + (r.foodRating || 0) + (r.priceRating || 0) + (r.atmosphereRating || 0)) / 4, 0);
+        return {
+            avg: (total / targetReviews.length).toFixed(1),
+            count: targetReviews.length
+        };
+    }, [reviews, selectedBranch]);
 
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-brand-accent w-10 h-10" /></div>;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {reviews.map((r) => (
-                <div key={r.id} className="bg-white/5 border border-white/10 p-8 rounded-[40px] space-y-6 hover:bg-white/[0.08] transition-all group">
-                    <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-brand-accent/20 rounded-2xl flex items-center justify-center text-brand-accent font-black text-xl shadow-inner">
-                                {r.name?.charAt(0) || "C"}
-                            </div>
-                            <div>
-                                <h4 className="font-black text-white uppercase text-sm tracking-wider">{r.name || "Khách hàng"}</h4>
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(r.createdAtUtc).toLocaleDateString("vi-VN")}</p>
+        <div id="reviews-section" className="pt-24 space-y-12">
+            {/* Dynamic Header */}
+            <div className="flex flex-col md:flex-row items-end justify-between gap-8 border-b border-white/5 pb-12">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-brand-accent">
+                        <Star className="w-8 h-8 fill-current" />
+                        <span className="text-sm font-black uppercase tracking-[0.3em]">Community Reviews</span>
+
+                        {/* Dynamic Rating Badge */}
+                        <div className="ml-auto flex items-center gap-2 bg-white/5 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/10 shadow-2xl">
+                            <Star className="w-3.5 h-3.5 fill-brand-accent text-brand-accent" />
+                            <div className="flex flex-col leading-none">
+                                <span className="text-xs font-black text-white">{stats.avg}</span>
+                                <span className="text-[9px] font-bold text-gray-500 mt-0.5">({stats.count} đánh giá)</span>
                             </div>
                         </div>
-                        <div className="flex gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Star key={star} className={`w-3 h-3 ${star <= r.serviceRating ? 'text-brand-accent fill-current' : 'text-gray-700'}`} />
+                    </div>
+                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
+                        Cảm nhận <br /> <span className="text-brand-accent italic">Khách hàng</span>
+                    </h2>
+                </div>
+                <p className="text-gray-400 text-lg max-w-md font-medium leading-relaxed">
+                    Những chia sẻ chân thực từ cộng đồng khách hàng đã trải nghiệm dịch vụ tại nhà hàng.
+                </p>
+            </div>
+
+            {/* Filter and Toggle Controls */}
+            <div className="flex flex-wrap items-center justify-between gap-6 bg-white/5 p-6 rounded-[32px] border border-white/10">
+                <div className="flex flex-wrap items-center gap-6">
+                    {/* Branch Filter */}
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[10px] uppercase tracking-widest text-gray-400 font-black">Chi nhánh</span>
+                        <select
+                            value={selectedBranch}
+                            onChange={(e) => setSelectedBranch(e.target.value)}
+                            className="bg-brand-dark border border-white/10 text-white rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:border-brand-accent transition-all min-w-[180px]"
+                        >
+                            <option value="all">Tất cả chi nhánh</option>
+                            {branches.map(b => (
+                                <option key={b.id} value={b.name}>{b.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Star Rating Filter */}
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[10px] uppercase tracking-widest text-gray-400 font-black">Xếp hạng</span>
+                        <div className="flex p-1 bg-brand-dark border border-white/10 rounded-xl gap-1 overflow-x-auto no-scrollbar">
+                            {["all", "5", "4", "3", "2", "1"].map((star) => (
+                                <button
+                                    key={star}
+                                    onClick={() => setSelectedStars(star)}
+                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all uppercase whitespace-nowrap ${
+                                        selectedStars === star
+                                        ? 'bg-brand-accent text-white shadow-md'
+                                        : 'text-gray-400 hover:text-white'
+                                    }`}
+                                >
+                                    {star === "all" ? "Tất cả" : `${star}★`}
+                                </button>
                             ))}
                         </div>
                     </div>
-
-                    <p className="text-gray-300 text-sm italic font-medium leading-relaxed">
-                        "{r.message}"
-                    </p>
-
-                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                             <div className={`w-2 h-2 rounded-full ${r.serviceRating >= 4 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
-                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dịch vụ: {r.serviceRating}/5</span>
-                        </div>
-                        <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">{r.branchName}</span>
-                    </div>
                 </div>
-            ))}
+
+                {/* Collapse Toggle Button */}
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="p-3 bg-brand-dark border border-white/10 rounded-xl text-gray-400 hover:text-brand-accent hover:border-brand-accent/30 transition-all flex items-center justify-center"
+                    title={isCollapsed ? "Mở rộng" : "Thu gọn"}
+                >
+                    <ChevronDown className={`w-5 h-5 transition-transform duration-500 ${isCollapsed ? 'rotate-180' : ''}`} />
+                </button>
+            </div>
+
+            {/* Reviews Content Grid */}
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-500 origin-top ${
+                isCollapsed ? 'max-h-0 opacity-0 scale-y-0 overflow-hidden hidden' : 'max-h-[5000px] opacity-100 scale-y-100'
+            }`}>
+                {filteredReviews.map((r) => {
+                    const avgRating = ((r.serviceRating || 0) + (r.foodRating || 0) + (r.priceRating || 0) + (r.atmosphereRating || 0)) / 4;
+                    return (
+                        <div key={r.id} className="bg-white/5 border border-white/10 p-8 rounded-[40px] space-y-6 hover:bg-white/[0.08] transition-all group">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-brand-accent/20 rounded-2xl flex items-center justify-center text-brand-accent font-black text-xl shadow-inner">
+                                        {r.name?.charAt(0) || "C"}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-white uppercase text-sm tracking-wider">{r.name || "Khách hàng"}</h4>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(r.createdAtUtc).toLocaleDateString("vi-VN")}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star key={star} className={`w-3 h-3 ${star <= Math.round(avgRating) ? 'text-brand-accent fill-current' : 'text-gray-700'}`} />
+                                    ))}
+                                </div>
+                            </div>
+
+                            <p className="text-gray-300 text-sm italic font-medium leading-relaxed">
+                                "{r.message}"
+                            </p>
+
+                            <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                     <div className={`w-2 h-2 rounded-full ${avgRating >= 4 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Đánh giá: {avgRating.toFixed(1)}/5</span>
+                                </div>
+                                <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest truncate max-w-[120px]">{r.branchName}</span>
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {filteredReviews.length === 0 && (
+                    <div className="col-span-full text-center py-20 bg-white/5 rounded-[40px] border border-dashed border-white/10">
+                        <Star className="w-12 h-12 mx-auto mb-4 text-gray-700 opacity-20" />
+                        <p className="text-gray-500 font-black uppercase text-xs tracking-widest">Không có đánh giá nào phù hợp với bộ lọc</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { DollarSign, ShoppingBag, Zap, Loader2, ArrowRight, Clock, TrendingUp, Users, Star, BarChart3, Calendar, MapPin, Package, Award, ArrowUpRight, ArrowDownRight } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from "recharts";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Button } from "../components/ui/button";
 import api from "../services/api";
+
+const COLORS = ['#f97316', '#2563eb', '#16a34a', '#7c3aed', '#db2777', '#ca8a04'];
 
 export function OwnerDashboard() {
   const [timeRange, setTimeRange] = useState("month"); // today, week, month
@@ -54,7 +56,18 @@ export function OwnerDashboard() {
 
       setStats(statsRes.data);
       setRecentOrders(ordersRes.data.slice(0, 6));
-      setRevenueData(revRes.data);
+
+      // Process revenue data to handle future months
+      const rawRev = revRes.data;
+      const currentMonth = new Date().getMonth(); // 0-11
+      const processedRev = rawRev.map((item: any, idx: number) => {
+          if (range === 'month' && idx > currentMonth) {
+              return { ...item, revenue: 0 };
+          }
+          return item;
+      });
+
+      setRevenueData(processedRev);
       setTopProducts(topRes.data.slice(0, 5));
       setBranchPerformance(branchRes.data);
       setYearlyRevenue(yearRes.data);
@@ -155,23 +168,13 @@ export function OwnerDashboard() {
           </CardHeader>
           <CardContent className="p-8 h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueChartData}>
-                <defs>
-                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                    </linearGradient>
-                </defs>
+              <BarChart data={revenueChartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis
                     dataKey={timeRange === 'month' ? 'month' : 'date'}
                     axisLine={false}
                     tickLine={false}
                     tick={{fontSize: 10, fontWeight: 'bold', fill: '#94a3b8'}}
-                    tickFormatter={(value) => {
-                        if (timeRange === 'month') return value;
-                        return value;
-                    }}
                 />
                 <YAxis
                     axisLine={false}
@@ -180,10 +183,12 @@ export function OwnerDashboard() {
                     tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
                 />
                 <Tooltip
+                    cursor={{fill: '#f8fafc'}}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                    formatter={(value: any) => [`${value.toLocaleString("vi-VN")}đ`, 'Doanh thu']}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#ea580c" fill="url(#colorRev)" strokeWidth={4} />
-              </AreaChart>
+                <Bar dataKey="revenue" fill="#f97316" radius={[6, 6, 0, 0]} barSize={timeRange === 'today' ? 40 : 20} />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -192,25 +197,35 @@ export function OwnerDashboard() {
         <Card className="border-none shadow-sm bg-white rounded-[40px] overflow-hidden">
             <CardHeader className="p-8 pb-4">
                 <CardTitle className="text-xl font-black uppercase tracking-tight">Hiệu suất cơ sở</CardTitle>
-                <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Ranking by revenue</CardDescription>
+                <CardDescription className="font-bold text-gray-400 uppercase text-[10px] tracking-widest mt-1">Revenue contribution</CardDescription>
             </CardHeader>
-            <CardContent className="px-8 pb-8">
-                <div className="space-y-6">
-                    {branchPerformance.slice(0, 5).map((b, idx) => (
-                        <div key={b.id || idx} className="space-y-2">
-                            <div className="flex justify-between items-end">
-                                <span className="text-sm font-black text-gray-900 uppercase">{b.name}</span>
-                                <span className="text-xs font-bold text-orange-600">{b.revenue?.toLocaleString("vi-VN")}đ</span>
-                            </div>
-                            <div className="h-2 bg-gray-50 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-orange-500 rounded-full transition-all duration-1000"
-                                    style={{ width: `${Math.min(100, (b.revenue / (branchPerformance[0]?.revenue || 1)) * 100)}%` }}
-                                ></div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+            <CardContent className="p-0 pb-8 h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie
+                            data={branchPerformance}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="revenue"
+                            nameKey="name"
+                            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                        >
+                            {branchPerformance.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                        </Pie>
+                        <Tooltip
+                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: any, name: any) => {
+                                const total = branchPerformance.reduce((acc, curr) => acc + curr.revenue, 0) || 1;
+                                const percent = ((value / total) * 100).toFixed(1);
+                                return [`${value.toLocaleString("vi-VN")}đ (${percent}%)`, name];
+                            }}
+                        />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} />
+                    </PieChart>
+                </ResponsiveContainer>
             </CardContent>
         </Card>
       </div>

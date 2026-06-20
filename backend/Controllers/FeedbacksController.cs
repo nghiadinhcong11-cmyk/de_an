@@ -109,32 +109,35 @@ public class FeedbacksController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Owner,Manager,Customer")]
+    [AllowAnonymous]
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] Guid? restaurantId)
     {
         try
         {
             var resIdStr = User.FindFirstValue("RestaurantId");
-            Guid restaurantId;
+            Guid targetRestaurantId;
 
-            if (string.IsNullOrEmpty(resIdStr))
+            if (!string.IsNullOrEmpty(resIdStr))
             {
-                // Nếu không có RestaurantId trong claim (khách vãng lai/vừa đăng ký),
-                // thử lấy từ query hoặc lấy nhà hàng đầu tiên
-                var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
-                if (firstRestaurant == null) return Unauthorized();
-                restaurantId = firstRestaurant.Id;
+                targetRestaurantId = Guid.Parse(resIdStr);
+            }
+            else if (restaurantId.HasValue)
+            {
+                targetRestaurantId = restaurantId.Value;
             }
             else
             {
-                restaurantId = Guid.Parse(resIdStr);
+                // Mặc định lấy nhà hàng đầu tiên nếu không có thông tin
+                var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
+                if (firstRestaurant == null) return BadRequest("Không xác định được nhà hàng");
+                targetRestaurantId = firstRestaurant.Id;
             }
 
-            var isStaff = User.IsInRole("Owner") || User.IsInRole("Manager");
+            var isStaff = User.Identity?.IsAuthenticated == true && (User.IsInRole("Owner") || User.IsInRole("Manager"));
 
             var feedbacksQuery = _context.Feedbacks
-                .Where(f => f.RestaurantId == restaurantId);
+                .Where(f => f.RestaurantId == targetRestaurantId);
 
             // Nếu không phải quản lý, chỉ xem được các đánh giá công khai (ví dụ >= 4 sao)
             // và không thấy thông tin nhạy cảm
