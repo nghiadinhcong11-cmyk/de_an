@@ -205,13 +205,13 @@ class _RankingScreenState extends State<RankingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (_performance.length > 1) 
-            _buildPodiumItem(_performance[1], 2, Colors.grey[400]!, 140, currentUserId),
+            _buildPodiumItem(_performance[1], 2, Colors.grey[400]!, 200, currentUserId),
           const SizedBox(width: 8),
           if (_performance.isNotEmpty) 
-            _buildPodiumItem(_performance[0], 1, const Color(0xFFFFD700), 180, currentUserId),
+            _buildPodiumItem(_performance[0], 1, const Color(0xFFFFD700), 240, currentUserId),
           const SizedBox(width: 8),
           if (_performance.length > 2) 
-            _buildPodiumItem(_performance[2], 3, const Color(0xFFCD7F32), 130, currentUserId),
+            _buildPodiumItem(_performance[2], 3, const Color(0xFFCD7F32), 180, currentUserId),
         ],
       ),
     );
@@ -225,7 +225,6 @@ class _RankingScreenState extends State<RankingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          // Avatar & Crown/Medal
           Stack(
             alignment: Alignment.center,
             clipBehavior: Clip.none,
@@ -239,9 +238,9 @@ class _RankingScreenState extends State<RankingScreen> {
                       color: color.withOpacity(0.3),
                       blurRadius: 15,
                       spreadRadius: 2,
-                    )
+                    ),
                   ],
-                ],
+                ),
                 child: CircleAvatar(
                   radius: isFirst ? 35 : 28,
                   backgroundColor: Colors.white,
@@ -257,24 +256,23 @@ class _RankingScreenState extends State<RankingScreen> {
               ),
               Positioned(
                 top: -15,
-                child: isFirst 
-                  ? const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 30)
-                  : Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
+                child: isFirst
+                    ? const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 30)
+                    : Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          rank.toString(),
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      child: Text(
-                        rank.toString(),
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Name
           Text(
             staff['staffName'].split(' ').last,
             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
@@ -282,7 +280,6 @@ class _RankingScreenState extends State<RankingScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          // Rating & Score
           Column(
             children: [
               Row(
@@ -310,16 +307,15 @@ class _RankingScreenState extends State<RankingScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          // Podium Base
           Container(
             height: height - 100,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: isFirst 
-                  ? [const Color(0xFFEA580C), const Color(0xFF9A3412)]
-                  : [Colors.grey[200]!, Colors.grey[300]!],
+                colors: isFirst
+                    ? [const Color(0xFFEA580C), const Color(0xFF9A3412)]
+                    : [Colors.grey[200]!, Colors.grey[300]!],
               ),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
@@ -330,7 +326,7 @@ class _RankingScreenState extends State<RankingScreen> {
                   color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
-                )
+                ),
               ],
             ),
             child: Center(
@@ -342,7 +338,7 @@ class _RankingScreenState extends State<RankingScreen> {
                     style: TextStyle(
                       color: isFirst ? Colors.white : Colors.grey[600],
                       fontSize: 10,
-                      fontWeight: FontWeight.black,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 1,
                     ),
                   ),

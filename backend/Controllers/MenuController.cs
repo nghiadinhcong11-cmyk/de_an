@@ -32,12 +32,19 @@ public class MenuController : ControllerBase
 
     [Authorize]
     [HttpPost("categories")]
-    public async Task<IActionResult> CreateCategory([FromBody] Category category)
+    public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateUpdateDto dto)
     {
         var restaurantIdStr = User.FindFirstValue("RestaurantId");
         if (string.IsNullOrEmpty(restaurantIdStr)) return Unauthorized();
 
-        category.RestaurantId = Guid.Parse(restaurantIdStr);
+        var category = new Category
+        {
+            RestaurantId = Guid.Parse(restaurantIdStr),
+            Name = dto.Name,
+            Description = dto.Description,
+            DisplayOrder = dto.DisplayOrder
+        };
+
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();
         return Ok(category);
@@ -45,14 +52,14 @@ public class MenuController : ControllerBase
 
     [Authorize]
     [HttpPut("categories/{id}")]
-    public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] Category category)
+    public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryCreateUpdateDto dto)
     {
         var existing = await _context.Categories.FindAsync(id);
         if (existing == null) return NotFound();
 
-        existing.Name = category.Name;
-        existing.DisplayOrder = category.DisplayOrder;
-        existing.Description = category.Description;
+        existing.Name = dto.Name;
+        existing.DisplayOrder = dto.DisplayOrder;
+        existing.Description = dto.Description;
 
         await _context.SaveChangesAsync();
         return Ok(existing);
@@ -98,8 +105,10 @@ public class MenuController : ControllerBase
             RestaurantId = resId,
             CategoryId = dto.CategoryId,
             Name = dto.Name,
+            Description = dto.Description,
             Price = dto.Price,
-            IsAvailable = true
+            ImageUrl = dto.ImageUrl,
+            IsAvailable = dto.IsAvailable
         };
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
@@ -112,9 +121,14 @@ public class MenuController : ControllerBase
     {
         var product = await _context.Products.FindAsync(id);
         if (product == null) return NotFound();
+
         product.Name = dto.Name;
         product.Price = dto.Price;
         product.CategoryId = dto.CategoryId;
+        product.Description = dto.Description;
+        product.ImageUrl = dto.ImageUrl;
+        product.IsAvailable = dto.IsAvailable;
+
         await _context.SaveChangesAsync();
         return Ok(product);
     }
