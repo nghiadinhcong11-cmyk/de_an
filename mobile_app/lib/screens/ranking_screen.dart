@@ -134,7 +134,7 @@ class _RankingScreenState extends State<RankingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.between,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,6 +162,17 @@ class _RankingScreenState extends State<RankingScreen> {
                           ),
                           const SizedBox(height: 24),
                           if (_performance.isNotEmpty) _buildTopThree(currentUserId),
+                          const SizedBox(height: 32),
+                          const Text(
+                            'DANH SÁCH XẾP HẠNG',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.grey,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -187,90 +198,173 @@ class _RankingScreenState extends State<RankingScreen> {
   }
 
   Widget _buildTopThree(String? currentUserId) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        if (_performance.length > 1) _buildTopSpotlight(_performance[1], 2, 140, currentUserId),
-        if (_performance.isNotEmpty) _buildTopSpotlight(_performance[0], 1, 180, currentUserId),
-        if (_performance.length > 2) _buildTopSpotlight(_performance[2], 3, 130, currentUserId),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_performance.length > 1) 
+            _buildPodiumItem(_performance[1], 2, Colors.grey[400]!, 140, currentUserId),
+          const SizedBox(width: 8),
+          if (_performance.isNotEmpty) 
+            _buildPodiumItem(_performance[0], 1, const Color(0xFFFFD700), 180, currentUserId),
+          const SizedBox(width: 8),
+          if (_performance.length > 2) 
+            _buildPodiumItem(_performance[2], 3, const Color(0xFFCD7F32), 130, currentUserId),
+        ],
+      ),
     );
   }
 
-  Widget _buildTopSpotlight(dynamic staff, int rank, double height, String? currentUserId) {
+  Widget _buildPodiumItem(dynamic staff, int rank, Color color, double height, String? currentUserId) {
     final bool isMe = staff['staffId'] == currentUserId;
     final bool isFirst = rank == 1;
 
-    return Column(
-      children: [
-        if (isFirst)
-          const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 32),
-        const SizedBox(height: 8),
-        Container(
-          width: 100,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isFirst ? const Color(0xFFEA580C) : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: isFirst ? const Color(0xFFEA580C).withOpacity(0.3) : Colors.black.withOpacity(0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
+    return Expanded(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Avatar & Crown/Medal
+          Stack(
+            alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
-              CircleAvatar(
-                radius: isFirst ? 30 : 25,
-                backgroundColor: isFirst ? Colors.white.withOpacity(0.2) : Colors.grey[100],
-                child: Text(
-                  staff['staffName'][0],
-                  style: TextStyle(
-                    fontSize: isFirst ? 24 : 20,
-                    fontWeight: FontWeight.w900,
-                    color: isFirst ? Colors.white : Colors.black,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: color, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.3),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    )
+                  ],
+                ],
+                child: CircleAvatar(
+                  radius: isFirst ? 35 : 28,
+                  backgroundColor: Colors.white,
+                  child: Text(
+                    staff['staffName'][0],
+                    style: TextStyle(
+                      fontSize: isFirst ? 28 : 22,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                staff['staffName'].split(' ').last,
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 13,
-                  color: isFirst ? Colors.white : Colors.black,
-                ),
-                textAlign: TextAlign.center,
+              Positioned(
+                top: -15,
+                child: isFirst 
+                  ? const Icon(Icons.workspace_premium_rounded, color: Color(0xFFFFD700), size: 30)
+                  : Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        rank.toString(),
+                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      ),
+                    ),
               ),
-              Text(
-                '${staff['averageRating'].toStringAsFixed(1)} ⭐',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11,
-                  color: isFirst ? Colors.white70 : Colors.grey[500],
-                ),
-              ),
-              if (isMe)
-                Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(isFirst ? 0.3 : 1),
-                    borderRadius: BorderRadius.circular(4),
-                    border: isFirst ? null : Border.all(color: const Color(0xFFEA580C)),
-                  ),
-                  child: const Text(
-                    'BẠN',
-                    style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Color(0xFFEA580C)),
-                  ),
-                ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          // Name
+          Text(
+            staff['staffName'].split(' ').last,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          // Rating & Score
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.star_rounded, color: Colors.orange, size: 12),
+                  Text(
+                    ' ${staff['averageRating'].toStringAsFixed(1)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${staff['performanceScore'].toStringAsFixed(0)} điểm',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 10,
+                  color: Color(0xFFEA580C),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Podium Base
+          Container(
+            height: height - 100,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isFirst 
+                  ? [const Color(0xFFEA580C), const Color(0xFF9A3412)]
+                  : [Colors.grey[200]!, Colors.grey[300]!],
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                )
+              ],
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    isFirst ? 'VÀNG' : rank == 2 ? 'BẠC' : 'ĐỒNG',
+                    style: TextStyle(
+                      color: isFirst ? Colors.white : Colors.grey[600],
+                      fontSize: 10,
+                      fontWeight: FontWeight.black,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  if (isMe)
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'BẠN',
+                        style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -330,25 +424,32 @@ class _RankingScreenState extends State<RankingScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.star_rounded, color: Colors.orange, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    staff['averageRating'].toStringAsFixed(1),
-                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
-                  ),
-                ],
-              ),
-              if (isMe)
-                const Text(
-                  'BẠN',
-                  style: TextStyle(
-                    fontSize: 9,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEA580C).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${staff['performanceScore'].toStringAsFixed(1)} pts',
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
+                    fontSize: 12,
                     color: Color(0xFFEA580C),
                   ),
                 ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.star_rounded, color: Colors.orange, size: 14),
+                  const SizedBox(width: 2),
+                  Text(
+                    staff['averageRating'].toStringAsFixed(1),
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
             ],
           ),
         ],

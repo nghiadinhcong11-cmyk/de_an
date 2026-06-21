@@ -243,17 +243,25 @@ public class ReportsController : ControllerBase
             .Where(u => staffIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, u => u.FullName);
 
-        var result = performance.Select(p => new
+        var result = performance.Select(p =>
         {
-            p.StaffId,
-            StaffName = staffNames.GetValueOrDefault(p.StaffId!.Value, "Ẩn danh"),
-            p.AverageRating,
-            p.FeedbackCount,
-            p.FiveStarCount,
-            p.OneStarCount,
-            PerformanceScore = Math.Round(p.AverageRating * 20, 1) // Quy ra thang điểm 100
+            // Công thức tính điểm hiệu suất: 70% từ số sao trung bình, 30% từ số lượng đánh giá (tối đa 50 lượt)
+            double ratingScore = p.AverageRating * 14; // Max 70 (5 * 14)
+            double quantityScore = Math.Min(p.FeedbackCount, 50) * 0.6; // Max 30 (50 * 0.6)
+            double totalScore = Math.Round(ratingScore + quantityScore, 1);
+
+            return new
+            {
+                p.StaffId,
+                StaffName = staffNames.GetValueOrDefault(p.StaffId!.Value, "Ẩn danh"),
+                p.AverageRating,
+                p.FeedbackCount,
+                p.FiveStarCount,
+                p.OneStarCount,
+                PerformanceScore = totalScore
+            };
         })
-        .OrderByDescending(x => x.AverageRating)
+        .OrderByDescending(x => x.PerformanceScore)
         .ToList();
 
         return Ok(result);

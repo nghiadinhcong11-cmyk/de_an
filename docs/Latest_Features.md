@@ -46,3 +46,14 @@ Dưới đây là danh sách các thay đổi quan trọng phân theo từng n�
     - Tích hợp tính năng Đổi điểm lấy Voucher trực tiếp trên Web khách hàng.
     - Hộp thư góp ý (Feedbacks) hỗ trợ nhận phản hồi từ khách và quản lý tại Dashboard.
 
+## 4. Cập nhật mới nhất (Tháng 06/2024)
+- **Lọc vinh danh theo thời gian (Web & Mobile)**:
+    - Bổ sung bộ lọc **Tháng** và **Năm** cho tính năng Bảng vinh danh nhân viên.
+    - Cho phép nhân viên và quản lý tra cứu lại lịch sử xếp hạng của các tháng trước đó thay vì chỉ xem tháng hiện tại.
+    - Đồng bộ logic xử lý API giữa ứng dụng Web quản lý và ứng dụng Mobile nhân viên.
+- **Tối ưu hóa & Sửa lỗi**:
+    - Khắc phục lỗi biên dịch TypeScript (Redeclaration) tại Dashboard chủ quán.
+    - Sửa lỗi cú pháp Flutter (`MainAxisAlignment`) đảm bảo ứng dụng chạy ổn định trên nền tảng Web/Chrome.
+    - Cải thiện giao diện chọn ngày (Date Picker) trên Mobile để tối ưu không gian hiển thị.
+
+
