@@ -132,7 +132,7 @@ export function OwnerDashboard() {
         />
         <KpiCard
             label="LỢI NHUẬN RÒNG"
-            val={`${(stats?.netProfit || (stats?.totalRevenue * 0.4) || 0).toLocaleString("vi-VN")}đ`}
+            val={`${(stats?.netProfit || 0).toLocaleString("vi-VN")}đ`}
             icon={TrendingUp}
             color="text-green-600"
             trend={stats?.profitTrend || "+8.2%"}
@@ -148,7 +148,7 @@ export function OwnerDashboard() {
         />
         <KpiCard
             label="KHÁCH HÀNG"
-            val={stats?.totalCustomers || "42"}
+            val={stats?.totalCustomers || 0}
             icon={Users}
             color="text-purple-600"
             trend={stats?.customerTrend || "+18%"}

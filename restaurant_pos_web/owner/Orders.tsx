@@ -162,6 +162,7 @@ export function OwnerOrders() {
                             <TableHead className="font-bold">Mã đơn</TableHead>
                             <TableHead className="font-bold">Bàn</TableHead>
                             <TableHead className="font-bold">Cơ sở</TableHead>
+                            <TableHead className="font-bold">Thời gian</TableHead>
                             <TableHead className="font-bold">Khách hàng</TableHead>
                             <TableHead className="font-bold">Tổng tiền</TableHead>
                             <TableHead className="font-bold">Trạng thái</TableHead>
@@ -176,6 +177,10 @@ export function OwnerOrders() {
                                 <TableCell>
                                     <div className="font-bold text-xs">{order.branchName}</div>
                                     <div className="text-[9px] text-gray-400 truncate max-w-[120px]">{order.branchAddress}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="font-black text-xs text-gray-900">{new Date(order.createdAtUtc).toLocaleDateString('vi-VN')}</div>
+                                    <div className="text-[10px] font-bold text-orange-600">{new Date(order.createdAtUtc).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                                 </TableCell>
                                 <TableCell>
                                     <div className="font-bold text-sm">{order.customerName}</div>

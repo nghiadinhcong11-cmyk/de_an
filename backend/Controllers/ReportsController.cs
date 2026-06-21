@@ -20,9 +20,10 @@ public class ReportsController : ControllerBase
     public async Task<IActionResult> GetOverview()
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var now = DateTime.UtcNow;
-        var sevenDaysAgo = now.AddDays(-7);
-        var fourteenDaysAgo = now.AddDays(-14);
+        // Chuyển sang múi giờ VN để tính toán ngày chính xác
+        var nowVn = DateTime.UtcNow.AddHours(7);
+        var sevenDaysAgo = nowVn.Date.AddDays(-7).AddHours(-7); // Chuyển ngược lại UTC để query DB
+        var fourteenDaysAgo = nowVn.Date.AddDays(-14).AddHours(-7);
 
         // Lấy dữ liệu kỳ này (7 ngày gần nhất)
         var currentOrders = await _context.Orders
@@ -127,15 +128,16 @@ public class ReportsController : ControllerBase
         return Ok(topProducts);
     }
 
-    // 4. Thống kê nhanh theo ca cho nhân viên (Hôm nay)
+    // 4. Thống kê nhanh theo ca cho nhân viên (Hôm nay - Giờ VN)
     [HttpGet("today-shift-summary")]
     public async Task<IActionResult> GetTodayShiftSummary()
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var today = DateTime.UtcNow.Date;
+        var todayVn = DateTime.UtcNow.AddHours(7).Date;
+        var startOfTodayUtc = todayVn.AddHours(-7);
 
         var ordersToday = await _context.Orders
-            .Where(o => o.RestaurantId == restaurantId && o.CreatedAtUtc >= today && o.Status == "Completed")
+            .Where(o => o.RestaurantId == restaurantId && o.CreatedAtUtc >= startOfTodayUtc && o.Status == "Completed")
             .ToListAsync();
 
         var paymentsToday = await _context.Payments
@@ -267,27 +269,37 @@ public class ReportsController : ControllerBase
         return Ok(result);
     }
 
-    // 9. Thống kê số lượng đơn theo giờ
+    // 9. Thống kê số lượng đơn theo giờ (Mặc định múi giờ VN UTC+7)
     [HttpGet("orders-by-hour")]
     public async Task<IActionResult> GetOrdersByHour([FromQuery] int? dayOfWeek)
     {
         var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-        var startDate = DateTime.UtcNow.Date.AddDays(-7);
+        // Lấy dữ liệu trong 30 ngày gần nhất để có tập mẫu đủ lớn
+        var startDate = DateTime.UtcNow.Date.AddDays(-30);
 
-        var query = _context.Orders
-            .Where(o => o.RestaurantId == restaurantId && o.CreatedAtUtc >= startDate);
+        var orders = await _context.Orders
+            .Where(o => o.RestaurantId == restaurantId && o.CreatedAtUtc >= startDate && o.Status == "Completed")
+            .ToListAsync();
 
-        if (dayOfWeek.HasValue)
+        var report = Enumerable.Range(0, 24).Select(hour =>
         {
-            query = query.Where(o => (int)o.CreatedAtUtc.DayOfWeek == dayOfWeek.Value);
-        }
+            var ordersInHour = orders.Where(o => o.CreatedAtUtc.AddHours(7).Hour == hour);
 
-        var orders = await query.ToListAsync();
+            if (dayOfWeek.HasValue)
+            {
+                ordersInHour = ordersInHour.Where(o => (int)o.CreatedAtUtc.AddHours(7).DayOfWeek == dayOfWeek.Value);
+            }
 
-        var report = Enumerable.Range(0, 24).Select(hour => new
-        {
-            Hour = $"{hour}h",
-            OrderCount = orders.Count(o => o.CreatedAtUtc.Hour == hour)
+            // Tính trung bình: Tổng số đơn tại giờ đó / số ngày tương ứng trong 30 ngày
+            // Tìm số lượng ngày (Thứ X) duy nhất xuất hiện trong tập dữ liệu
+            var uniqueDays = ordersInHour.Select(o => o.CreatedAtUtc.AddHours(7).Date).Distinct().Count();
+            double averageCount = uniqueDays > 0 ? (double)ordersInHour.Count() / uniqueDays : 0;
+
+            return new
+            {
+                Hour = $"{hour}h",
+                OrderCount = Math.Round(averageCount, 1) // Trả về số trung bình
+            };
         }).ToList();
 
         return Ok(report);
