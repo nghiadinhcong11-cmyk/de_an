@@ -139,13 +139,6 @@ public class FeedbacksController : ControllerBase
             var feedbacksQuery = _context.Feedbacks
                 .Where(f => f.RestaurantId == targetRestaurantId);
 
-            // Nếu không phải quản lý, chỉ xem được các đánh giá công khai (ví dụ >= 4 sao)
-            // và không thấy thông tin nhạy cảm
-            if (!isStaff)
-            {
-                feedbacksQuery = feedbacksQuery.Where(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4 >= 4);
-            }
-
             var feedbacks = await feedbacksQuery
                 .OrderByDescending(f => f.CreatedAtUtc)
                 .ToListAsync();
