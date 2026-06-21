@@ -115,23 +115,28 @@ public class FeedbacksController : ControllerBase
     {
         try
         {
-            var resIdStr = User.FindFirstValue("RestaurantId");
             Guid targetRestaurantId;
 
-            if (!string.IsNullOrEmpty(resIdStr))
-            {
-                targetRestaurantId = Guid.Parse(resIdStr);
-            }
-            else if (restaurantId.HasValue)
+            // Ưu tiên 1: Lấy từ tham số query (dùng cho web khách xem quán bất kỳ)
+            if (restaurantId.HasValue)
             {
                 targetRestaurantId = restaurantId.Value;
             }
+            // Ưu tiên 2: Lấy từ Token (dùng cho nhân viên/chủ quán trong Dashboard)
             else
             {
-                // Mặc định lấy nhà hàng đầu tiên nếu không có thông tin
-                var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
-                if (firstRestaurant == null) return BadRequest("Không xác định được nhà hàng");
-                targetRestaurantId = firstRestaurant.Id;
+                var resIdStr = User.FindFirstValue("RestaurantId");
+                if (!string.IsNullOrEmpty(resIdStr))
+                {
+                    targetRestaurantId = Guid.Parse(resIdStr);
+                }
+                else
+                {
+                    // Mặc định lấy nhà hàng đầu tiên nếu không có thông tin
+                    var firstRestaurant = await _context.Restaurants.FirstOrDefaultAsync();
+                    if (firstRestaurant == null) return BadRequest("Không xác định được nhà hàng");
+                    targetRestaurantId = firstRestaurant.Id;
+                }
             }
 
             var isStaff = User.Identity?.IsAuthenticated == true && (User.IsInRole("Owner") || User.IsInRole("Manager"));
