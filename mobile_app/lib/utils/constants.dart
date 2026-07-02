@@ -1,4 +1,4 @@
 class AppConstants {
-  static const String baseUrl = 'https://restaurant-pos-api-uvcz.onrender.com/api';
-  static const String signalRUrl = 'https://restaurant-pos-api-uvcz.onrender.com/notificationHub';
+  static const String baseUrl = 'https://de-an.onrender.com/api';
+  static const String signalRUrl = 'https://de-an.onrender.com/notificationHub';
 }

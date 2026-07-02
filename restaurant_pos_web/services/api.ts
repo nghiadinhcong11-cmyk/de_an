@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL Backend mới nhất từ Render
-const API_URL = import.meta.env.VITE_API_URL || 'https://restaurant-pos-api-uvcz.onrender.com/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://de-an.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
