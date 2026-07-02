@@ -12,17 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. CORS - SignalR yêu cầu cụ thể Origin và AllowCredentials
+// 2. CORS - Hỗ trợ cả Web và Mobile (bao gồm các port random của emulator/localhost)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                "https://restaurant-pos-web1.onrender.com",
-                "https://de-an.onrender.com",
-                "http://localhost:5173",
-                "http://localhost:3000"
-              )
+        policy.SetIsOriginAllowed(origin => true) // Cho phép tất cả các nguồn (để hỗ trợ mobile/localhost port ngẫu nhiên)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // Bắt buộc cho SignalR
