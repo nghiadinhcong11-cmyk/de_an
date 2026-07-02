@@ -39,24 +39,31 @@ export function OwnerEmployees() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [empRes, reqRes, branchRes, rolesRes, perfRes] = await Promise.all([
+      // Sử dụng Promise.allSettled để tránh việc một API lỗi làm đứng cả trang
+      const results = await Promise.allSettled([
         api.get("/users"),
         api.get("/users/pending-requests"),
         api.get("/branches"),
         api.get("/users/roles"),
         api.get("/reports/staff-performance")
       ]);
-      setEmployees(empRes.data);
-      setPendingRequests(reqRes.data);
-      setBranches(branchRes.data);
-      setRoles(rolesRes.data);
-      setPerformance(perfRes.data);
 
-      if (branchRes.data.length > 0 && addForm.branchId === "all") {
-          setAddForm(prev => ({ ...prev, branchId: branchRes.data[0].id }));
+      if (results[0].status === 'fulfilled') setEmployees(results[0].value.data);
+      if (results[1].status === 'fulfilled') setPendingRequests(results[1].value.data);
+
+      if (results[2].status === 'fulfilled') {
+        const branchData = results[2].value.data;
+        setBranches(branchData);
+        if (branchData.length > 0 && addForm.branchId === "all") {
+          setAddForm(prev => ({ ...prev, branchId: branchData[0].id }));
+        }
       }
+
+      if (results[3].status === 'fulfilled') setRoles(results[3].value.data);
+      if (results[4].status === 'fulfilled') setPerformance(results[4].value.data);
+
     } catch (err) {
-        console.error("Lỗi lấy dữ liệu nhân viên");
+        console.error("Lỗi lấy dữ liệu nhân viên", err);
     } finally { setLoading(false); }
   };
 
@@ -278,7 +285,8 @@ export function OwnerEmployees() {
                                 }`}>
                                     {emp.roleName === 'Owner' ? 'Chủ quán' :
                                      emp.roleName === 'Manager' ? 'Quản lý' :
-                                     emp.roleName === 'Cashier' ? 'Thu ngân' : 'Phục vụ'}
+                                     emp.roleName === 'Cashier' ? 'Thu ngân' :
+                                     emp.roleName === 'Waiter' ? 'Phục vụ' : emp.roleName}
                                 </div>
                             </TableCell>
                             <TableCell>
@@ -301,13 +309,22 @@ export function OwnerEmployees() {
                                   <Button
                                     onClick={() => handleToggleLock(emp.id)}
                                     variant="ghost" size="icon"
-                                    title={emp.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản"}
-                                    className={`h-8 w-8 transition-colors ${emp.isActive ? 'text-gray-300 hover:text-orange-600' : 'text-orange-600 hover:text-green-600'}`}
+                                    disabled={emp.roleName === 'Owner'}
+                                    title={emp.roleName === 'Owner' ? "Không thể khóa tài khoản chủ quán" : (emp.isActive ? "Khóa tài khoản" : "Mở khóa tài khoản")}
+                                    className={`h-8 w-8 transition-colors ${emp.roleName === 'Owner' ? 'opacity-20 cursor-not-allowed' : (emp.isActive ? 'text-gray-300 hover:text-orange-600' : 'text-orange-600 hover:text-green-600')}`}
                                   >
                                     {emp.isActive ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                                   </Button>
                                   <Button onClick={() => handleEditClick(emp)} variant="ghost" size="icon" title="Chỉnh sửa" className="h-8 w-8 text-gray-300 hover:text-blue-600 transition-colors"><Edit className="w-4 h-4" /></Button>
-                                  <Button onClick={() => handleDeleteEmployee(emp.id)} variant="ghost" size="icon" title="Xóa vĩnh viễn" className="h-8 w-8 text-gray-300 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></Button>
+                                  <Button
+                                    onClick={() => handleDeleteEmployee(emp.id)}
+                                    disabled={emp.roleName === 'Owner'}
+                                    variant="ghost" size="icon"
+                                    title={emp.roleName === 'Owner' ? "Không thể xóa chủ quán" : "Xóa vĩnh viễn"}
+                                    className={`h-8 w-8 transition-colors ${emp.roleName === 'Owner' ? 'opacity-20 cursor-not-allowed' : 'text-gray-300 hover:text-red-500'}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                </div>
                             </TableCell>
                          </TableRow>
