@@ -25,4 +25,6 @@ RUN if [ -f ./backend/RestaurantPOS.csproj ]; then \
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/out .
+ENV ASPNETCORE_URLS=http://+:10000
+EXPOSE 10000
 ENTRYPOINT ["dotnet", "RestaurantPOS.dll"]
