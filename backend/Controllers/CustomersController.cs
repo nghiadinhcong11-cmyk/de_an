@@ -63,16 +63,31 @@ public class CustomersController : ControllerBase
     [HttpGet("me/points-history")]
     public async Task<IActionResult> GetMyPointsHistory()
     {
-        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var history = await _context.CustomerPointHistories
-            .Include(h => h.Order)
-                .ThenInclude(o => o!.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-            .Include(h => h.Order)
-                .ThenInclude(o => o!.CreatedByUser)
-            .Where(h => h.CustomerId == userId)
-            .OrderByDescending(h => h.CreatedAtUtc)
-            .Select(h => new {
+        try
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+            var userId = Guid.Parse(userIdStr);
+
+            var history = await _context.CustomerPointHistories
+                .Include(h => h.Order)
+                    .ThenInclude(o => o!.OrderItems)
+                        .ThenInclude(oi => oi.Product)
+                .Include(h => h.Order)
+                    .ThenInclude(o => o!.CreatedByUser)
+                .Where(h => h.CustomerId == userId)
+                .OrderByDescending(h => h.CreatedAtUtc)
+                .ToListAsync();
+
+            if (!history.Any()) return Ok(new List<object>());
+
+            var orderIds = history.Where(h => h.OrderId.HasValue).Select(h => h.OrderId!.Value).ToList();
+            var feedbacks = await _context.Feedbacks
+                .Where(f => f.OrderId != null && orderIds.Contains(f.OrderId.Value))
+                .Select(f => new { f.OrderId, f.Message, f.ServiceRating, f.FoodRating, f.PriceRating, f.AtmosphereRating })
+                .ToListAsync();
+
+            var result = history.Select(h => new {
                 h.Id,
                 h.Points,
                 h.Type,
@@ -84,18 +99,29 @@ public class CustomersController : ControllerBase
                     h.Order.TotalAmount,
                     h.Order.Status,
                     h.Order.IsReviewed,
-                    Rating = _context.Feedbacks.Where(f => f.OrderId == h.Order.Id).Select(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4.0).FirstOrDefault(),
-                    ReviewMessage = _context.Feedbacks.Where(f => f.OrderId == h.Order.Id).Select(f => f.Message).FirstOrDefault(),
+                    Rating = feedbacks.Where(f => f.OrderId == h.Order.Id)
+                                      .Select(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4.0)
+                                      .FirstOrDefault(),
+                    ReviewMessage = feedbacks.Where(f => f.OrderId == h.Order.Id).Select(f => f.Message).FirstOrDefault(),
                     CreatedByUserName = h.Order.CreatedByUser != null ? h.Order.CreatedByUser.FullName : "Hệ thống",
                     Items = h.Order.OrderItems.Select(oi => new {
-                        ProductName = oi.Product.Name,
+                        ProductName = oi.Product?.Name ?? "Sản phẩm",
                         oi.Quantity,
                         oi.TotalPrice
                     })
                 } : null
-            })
-            .ToListAsync();
-        return Ok(history);
+            });
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new {
+                message = "Lỗi khi lấy lịch sử điểm thưởng",
+                details = ex.Message,
+                inner = ex.InnerException?.Message
+            });
+        }
     }
 
     [HttpPost("loyalty/add-points")]

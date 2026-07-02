@@ -24,48 +24,64 @@ public class BranchesController : ControllerBase
     [HttpGet("public")]
     public async Task<IActionResult> GetPublicBranches([FromQuery] Guid? restaurantId)
     {
-        var query = _context.Branches.Where(b => b.IsActive);
-
-        if (restaurantId.HasValue && restaurantId.Value != Guid.Empty)
+        try
         {
-            query = query.Where(b => b.RestaurantId == restaurantId.Value);
-        }
+            var query = _context.Branches.Where(b => b.IsActive);
 
-        var branches = await query.ToListAsync();
-
-        if (branches.Count == 0)
-        {
-            branches = await _context.Branches
-                .Where(b => b.IsActive)
-                .Take(10)
-                .ToListAsync();
-        }
-
-        // Tính toán rating trung bình cho từng chi nhánh dựa trên Feedbacks
-        var branchIds = branches.Select(b => b.Id).ToList();
-        var ratings = await _context.Feedbacks
-            .Where(f => branchIds.Contains(f.BranchId ?? Guid.Empty))
-            .GroupBy(f => f.BranchId)
-            .Select(g => new
+            if (restaurantId.HasValue && restaurantId.Value != Guid.Empty)
             {
-                BranchId = g.Key,
-                AverageRating = (double)g.Average(f => f.ServiceRating),
-                ReviewCount = g.Count()
-            })
-            .ToDictionaryAsync(x => x.BranchId, x => new { x.AverageRating, x.ReviewCount });
+                query = query.Where(b => b.RestaurantId == restaurantId.Value);
+            }
 
-        var result = branches.Select(b => new {
-            b.Id,
-            b.RestaurantId,
-            b.Name,
-            b.Address,
-            b.Phone,
-            b.IsActive,
-            AverageRating = ratings.ContainsKey(b.Id) ? ratings[b.Id].AverageRating : 5.0,
-            ReviewCount = ratings.ContainsKey(b.Id) ? ratings[b.Id].ReviewCount : 0
-        }).ToList();
+            var branches = await query.ToListAsync();
 
-        return Ok(result);
+            if (branches.Count == 0 && (!restaurantId.HasValue || restaurantId == Guid.Empty))
+            {
+                branches = await _context.Branches
+                    .Where(b => b.IsActive)
+                    .Take(10)
+                    .ToListAsync();
+            }
+
+            // Tính toán rating trung bình cho từng chi nhánh dựa trên Feedbacks
+            var branchIds = branches.Select(b => b.Id).ToList();
+
+            var feedbackStats = await _context.Feedbacks
+                .Where(f => f.BranchId != null && branchIds.Contains(f.BranchId.Value))
+                .Select(f => new { f.BranchId, f.ServiceRating, f.FoodRating, f.PriceRating, f.AtmosphereRating })
+                .ToListAsync();
+
+            var ratings = feedbackStats
+                .GroupBy(f => f.BranchId!.Value)
+                .ToDictionary(
+                    g => g.Key,
+                    g => new {
+                        AverageRating = g.Average(f => (f.ServiceRating + f.FoodRating + f.PriceRating + f.AtmosphereRating) / 4.0),
+                        ReviewCount = g.Count()
+                    }
+                );
+
+            var result = branches.Select(b => new {
+                b.Id,
+                b.RestaurantId,
+                b.Name,
+                b.Address,
+                b.Phone,
+                b.IsActive,
+                AverageRating = ratings.ContainsKey(b.Id) ? Math.Round(ratings[b.Id].AverageRating, 1) : 5.0,
+                ReviewCount = ratings.ContainsKey(b.Id) ? ratings[b.Id].ReviewCount : 0
+            }).ToList();
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new {
+                message = "Lỗi khi tải danh sách chi nhánh",
+                details = ex.Message,
+                inner = ex.InnerException?.Message
+            });
+        }
     }
 
     [Authorize]
