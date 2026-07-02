@@ -26,8 +26,6 @@ public class TablesController : ControllerBase
             Guid restaurantId;
             if (string.IsNullOrEmpty(restaurantIdStr))
             {
-                // Nếu không có RestaurantId trong token (khách hàng vãng lai/vừa login),
-                // thì yêu cầu phải có branchId để truy vấn
                 if (!branchId.HasValue) return BadRequest("Phải cung cấp branchId hoặc đăng nhập quyền quản lý");
 
                 var branch = await _context.Branches.FindAsync(branchId.Value);
@@ -36,7 +34,10 @@ public class TablesController : ControllerBase
             }
             else
             {
-                restaurantId = Guid.Parse(restaurantIdStr);
+                if (!Guid.TryParse(restaurantIdStr, out restaurantId))
+                {
+                    return BadRequest("Token không hợp lệ (RestaurantId invalid)");
+                }
             }
 
             var query = _context.DiningTables
@@ -47,9 +48,9 @@ public class TablesController : ControllerBase
             {
                 query = query.Where(t => t.BranchId == branchId.Value);
             }
-            else if (!string.IsNullOrEmpty(branchIdFromToken))
+            else if (!string.IsNullOrEmpty(branchIdFromToken) && Guid.TryParse(branchIdFromToken, out var bId))
             {
-                query = query.Where(t => t.BranchId == Guid.Parse(branchIdFromToken));
+                query = query.Where(t => t.BranchId == bId);
             }
             else
             {
@@ -64,7 +65,7 @@ public class TablesController : ControllerBase
                 .OrderBy(t => t.TableNumber)
                 .ToListAsync();
 
-            // Lấy danh sách tên chi nhánh để map vào kết quả
+            // Lấy danh sách tên chi nhánh
             var allBranchNames = await _context.Branches
                 .Where(b => b.RestaurantId == restaurantId)
                 .ToDictionaryAsync(b => b.Id, b => b.Name);
@@ -77,17 +78,22 @@ public class TablesController : ControllerBase
                 t.Capacity,
                 t.Status,
                 t.Note,
-                t.PosX,
-                t.PosY,
+                PosX = t.PosX,
+                PosY = t.PosY,
                 ZoneName = t.Zone?.Name ?? "Chung",
-                BranchName = allBranchNames.GetValueOrDefault(t.BranchId, "Không xác định")
+                BranchName = allBranchNames.ContainsKey(t.BranchId) ? allBranchNames[t.BranchId] : "Không xác định"
             });
 
             return Ok(result);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Lỗi máy chủ", details = ex.Message });
+            return StatusCode(500, new {
+                message = "Lỗi khi lấy danh sách bàn",
+                details = ex.Message,
+                inner = ex.InnerException?.Message,
+                stack = ex.StackTrace
+            });
         }
     }
 

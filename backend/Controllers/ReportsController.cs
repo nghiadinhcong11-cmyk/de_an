@@ -218,55 +218,72 @@ public class ReportsController : ControllerBase
     [HttpGet("staff-performance")]
     public async Task<IActionResult> GetStaffPerformance([FromQuery] int? month, [FromQuery] int? year)
     {
-        var restaurantId = Guid.Parse(User.FindFirstValue("RestaurantId")!);
-
-        var query = _context.Feedbacks
-            .Where(f => f.RestaurantId == restaurantId && f.StaffId != null);
-
-        if (month.HasValue && year.HasValue)
+        try
         {
-            query = query.Where(f => f.CreatedAtUtc.Month == month.Value && f.CreatedAtUtc.Year == year.Value);
-        }
+            var resIdStr = User.FindFirstValue("RestaurantId");
+            if (string.IsNullOrEmpty(resIdStr)) return Unauthorized("Không tìm thấy RestaurantId trong token");
+            var restaurantId = Guid.Parse(resIdStr);
 
-        var performance = await query
-            .GroupBy(f => f.StaffId)
-            .Select(g => new
+            var query = _context.Feedbacks
+                .Where(f => f.RestaurantId == restaurantId && f.StaffId != null);
+
+            if (month.HasValue && year.HasValue)
             {
-                StaffId = g.Key,
-                AverageRating = (double)g.Average(f => f.ServiceRating),
-                FeedbackCount = g.Count(),
-                FiveStarCount = g.Count(f => f.ServiceRating == 5),
-                OneStarCount = g.Count(f => f.ServiceRating == 1)
+                query = query.Where(f => f.CreatedAtUtc.Month == month.Value && f.CreatedAtUtc.Year == year.Value);
+            }
+
+            var performanceData = await query
+                .GroupBy(f => f.StaffId)
+                .Select(g => new
+                {
+                    StaffId = g.Key,
+                    AverageRating = g.Average(f => (double)f.ServiceRating),
+                    FeedbackCount = g.Count(),
+                    FiveStarCount = g.Count(f => f.ServiceRating == 5),
+                    OneStarCount = g.Count(f => f.ServiceRating == 1)
+                })
+                .ToListAsync();
+
+            if (!performanceData.Any()) return Ok(new List<object>());
+
+            var staffIds = performanceData.Where(p => p.StaffId.HasValue).Select(p => p.StaffId!.Value).ToList();
+            var staffNames = await _context.Users
+                .Where(u => staffIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+            var result = performanceData.Select(p =>
+            {
+                double avg = p.AverageRating;
+                // Công thức tính điểm hiệu suất: 70% từ số sao trung bình, 30% từ số lượng đánh giá (tối đa 50 lượt)
+                double ratingScore = avg * 14; // Max 70 (5 * 14)
+                double quantityScore = Math.Min(p.FeedbackCount, 50) * 0.6; // Max 30 (50 * 0.6)
+                double totalScore = Math.Round(ratingScore + quantityScore, 1);
+
+                return new
+                {
+                    p.StaffId,
+                    StaffName = staffNames.GetValueOrDefault(p.StaffId ?? Guid.Empty, "Ẩn danh"),
+                    AverageRating = Math.Round(avg, 1),
+                    p.FeedbackCount,
+                    p.FiveStarCount,
+                    p.OneStarCount,
+                    PerformanceScore = totalScore
+                };
             })
-            .ToListAsync();
+            .OrderByDescending(x => x.PerformanceScore)
+            .ToList();
 
-        var staffIds = performance.Select(p => p.StaffId!.Value).ToList();
-        var staffNames = await _context.Users
-            .Where(u => staffIds.Contains(u.Id))
-            .ToDictionaryAsync(u => u.Id, u => u.FullName);
-
-        var result = performance.Select(p =>
+            return Ok(result);
+        }
+        catch (Exception ex)
         {
-            // Công thức tính điểm hiệu suất: 70% từ số sao trung bình, 30% từ số lượng đánh giá (tối đa 50 lượt)
-            double ratingScore = p.AverageRating * 14; // Max 70 (5 * 14)
-            double quantityScore = Math.Min(p.FeedbackCount, 50) * 0.6; // Max 30 (50 * 0.6)
-            double totalScore = Math.Round(ratingScore + quantityScore, 1);
-
-            return new
+            return StatusCode(500, new
             {
-                p.StaffId,
-                StaffName = staffNames.GetValueOrDefault(p.StaffId!.Value, "Ẩn danh"),
-                p.AverageRating,
-                p.FeedbackCount,
-                p.FiveStarCount,
-                p.OneStarCount,
-                PerformanceScore = totalScore
-            };
-        })
-        .OrderByDescending(x => x.PerformanceScore)
-        .ToList();
-
-        return Ok(result);
+                message = "Lỗi khi thống kê hiệu suất nhân viên",
+                details = ex.Message,
+                inner = ex.InnerException?.Message
+            });
+        }
     }
 
     // 9. Thống kê số lượng đơn theo giờ (Mặc định múi giờ VN UTC+7)
