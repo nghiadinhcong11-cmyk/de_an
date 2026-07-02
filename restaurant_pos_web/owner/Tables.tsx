@@ -34,26 +34,37 @@ export function OwnerTables() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [tableRes, branchRes] = await Promise.all([
-        api.get("/tables"),
-        api.get("/branches")
-      ]);
-      setTables(tableRes.data);
-      setBranches(branchRes.data);
 
-      const zonePromises = branchRes.data.map((b: any) => api.get(`/zones?branchId=${b.id}`));
-      const zoneResponses = await Promise.all(zonePromises);
-      const combinedZones = zoneResponses.flatMap(r => r.data);
-      setAllZones(combinedZones);
+      // Lấy danh sách chi nhánh trước để unblock UI
+      try {
+          const branchRes = await api.get("/branches");
+          setBranches(branchRes.data);
 
-      // Mặc định mở rộng tất cả các khu vực lần đầu tải
-      const initialExpanded: Record<string, boolean> = {};
-      combinedZones.forEach(z => { initialExpanded[z.id] = true; });
-      initialExpanded['none'] = true;
-      setExpandedZones(initialExpanded);
+          if (branchRes.data.length > 0) {
+              const zonePromises = branchRes.data.map((b: any) => api.get(`/zones?branchId=${b.id}`));
+              const zoneResponses = await Promise.all(zonePromises);
+              const combinedZones = zoneResponses.flatMap(r => r.data);
+              setAllZones(combinedZones);
+
+              const initialExpanded: Record<string, boolean> = {};
+              combinedZones.forEach(z => { initialExpanded[z.id] = true; });
+              initialExpanded['none'] = true;
+              setExpandedZones(initialExpanded);
+          }
+      } catch (err) {
+          console.error("Lỗi tải chi nhánh hoặc khu vực", err);
+      }
+
+      // Lấy danh sách bàn sau
+      try {
+          const tableRes = await api.get("/tables");
+          setTables(tableRes.data);
+      } catch (err) {
+          console.error("Lỗi tải danh sách bàn", err);
+      }
 
     } catch (err) {
-      console.error("Lỗi lấy dữ liệu bàn");
+      console.error("Lỗi lấy dữ liệu tổng thể");
     } finally {
       setLoading(false);
     }

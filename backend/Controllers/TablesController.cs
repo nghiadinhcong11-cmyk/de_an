@@ -23,21 +23,22 @@ public class TablesController : ControllerBase
             var restaurantIdStr = User.FindFirstValue("RestaurantId");
             var branchIdFromToken = User.FindFirstValue("BranchId");
 
-            Guid restaurantId;
-            if (string.IsNullOrEmpty(restaurantIdStr))
+            Guid restaurantId = Guid.Empty;
+            if (!string.IsNullOrEmpty(restaurantIdStr))
             {
-                if (!branchId.HasValue) return BadRequest("Phải cung cấp branchId hoặc đăng nhập quyền quản lý");
-
-                var branch = await _context.Branches.FindAsync(branchId.Value);
-                if (branch == null) return NotFound("Chi nhánh không tồn tại");
-                restaurantId = branch.RestaurantId;
+                Guid.TryParse(restaurantIdStr, out restaurantId);
             }
-            else
+
+            // Nếu không có restaurantId từ token, thử lấy từ chi nhánh nếu được cung cấp
+            if (restaurantId == Guid.Empty && branchId.HasValue)
             {
-                if (!Guid.TryParse(restaurantIdStr, out restaurantId))
-                {
-                    return BadRequest("Token không hợp lệ (RestaurantId invalid)");
-                }
+                var branch = await _context.Branches.FindAsync(branchId.Value);
+                if (branch != null) restaurantId = branch.RestaurantId;
+            }
+
+            if (restaurantId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Không xác định được mã nhà hàng. Vui lòng đăng nhập lại." });
             }
 
             var query = _context.DiningTables
@@ -65,10 +66,13 @@ public class TablesController : ControllerBase
                 .OrderBy(t => t.TableNumber)
                 .ToListAsync();
 
-            // Lấy danh sách tên chi nhánh
-            var allBranchNames = await _context.Branches
+            // Lấy danh sách tên chi nhánh an toàn
+            var allBranches = await _context.Branches
                 .Where(b => b.RestaurantId == restaurantId)
-                .ToDictionaryAsync(b => b.Id, b => b.Name);
+                .Select(b => new { b.Id, b.Name })
+                .ToListAsync();
+
+            var branchMap = allBranches.ToDictionary(b => b.Id, b => b.Name);
 
             var result = tables.Select(t => new {
                 t.Id,
@@ -81,18 +85,17 @@ public class TablesController : ControllerBase
                 PosX = t.PosX,
                 PosY = t.PosY,
                 ZoneName = t.Zone?.Name ?? "Chung",
-                BranchName = allBranchNames.ContainsKey(t.BranchId) ? allBranchNames[t.BranchId] : "Không xác định"
-            });
+                BranchName = branchMap.ContainsKey(t.BranchId) ? branchMap[t.BranchId] : "Không xác định"
+            }).ToList();
 
             return Ok(result);
         }
         catch (Exception ex)
         {
             return StatusCode(500, new {
-                message = "Lỗi khi lấy danh sách bàn",
+                message = "Lỗi máy chủ khi tải danh sách bàn",
                 details = ex.Message,
-                inner = ex.InnerException?.Message,
-                stack = ex.StackTrace
+                inner = ex.InnerException?.Message
             });
         }
     }
