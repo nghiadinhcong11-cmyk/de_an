@@ -130,9 +130,9 @@ class _POSScreenState extends State<POSScreen> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.7,
                         ),
                     itemCount: orderProvider.products.length,
                     itemBuilder: (context, index) {
@@ -241,41 +241,48 @@ class _POSScreenState extends State<POSScreen> {
                                         ),
                                       )
                                     else
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          _QtyBtn(
-                                            icon: Icons.remove,
-                                            onTap: () => setState(
-                                              () => _cart[product.id] = qty - 1,
+                                      SizedBox(
+                                        height: 32,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _QtyBtn(
+                                              icon: Icons.remove,
+                                              onTap: () => setState(
+                                                () => _cart[product.id] = qty - 1,
+                                              ),
                                             ),
-                                          ),
-                                          TweenAnimationBuilder<int>(
-                                            tween: IntTween(
-                                              begin: qty,
-                                              end: qty,
-                                            ),
-                                            duration: const Duration(
-                                              milliseconds: 200,
-                                            ),
-                                            builder: (context, value, child) =>
-                                                Text(
-                                                  value.toString(),
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w900,
-                                                    fontSize: 16,
+                                            Expanded(
+                                              child: Center(
+                                                child: TweenAnimationBuilder<int>(
+                                                  tween: IntTween(
+                                                    begin: qty,
+                                                    end: qty,
                                                   ),
+                                                  duration: const Duration(
+                                                    milliseconds: 200,
+                                                  ),
+                                                  builder: (context, value, child) =>
+                                                      Text(
+                                                        value.toString(),
+                                                        style: const TextStyle(
+                                                          fontWeight: FontWeight.w900,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
                                                 ),
-                                          ),
-                                          _QtyBtn(
-                                            icon: Icons.add,
-                                            isPlus: true,
-                                            onTap: () => setState(
-                                              () => _cart[product.id] = qty + 1,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                            _QtyBtn(
+                                              icon: Icons.add,
+                                              isPlus: true,
+                                              onTap: () => setState(
+                                                () => _cart[product.id] = qty + 1,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                   ],
                                 ),
