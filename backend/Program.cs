@@ -12,14 +12,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. CORS - Đặt cấu hình thoáng nhất cho Production để dập lỗi
+// 2. CORS - SignalR yêu cầu cụ thể Origin và AllowCredentials
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+                "https://restaurant-pos-web1.onrender.com",
+                "https://de-an.onrender.com",
+                "http://localhost:5173",
+                "http://localhost:3000"
+              )
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // Bắt buộc cho SignalR
     });
 });
 

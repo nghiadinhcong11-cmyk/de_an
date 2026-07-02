@@ -122,7 +122,8 @@ public class OrdersController : ControllerBase
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     UnitPrice = product.Price,
-                    TotalPrice = itemTotal
+                    TotalPrice = itemTotal,
+                    Note = item.Note
                 });
                 total += itemTotal;
             }
@@ -155,6 +156,7 @@ public class OrdersController : ControllerBase
     {
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
+        public string? Note { get; set; }
     }
 
     [HttpGet("customer/my-orders")]
@@ -391,7 +393,8 @@ public class OrdersController : ControllerBase
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     UnitPrice = product.Price,
-                    TotalPrice = itemTotal
+                    TotalPrice = itemTotal,
+                    Note = item.Note
                 });
                 additionalTotal += itemTotal;
             }
