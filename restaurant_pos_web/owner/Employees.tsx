@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Label } from "../components/ui/label";
-import { Search, Edit, Trash2, CheckCircle, XCircle, Loader2, UserPlus, MapPin, ShieldCheck, Lock, Unlock, Star, Award, TrendingUp, Trophy } from "lucide-react";
+import { Search, Edit, Trash2, CheckCircle, XCircle, Loader2, UserPlus, MapPin, ShieldCheck, Lock, Unlock, Star, Award, TrendingUp, Trophy, Plus } from "lucide-react";
 import api from "../services/api";
 
 export function OwnerEmployees() {
@@ -24,6 +24,8 @@ export function OwnerEmployees() {
   // Edit employee state
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [newRoleName, setNewRoleName] = useState("");
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [editForm, setEditForm] = useState({ branchId: "", roleName: "" });
   const [addForm, setAddForm] = useState({
@@ -132,6 +134,28 @@ export function OwnerEmployees() {
     } catch { alert("Lỗi khi cập nhật"); }
   };
 
+  const handleCreateRole = async () => {
+    if (!newRoleName.trim()) return alert("Vui lòng nhập tên vai trò");
+    try {
+      await api.post("/users/roles", { name: newRoleName });
+      setNewRoleName("");
+      setIsRoleModalOpen(false);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data || "Lỗi khi tạo vai trò");
+    }
+  };
+
+  const handleDeleteRole = async (id: string) => {
+    if (!confirm("Xóa vai trò này?")) return;
+    try {
+      await api.delete(`/users/roles/${id}`);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Lỗi khi xóa vai trò");
+    }
+  };
+
   const filteredEmployees = employees.filter(emp =>
     emp.fullName.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -172,7 +196,11 @@ export function OwnerEmployees() {
                             <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 {roles.filter(r => r.name !== 'Owner').map(r => (
-                                    <SelectItem key={r.id} value={r.name}>{r.name === 'Manager' ? 'Quản lý' : r.name === 'Cashier' ? 'Thu ngân' : 'Phục vụ'}</SelectItem>
+                                    <SelectItem key={r.id} value={r.name}>
+                                        {r.name === 'Manager' ? 'Quản lý' :
+                                         r.name === 'Cashier' ? 'Thu ngân' :
+                                         r.name === 'Waiter' ? 'Phục vụ' : r.name}
+                                    </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
@@ -199,6 +227,7 @@ export function OwnerEmployees() {
         <TabsList className="mb-6 bg-white border border-gray-100 p-1 rounded-xl shadow-sm flex flex-wrap h-auto">
           <TabsTrigger value="list" className="flex-1 sm:flex-none px-8 font-bold">Đang làm việc ({employees.length})</TabsTrigger>
           <TabsTrigger value="requests" className="flex-1 sm:flex-none px-8 font-bold gap-2">Yêu cầu mới {pendingRequests.length > 0 && <Badge className="bg-red-500 text-white border-none">{pendingRequests.length}</Badge>}</TabsTrigger>
+          <TabsTrigger value="roles" className="flex-1 sm:flex-none px-8 font-bold">Cấu hình Vai trò</TabsTrigger>
           <TabsTrigger value="performance" className="flex-1 sm:flex-none px-8 font-bold gap-2">
             <Trophy className="w-4 h-4 text-orange-500" /> Bảng vàng nhân sự
           </TabsTrigger>
@@ -288,6 +317,52 @@ export function OwnerEmployees() {
                )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="roles">
+            <Card className="border-none shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between border-b border-gray-50 bg-white">
+                    <div>
+                        <CardTitle className="text-xl font-black">Danh sách vai trò</CardTitle>
+                        <p className="text-gray-400 text-xs font-bold uppercase mt-1">Quản lý các cấp bậc quyền hạn trong hệ thống</p>
+                    </div>
+                    <Button onClick={() => setIsRoleModalOpen(true)} className="bg-gray-900 font-bold h-10 px-6 rounded-xl">
+                        <Plus className="w-4 h-4 mr-2" /> Thêm vai trò
+                    </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader className="bg-gray-50/50">
+                            <TableRow>
+                                <TableHead className="font-bold">Tên vai trò</TableHead>
+                                <TableHead className="font-bold">Loại</TableHead>
+                                <TableHead className="text-right font-bold">Hành động</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {roles.map(role => (
+                                <TableRow key={role.id}>
+                                    <TableCell className="font-black text-gray-900">{role.name}</TableCell>
+                                    <TableCell>
+                                        {['Owner', 'Manager', 'Waiter', 'Cashier'].includes(role.name) ? (
+                                            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-black text-[9px] uppercase">Hệ thống</Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-100 font-black text-[9px] uppercase">Tùy chỉnh</Badge>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {!['Owner', 'Manager', 'Waiter', 'Cashier'].includes(role.name) && (
+                                            <Button onClick={() => handleDeleteRole(role.id)} variant="ghost" size="icon" className="text-gray-300 hover:text-red-500">
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </TabsContent>
 
         <TabsContent value="performance">
@@ -455,7 +530,14 @@ export function OwnerEmployees() {
                     <Select value={editForm.roleName} onValueChange={(val) => setEditForm({...editForm, roleName: val})}>
                         <SelectTrigger className="h-12 rounded-xl border-gray-100"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                            {roles.map(r => <SelectItem key={r.id} value={r.name}>{r.name === 'Owner' ? 'Chủ quán' : r.name === 'Manager' ? 'Quản lý' : r.name === 'Cashier' ? 'Thu ngân' : 'Phục vụ'}</SelectItem>)}
+                            {roles.map(r => (
+                                <SelectItem key={r.id} value={r.name}>
+                                    {r.name === 'Owner' ? 'Chủ quán' :
+                                     r.name === 'Manager' ? 'Quản lý' :
+                                     r.name === 'Cashier' ? 'Thu ngân' :
+                                     r.name === 'Waiter' ? 'Phục vụ' : r.name}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -473,6 +555,32 @@ export function OwnerEmployees() {
 
                 <Button onClick={handleUpdate} className="w-full h-12 bg-orange-600 hover:bg-orange-700 font-black text-lg shadow-xl shadow-orange-100 mt-4 rounded-xl">LƯU THAY ĐỔI</Button>
             </div>
+          </DialogContent>
+      </Dialog>
+
+      {/* CREATE ROLE DIALOG */}
+      <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
+          <DialogContent className="max-w-sm rounded-[32px]">
+              <DialogHeader>
+                  <DialogTitle className="text-2xl font-black">Thêm vai trò mới</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                  <div className="space-y-1.5">
+                      <Label className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Tên vai trò</Label>
+                      <Input
+                        value={newRoleName}
+                        onChange={(e: any) => setNewRoleName(e.target.value)}
+                        placeholder="Vd: Bảo vệ, Tạp vụ..."
+                        className="h-12 rounded-xl"
+                      />
+                  </div>
+                  <Button
+                    onClick={handleCreateRole}
+                    className="w-full h-12 bg-orange-600 hover:bg-orange-700 font-black shadow-lg shadow-orange-100 rounded-xl mt-2"
+                  >
+                    TẠO VAI TRÒ
+                  </Button>
+              </div>
           </DialogContent>
       </Dialog>
     </div>

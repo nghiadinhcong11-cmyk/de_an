@@ -103,6 +103,40 @@ public class UsersController : ControllerBase
         return Ok(await _context.Roles.ToListAsync());
     }
 
+    [HttpPost("roles")]
+    public async Task<IActionResult> CreateRole([FromBody] Role role)
+    {
+        if (string.IsNullOrEmpty(role.Name)) return BadRequest("Tên vai trò không được để trống");
+
+        // Tránh trùng tên
+        if (await _context.Roles.AnyAsync(r => r.Name == role.Name))
+            return BadRequest("Vai trò này đã tồn tại");
+
+        _context.Roles.Add(role);
+        await _context.SaveChangesAsync();
+        return Ok(role);
+    }
+
+    [HttpDelete("roles/{id}")]
+    public async Task<IActionResult> DeleteRole(Guid id)
+    {
+        var role = await _context.Roles.FindAsync(id);
+        if (role == null) return NotFound();
+
+        // Không cho phép xóa các vai trò hệ thống quan trọng
+        var systemRoles = new[] { "Owner", "Manager", "Waiter", "Cashier" };
+        if (systemRoles.Contains(role.Name))
+            return BadRequest("Không thể xóa vai trò hệ thống mặc định");
+
+        // Kiểm tra xem có user nào đang dùng vai trò này không
+        if (await _context.UserRoles.AnyAsync(ur => ur.RoleId == id))
+            return BadRequest("Không thể xóa vai trò đang có nhân viên sử dụng");
+
+        _context.Roles.Remove(role);
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Đã xóa vai trò thành công" });
+    }
+
     [HttpGet("me")]
     public async Task<IActionResult> GetMyProfile()
     {
